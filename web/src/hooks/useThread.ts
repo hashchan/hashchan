@@ -1,19 +1,41 @@
 import {useState, useEffect, useCallback} from 'react'
-import { useAccount, useWalletClient } from 'wagmi'
+import { useAccount, usePublicClient, useWatchContractEvent } from 'wagmi'
+import { address as hashChanAddress, abi } from '@/assets/HashChan.json'
+import { parseAbiItem } from 'viem'
 
-
-export const useThread = () => {
+export const useThread = (threadId:string) => {
   const { address } = useAccount()
-  const walletClient = useWalletClient()
+  const publicClient = usePublicClient()
+  //const walletClient = useWalletClient()
   const [posts, setPosts] = useState([])
-
-  const fetchPosts = useCallback(async () => {
-    if (!walletClient && !address) {
-    } else {
+  useWatchContractEvent({
+    address: hashChanAddress,
+    abi,
+    args: {
+      threadId: threadId
+    },
+    eventName: 'Comment',
+    onLogs(logs) {
+      console.log(logs)
     }
+  })
+  const fetchPosts = useCallback(async () => {
+    if (publicClient && address) {
+      publicClient.getLogs({
+        address: hashChanAddress,
+        eventName: parseAbiItem('event Comment(address indexed, bytes32 indexed, bytes32, bytes32, string, string)'),
+        fromBlock: 0n,
+        toBlock: 'latest'
+      }).then((logs) => {
+        console.log(logs)
+      })
+    }
+  }, [publicClient, address])
+  
+  return {
+    posts,
+    fetchPosts
+  }
 
+}
 
-
-
-
-  }, [walletClient, address])
