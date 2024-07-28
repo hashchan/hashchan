@@ -43,6 +43,12 @@
       "inputs": [
         {
           "indexed": true,
+          "internalType": "enum HashChan.Board",
+          "name": "board",
+          "type": "uint8"
+        },
+        {
+          "indexed": true,
           "internalType": "address",
           "name": "creator",
           "type": "address"
@@ -100,6 +106,11 @@
     },
     {
       "inputs": [
+        {
+          "internalType": "enum HashChan.Board",
+          "name": "board",
+          "type": "uint8"
+        },
         {
           "internalType": "string",
           "name": "title",

@@ -1,7 +1,16 @@
 pragma solidity 0.8.26;
 
 contract HashChan {
+  enum Board {
+    pol,
+    biz,
+    g,
+    sci,
+    x
+  }
+
   event Thread (
+    Board indexed board,
     address indexed creator,
     bytes32 indexed id,
     string imgUrl,
@@ -17,17 +26,21 @@ contract HashChan {
   );
 
   function createThread(
+    Board board,
     string memory title,
     string memory url,
     string memory content
   ) public {
     bytes32 threadId = keccak256(
       abi.encode(
+        board,
+        title,
         msg.sender,
-        blockhash(block.number - 1)
-    ));
+        block.coinbase
+      ));
 
     emit Thread (
+      board,
       msg.sender,
       threadId,
       url,

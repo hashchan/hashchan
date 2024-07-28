@@ -11,6 +11,7 @@ export const useThreads = () => {
 
   //const walletClient = useWalletClient()
   const [threads, setThreads] = useState([])
+  /*
   useWatchContractEvent({
     address: hashChanAddress as `0x${string}`,
     abi,
@@ -21,6 +22,7 @@ export const useThreads = () => {
       console.log(logs)
     }
   })
+ */
   const fetchThreads = useCallback(async () => {
     if (publicClient && address) {
       publicClient.getLogs({

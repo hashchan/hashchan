@@ -8,6 +8,8 @@ import {
 import { writeContract,waitForTransactionReceipt  } from '@wagmi/core'
 import { address as hashChanAddress, abi } from '@/assets/HashChan.json'
 import { parseAbiItem, parseEventLogs } from 'viem'
+
+import { boardsMap } from '@/utils'
 import { config } from '@/config'
 export const useThread = (threadId: string) => {
   const { address } = useAccount()
@@ -15,26 +17,36 @@ export const useThread = (threadId: string) => {
   const walletClient = useWalletClient()
   const [op, setOp] = useState(null)
   const [posts, setPosts] = useState([])
-  //const walletClient = useWalletClient()
-  /*
-  useWatchContractEvent({
-    address: hashChanAddress as `0x${string}`,
-    abi,
-    args: {
-      threadId: threadId
-    },
-    eventName: 'Comment',
-    onLogs(logs) {
-      console.log(logs)
-    }
-  })
- */
+
+  const watchThread = useCallback(async () => {
+    if (publicClient && address) {
+      const unwatch = publicClient.watchContractEvent({
+        address: hashChanAddress as `0x${string}`,
+        abi,
+        eventName: 'Comment',
+        args: {
+          threadId
+        },
+        onLogs(logs) {
+          const post = {
+            creator: logs[0].args.creator,
+            id: logs[0].args.id,
+            imgUrl: logs[0].args.imgUrl,
+            content: logs[0].args.content
+          }
+          setPosts(old => [...old, post])
+        }
+      })
+    }  
+  }, [publicClient, address, threadId])
+
+
 
   const fetchThread = useCallback(async () => {
     if (publicClient && address) {
       const filter = await publicClient.createEventFilter({
         address: hashChanAddress as `0x${string}`,
-        event: parseAbiItem("event Thread(address indexed, bytes32 indexed, string, string, string)"),
+        event: parseAbiItem("event Thread(uint8 indexed, address indexed, bytes32 indexed, string, string, string)"),
         args: {
           threadId: threadId
         }
@@ -45,11 +57,11 @@ export const useThread = (threadId: string) => {
       })
 
       setOp({
-        creator: logs[0].args[0],
-        id: logs[0].args[1],
-        title: logs[0].args[2],
-        imgUrl: logs[0].args[3],
-        content: logs[0].args[4]
+        creator: logs[0].args[1],
+        id: logs[0].args[2],
+        title: logs[0].args[3],
+        imgUrl: logs[0].args[4],
+        content: logs[0].args[5]
 
       })
     }
@@ -70,6 +82,7 @@ export const useThread = (threadId: string) => {
   }, [publicClient, address])
 
   const createThread = useCallback(async (
+    board: string,
     title: string,
     url: string,
     content: string
@@ -80,10 +93,12 @@ export const useThread = (threadId: string) => {
         abi,
         functionName: 'createThread',
         args: [
+          boardsMap[board],
           title,
           url,
           content 
-        ]
+        ],
+        gas: 100000n
       })
       console.log('hash', hash)
       const receipt = await waitForTransactionReceipt(config, {
@@ -99,8 +114,7 @@ export const useThread = (threadId: string) => {
     } 
   }, [walletClient, address])
   
-  const createComment = useCallback(async (
-    threadId: string,
+  const createPost = useCallback(async (
     imgUrl: string,
     content: string
   ) => {
@@ -125,6 +139,7 @@ export const useThread = (threadId: string) => {
     if (threadId) {
       fetchThread()
       fetchPosts()
+      watchThread()
     }
   }, [threadId, fetchThread, fetchPosts])
 
@@ -132,7 +147,8 @@ export const useThread = (threadId: string) => {
     op: op,
     posts: posts,
     createThread: createThread,
-    fetchPosts: fetchPosts
+    fetchPosts: fetchPosts,
+    createPost: createPost
   }
 
 }
