@@ -9,13 +9,13 @@ import { writeContract,waitForTransactionReceipt  } from '@wagmi/core'
 import { address as hashChanAddress, abi } from '@/assets/HashChan.json'
 import { parseAbiItem, parseEventLogs } from 'viem'
 import { config } from '@/config'
-export const useThread = () => {
+export const useThread = (threadId: string) => {
   const { address } = useAccount()
   const publicClient = usePublicClient();
   const walletClient = useWalletClient()
-
-  //const walletClient = useWalletClient()
+  const [op, setOp] = useState(null)
   const [posts, setPosts] = useState([])
+  //const walletClient = useWalletClient()
   /*
   useWatchContractEvent({
     address: hashChanAddress as `0x${string}`,
@@ -29,16 +29,43 @@ export const useThread = () => {
     }
   })
  */
+
+  const fetchThread = useCallback(async () => {
+    if (publicClient && address) {
+      const filter = await publicClient.createEventFilter({
+        address: hashChanAddress as `0x${string}`,
+        event: parseAbiItem("event Thread(address indexed, bytes32 indexed, string, string, string)"),
+        args: {
+          threadId: threadId
+        }
+      })
+
+      let logs = await publicClient.getFilterLogs({
+        filter
+      })
+
+      setOp({
+        creator: logs[0].args[0],
+        id: logs[0].args[1],
+        title: logs[0].args[2],
+        imgUrl: logs[0].args[3],
+        content: logs[0].args[4]
+
+      })
+    }
+  }, [publicClient, address])
   const fetchPosts = useCallback(async () => {
     if (publicClient && address) {
-      publicClient.getLogs({
+      const filter = await publicClient.createEventFilter({
         address: hashChanAddress as `0x${string}`,
-        eventName: parseAbiItem('event Comment(address indexed, bytes32 indexed, bytes32, bytes32, string, string)'),
-        fromBlock: 0n,
-        toBlock: 'latest'
-      }).then((logs) => {
-        console.log(logs)
+        event: parseAbiItem("event Comment(address indexed, bytes32 indexed, bytes32 indexed, string, string)"),
       })
+
+      const logs = await publicClient.getFilterLogs({
+        filter
+      })
+      console.log('post logs', logs)
+
     }
   }, [publicClient, address])
 
@@ -93,10 +120,19 @@ export const useThread = () => {
     } 
   }, [walletClient, address])
 
+
+  useEffect(() => {
+    if (threadId) {
+      fetchThread()
+      fetchPosts()
+    }
+  }, [threadId, fetchThread, fetchPosts])
+
   return {
-    posts,
-    createThread,
-    fetchPosts
+    op: op,
+    posts: posts,
+    createThread: createThread,
+    fetchPosts: fetchPosts
   }
 
 }
