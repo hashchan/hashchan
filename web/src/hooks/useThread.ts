@@ -49,13 +49,15 @@ export const useThread = (threadId: string) => {
         event: parseAbiItem("event Thread(uint8 indexed, address indexed, bytes32 indexed, string, string, string)"),
         args: {
           threadId: threadId
-        }
+        },
+        fromBlock: 0n,
+        toBlock: 'latest'
       })
 
       let logs = await publicClient.getFilterLogs({
-        filter
+        filter,
       })
-
+      console.log('logs 60 op', logs)
       setOp({
         creator: logs[0].args[1],
         id: logs[0].args[2],
@@ -71,11 +73,26 @@ export const useThread = (threadId: string) => {
       const filter = await publicClient.createEventFilter({
         address: hashChanAddress as `0x${string}`,
         event: parseAbiItem("event Comment(address indexed, bytes32 indexed, bytes32 indexed, string, string)"),
+        fromBlock: 0n,
+        toBlock: 'latest',
+        args: {
+          threadId
+        }
       })
 
       const logs = await publicClient.getFilterLogs({
         filter
       })
+      const initialPosts = logs.map((log) => {
+        return {
+          creator: log.args[0],
+          id: log.args[1],
+          imgUrl: log.args[3],
+          content: log.args[4]
+        }
+      })
+      setPosts(initialPosts)
+
       console.log('post logs', logs)
 
     }
@@ -141,7 +158,7 @@ export const useThread = (threadId: string) => {
       fetchPosts()
       watchThread()
     }
-  }, [threadId, fetchThread, fetchPosts])
+  }, [threadId, fetchThread, fetchPosts, watchThread])
 
   return {
     op: op,

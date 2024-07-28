@@ -11,11 +11,10 @@ import { WagmiProvider  } from 'wagmi'
 import { config	} from './config'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
     <WagmiProvider config={config}>
       <QueryClientProvider client={new QueryClient()}>
         <RouterProvider router={router} />
       </QueryClientProvider>
     </WagmiProvider>
-  </React.StrictMode>,
+  ,
 )

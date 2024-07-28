@@ -25,9 +25,12 @@ export const CreateThread = ({board}: {board: string}) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
+      <label htmlFor="title">Title</label>
       <input defaultValue="" {...register("title")} />
+      <label htmlFor="imageUrl">Image Url</label>
       <input defaultValue="" {...register("imageUrl", { required: true })} />
       {errors.imageUrl && <span>This field is required</span>}
+      <label htmlFor="content">Content</label>
       <textarea defaultValue="" {...register("content", { required: true  })} />
 
       {errors.content && <span>This field is required</span>}
