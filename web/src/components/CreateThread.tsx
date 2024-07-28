@@ -14,8 +14,13 @@ export const CreateThread = ({board}: {board: string}) => {
       data.content
     )
     console.log('response', response)
+    if (!response) {
+      console.log('error')
+    } else {
+
+      navigate(`/boards/${board}/thread/${response}`)
+    }
     //go to /boards/:board/thread/:thread using react-router-dom
-    navigate(`/boards/${board}/thread/${response}`)
   }
 
   return (

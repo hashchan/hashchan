@@ -4,7 +4,8 @@ import { writeContract  } from '@wagmi/core'
 import { address as hashChanAddress, abi } from '@/assets/HashChan.json'
 import { parseAbiItem } from 'viem'
 import { config } from '@/config'
-export const useThreads = () => {
+import { boardsMap } from '@/utils'
+export const useThreads = ({board}: {board: string}) => {
   const { address } = useAccount()
   const publicClient = usePublicClient();
   const blockNumber = useBlockNumber()
@@ -36,7 +37,36 @@ export const useThreads = () => {
     }
   }, [publicClient, address])
 
+  const watchThreads = useCallback(async () => {
+   if (publicClient && address) {
+     const unwatch = publicClient.watchContractEvent({
+       address: hashChanAddress as `0x${string}`,
+       abi,
+       eventName: 'Thread',
+       args: {
+         board: boardsMap[board]
+       },
+       onLogs(logs) {
+         const thread = {
+           title: logs[0].args.title,
+           creator: logs[0].args.creator,
+           id: logs[0].args.id,
+           imgUrl: logs[0].args.imgUrl,
+           content: logs[0].args.content
+         }
+         setThreads(old => [...old, thread])
+         console.log(logs)
+       }
+     })
+   }
+  }, [publicClient, address, board])
 
+  useEffect(() => {
+    if (publicClient && address) {
+      //fetchThreads()
+      watchThreads()
+    }
+  }, [publicClient, address, board, watchThreads])
   return {
     threads,
     fetchThreads

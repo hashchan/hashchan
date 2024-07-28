@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { useThreads } from '@/hooks/useThreads'
-
+import { useNavigate } from 'react-router-dom'
 const ListItem = ({
   threadId, title, imgUrl
 }: {
@@ -9,18 +9,22 @@ const ListItem = ({
   imgUrl: string
 
 }) => {
-
-  return (<>
-
-  </>)
+  const { board } = useParams()
+  const navigate  = useNavigate()
+  return (<button onClick={() => navigate(`/boards/${board}/thread/${threadId}`)}>
+    <h3>{title}</h3>
+    <p>{threadId}</p>
+    <p>{imgUrl}</p>
+    <p>{threadId}</p>
+  </button>)
 }
 
 
-const List = (threads) => {
-
+const List = ({threads}: {threads: any}) => {
+  console.log('threads', threads)
   return (<>{
-    threads.map(({threadId, title, imgUrl}) => {
-      return <List key={threadId} threadId={threadId} title={title} imgUrl={imgUrl} />
+    threads.map(({id, title, imgUrl}, i) => {
+      return <ListItem key={id + i} threadId={id} title={title} imgUrl={imgUrl} />
     })
     }
   </>)
@@ -33,7 +37,9 @@ export const Catalogue = () => {
   return (
     <>
       <h1>Catalogue {board}</h1>
-
+      { threads && 
+      <List threads={threads} />
+      }
     </>
   )
 }
