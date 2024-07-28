@@ -3,26 +3,23 @@ pragma solidity 0.8.26;
 contract HashChan {
   event Thread (
     address indexed creator,
-    bytes32 id,
+    bytes32 indexed id,
     string imgUrl,
     string title,
-    string subject,
     string content
   );
   event Comment (
     address indexed creator,
     bytes32 indexed threadId,
-    bytes32 id,
-    bytes32 replyId,
+    bytes32 indexed id,
     string imgUrl,
     string content
   );
 
   function createThread(
-    string memory url,
     string memory title,
-    string memory content,
-    string memory subject
+    string memory url,
+    string memory content
   ) public {
     bytes32 threadId = keccak256(
       abi.encode(
@@ -35,14 +32,12 @@ contract HashChan {
       threadId,
       url,
       title,
-      subject,
       content
     );
   }
 
   function createComment(
     bytes32  threadId,
-    bytes32 replyId,
     string  memory imgUrl,
     string  memory content
   ) public {
@@ -51,7 +46,6 @@ contract HashChan {
       msg.sender,
       threadId,
       id,
-      replyId,
       imgUrl,
       content
     );

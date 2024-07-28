@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/home/taylor/Proto/hashchan/hardhat/contracts/HashChan.sol": {
-      "lastModificationDate": 1722078902746,
-      "contentHash": "1deaeb020ca93295f2333bb7dc619490",
+      "lastModificationDate": 1722149918460,
+      "contentHash": "7e52762cc516de6e980ba616eff6e4ac",
       "sourceName": "contracts/HashChan.sol",
       "solcConfig": {
         "version": "0.8.26",

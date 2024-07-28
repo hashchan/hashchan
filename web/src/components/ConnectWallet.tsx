@@ -1,0 +1,62 @@
+import { useState, useEffect } from 'react';
+import { Connector, useConnect  } from 'wagmi'
+import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from 'wagmi'
+
+const Account = () => {
+  const { address } = useAccount()
+  const { disconnect } = useDisconnect()
+  const { data: ensName } = useEnsName({ address })
+  const { data: ensAvatar } = useEnsAvatar({ name: ensName! })
+
+  return (
+    <div>
+      {ensAvatar && <img alt="ENS Avatar" src={ensAvatar} />}
+      {address && <div>{ensName ? `${ensName} (${address})` : address}</div>}
+      <button onClick={() => disconnect()}>Disconnect</button>
+    </div>
+  )
+}
+
+const WalletOptions = () => {
+  const { connectors, connect  } = useConnect()
+
+  return connectors.map((connector) => (
+    <WalletOption
+      key={connector.uid}
+      connector={connector}
+      onClick={() => connect({ connector })}
+    />
+  ))
+
+}
+
+
+const WalletOption = ({
+  connector,
+  onClick,
+}: {
+  connector: Connector
+  onClick: () => void
+})  => {
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    ;(async () => {
+      const provider = await connector.getProvider()
+      setReady(!!provider)
+    })()
+  }, [connector])
+
+  return (
+    <button disabled={!ready} onClick={onClick}>
+      {connector.name}
+    </button>
+  )
+}
+
+
+export  const ConnectWallet = () => {
+  const { isConnected } = useAccount()
+  if (isConnected) return <Account />
+  return <WalletOptions />
+}

@@ -17,15 +17,9 @@
           "type": "bytes32"
         },
         {
-          "indexed": false,
+          "indexed": true,
           "internalType": "bytes32",
           "name": "id",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes32",
-          "name": "replyId",
           "type": "bytes32"
         },
         {
@@ -54,7 +48,7 @@
           "type": "address"
         },
         {
-          "indexed": false,
+          "indexed": true,
           "internalType": "bytes32",
           "name": "id",
           "type": "bytes32"
@@ -74,12 +68,6 @@
         {
           "indexed": false,
           "internalType": "string",
-          "name": "subject",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
           "name": "content",
           "type": "string"
         }
@@ -92,11 +80,6 @@
         {
           "internalType": "bytes32",
           "name": "threadId",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "replyId",
           "type": "bytes32"
         },
         {
@@ -119,22 +102,17 @@
       "inputs": [
         {
           "internalType": "string",
-          "name": "url",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
           "name": "title",
           "type": "string"
         },
         {
           "internalType": "string",
-          "name": "content",
+          "name": "url",
           "type": "string"
         },
         {
           "internalType": "string",
-          "name": "subject",
+          "name": "content",
           "type": "string"
         }
       ],
