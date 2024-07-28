@@ -26,15 +26,22 @@ export const CreateThread = ({board}: {board: string}) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <label htmlFor="title">Title</label>
-      <input defaultValue="" {...register("title")} />
+      <div>
+        <input style={{width:'60vw'}} defaultValue="" {...register("title")} />
+      </div>
       <label htmlFor="imageUrl">Image Url</label>
-      <input defaultValue="" {...register("imageUrl", { required: true })} />
+      <div>
+      <input style={{width:'60vw'}} defaultValue="" {...register("imageUrl", { required: true })} />
       {errors.imageUrl && <span>This field is required</span>}
+      </div>
       <label htmlFor="content">Content</label>
-      <textarea defaultValue="" {...register("content", { required: true  })} />
-
-      {errors.content && <span>This field is required</span>}
-      <input type="submit" />
+      <div>
+        <textarea style={{width:'60vw', height:'120px'}} defaultValue="" {...register("content", { required: true  })} />
+        {errors.content && <span>This field is required</span>}
+      </div>
+      <div>
+        <input type="submit" />
+      </div>
     </form>
 
   );

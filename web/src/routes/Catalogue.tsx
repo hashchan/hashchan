@@ -36,7 +36,7 @@ export const Catalogue = () => {
 
   return (
     <>
-      <h1>Catalogue {board}</h1>
+      <h3>Catalogue</h3>
       { threads && 
       <List threads={threads} />
       }

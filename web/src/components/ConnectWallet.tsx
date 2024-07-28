@@ -9,7 +9,7 @@ const Account = () => {
   const { data: ensAvatar } = useEnsAvatar({ name: ensName! })
 
   return (
-    <div>
+    <div >
       {ensAvatar && <img alt="ENS Avatar" src={ensAvatar} />}
       {address && <div>{ensName ? `${ensName} (${address})` : address}</div>}
       <button onClick={() => disconnect()}>Disconnect</button>
@@ -48,7 +48,7 @@ const WalletOption = ({
   }, [connector])
 
   return (
-    <button disabled={!ready} onClick={onClick}>
+    <button style={{height: '40px'}} disabled={!ready} onClick={onClick}>
       {connector.name}
     </button>
   )

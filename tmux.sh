@@ -8,7 +8,7 @@ tmux new-session -s $SESSIONNAME \; \
 	split-window -h \; \
 	send-keys "cd hardhat && npx hardhat node" C-m \; \
 	split-window -h \; \
-	send-keys "cd hardhat && npx hardhat ignition deploy ignition/modules/HashChan.ts --network localhost" C-m \; \
+  send-keys "sleep 4 && cd hardhat && npx hardhat ignition deploy ignition/modules/HashChan.ts --network localhost" C-m \; \
 
 
 
