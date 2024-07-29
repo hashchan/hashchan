@@ -13,11 +13,35 @@ const Post = ({
 })  => {
 
   return (
-    <div>
-      <p>creator: {creator}</p>
-      <p>id: {id}</p>
-      <p>imgUrl: {imgUrl}</p>
-      <p>content: {content}</p>
+    <div style={{
+      display: 'grid',
+      gridTemplateRows: '1fr 1fr',
+      gridTemplateColumns: '0.238fr 0.854fr',
+      }}> 
+      <div
+        style={{
+          gridColumn: '1/2',
+          gridRow: '1',
+        }}
+      ><p>{creator}</p></div>
+      <div
+        style={{
+          gridColumn: '1/2',
+          gridRow: '2',
+        }}
+      ><p>{id}</p></div>
+      <div
+        style={{
+          gridColumn: '1',
+          gridRow: '1/2',
+        }}
+      ><img src={imgUrl}/></div>
+      <div
+        style={{
+          gridColumn: '2',
+          gridRow: '2',
+        }}
+      ><p>{content}</p></div>
     </div>
   )
 }

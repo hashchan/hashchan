@@ -97,40 +97,6 @@ export const useThread = (threadId: string) => {
 
     }
   }, [publicClient, address])
-
-  const createThread = useCallback(async (
-    board: string,
-    title: string,
-    url: string,
-    content: string
-  ) => {
-    if (walletClient && address) {
-      const hash = await writeContract(config, {
-        address: hashChanAddress as `0x${string}`,
-        abi,
-        functionName: 'createThread',
-        args: [
-          boardsMap[board],
-          title,
-          url,
-          content 
-        ],
-        gas: 100000n
-      })
-      console.log('hash', hash)
-      const receipt = await waitForTransactionReceipt(config, {
-       hash
-      })
-      console.log('receipt', receipt)
-      const logs = parseEventLogs({
-        abi,
-        logs: receipt.logs
-      })
-      console.log('logs', logs)
-      return logs[0].args.id
-    } 
-  }, [walletClient, address])
-  
   const createPost = useCallback(async (
     imgUrl: string,
     content: string
@@ -163,7 +129,6 @@ export const useThread = (threadId: string) => {
   return {
     op: op,
     posts: posts,
-    createThread: createThread,
     fetchPosts: fetchPosts,
     createPost: createPost
   }

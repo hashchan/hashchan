@@ -1,4 +1,3 @@
-import './Root.css'
 import { Link, Outlet } from 'react-router-dom'
 import { ConnectWallet } from './components/ConnectWallet'
 export const Root = () => {

@@ -1,9 +1,11 @@
+import { useEffect, useState } from 'react'
 import { useForm  } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { useThread } from "@/hooks/useThread";
+import { useCreateThread } from "@/hooks/useCreateThread";
 export const CreateThread = ({board}: {board: string}) => {
   const { register, handleSubmit, formState: { errors  }  } = useForm();
-  const { createThread } = useThread()
+  const { createThread, threadId } = useCreateThread()
+  const [rpcError, setRpcError] = useState(null)
   const navigate = useNavigate();
   const onSubmit = async (data) => {
     console.log(data)
@@ -14,14 +16,16 @@ export const CreateThread = ({board}: {board: string}) => {
       data.content
     )
     console.log('response', response)
-    if (!response) {
-      console.log('error')
+    if (response.hash) {
+      navigate(`/boards/${board}/thread/${response.hash}`)
     } else {
-
-      navigate(`/boards/${board}/thread/${response}`)
+      setRpcError(response.error.message)
+      console.log('error')
     }
     //go to /boards/:board/thread/:thread using react-router-dom
   }
+
+  useEffect(() => {}, [threadId])
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -41,6 +45,7 @@ export const CreateThread = ({board}: {board: string}) => {
       </div>
       <div>
         <input type="submit" />
+        {rpcError && <p>{rpcError}</p>}
       </div>
     </form>
 
