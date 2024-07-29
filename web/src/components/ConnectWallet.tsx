@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Connector, useConnect  } from 'wagmi'
 import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from 'wagmi'
-
+import {truncateEthAddress} from '@/utils'
 const Account = () => {
   const { address } = useAccount()
   const { disconnect } = useDisconnect()
@@ -11,7 +11,7 @@ const Account = () => {
   return (
     <div >
       {ensAvatar && <img alt="ENS Avatar" src={ensAvatar} />}
-      {address && <div>{ensName ? `${ensName} (${address})` : address}</div>}
+      {address && <div>{ensName ? `${ensName} (${truncateEthAddress(address)})` : address}</div>}
       <button onClick={() => disconnect()}>Disconnect</button>
     </div>
   )
@@ -27,9 +27,7 @@ const WalletOptions = () => {
       onClick={() => connect({ connector })}
     />
   ))
-
 }
-
 
 const WalletOption = ({
   connector,

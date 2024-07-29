@@ -3,6 +3,7 @@ import { useParams  } from 'react-router-dom'
 
 import { useThread } from '@/hooks/useThread'
 import { CreatePost } from '@/components/CreatePost'
+import {truncateEthAddress} from '@/utils'
 const Post = ({
   creator, id, imgUrl, content
 }:{
@@ -15,31 +16,29 @@ const Post = ({
   return (
     <div style={{
       display: 'grid',
-      gridTemplateRows: '1fr 1fr',
+      gridTemplateRows: '40px 1fr',
       gridTemplateColumns: '0.238fr 0.854fr',
       }}> 
       <div
         style={{
-          gridColumn: '1/2',
+          gridColumn: '1/4',
           gridRow: '1',
         }}
-      ><p>{creator}</p></div>
-      <div
-        style={{
-          gridColumn: '1/2',
-          gridRow: '2',
-        }}
-      ><p>{id}</p></div>
+      ><span style={{
+        color: 'green',
+        fontWeight: 'bold'
+        }}>{creator && truncateEthAddress(creator)}</span>&nbsp;<span>(id: {id && truncateEthAddress(id)})</span>
+      </div>
       <div
         style={{
           gridColumn: '1',
-          gridRow: '1/2',
+          gridRow: '3',
         }}
       ><img src={imgUrl}/></div>
       <div
         style={{
-          gridColumn: '2',
-          gridRow: '2',
+          gridColumn: '2/3',
+          gridRow: '3',
         }}
       ><p>{content}</p></div>
     </div>
@@ -61,10 +60,6 @@ export const Thread = () => {
       {posts && posts.map((post, i) => {
         return (<Post key={i} creator={post?.creator} id={post?.id} imgUrl={post?.imgUrl} content={post?.content} />)
       })
-      }
-      { openMakePost ? 
-        (<CreatePost threadId={thread} />) :
-        (<button onClick={() => setOpenMakePost(!openMakePost)}>Make Post</button>)
       }
     </>
   )

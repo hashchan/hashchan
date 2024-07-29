@@ -67,7 +67,7 @@ export const useThread = (threadId: string) => {
 
       })
     }
-  }, [publicClient, address])
+  }, [publicClient, address, threadId])
   const fetchPosts = useCallback(async () => {
     if (publicClient && address) {
       const filter = await publicClient.createEventFilter({
@@ -91,7 +91,8 @@ export const useThread = (threadId: string) => {
           content: log.args[4]
         }
       })
-      setPosts(initialPosts)
+      
+      setPosts(initialPosts.slice(0,-1))
 
       console.log('post logs', logs)
 
@@ -102,20 +103,31 @@ export const useThread = (threadId: string) => {
     content: string
   ) => {
     if (walletClient && address) {
-      const result = await writeContract(config, {
-        address: hashChanAddress as `0x${string}`,
-        abi,
-        functionName: 'createComment',
-        args: [
-          threadId,
-          imgUrl,
-          content 
-        ]
-      })
-      console.log(result)
+      try {
+        const result = await writeContract(config, {
+          address: hashChanAddress as `0x${string}`,
+          abi,
+          functionName: 'createComment',
+          args: [
+            threadId,
+            imgUrl,
+            content 
+          ]
+        })
+        console.log(result)
+        return {
+          hash: result,
+          error: null
+        }
+      } catch (e) {
+        return {
+          hash: null,
+          error: e
+        }
+      }
       
     } 
-  }, [walletClient, address])
+  }, [walletClient, address, threadId])
 
 
   useEffect(() => {
