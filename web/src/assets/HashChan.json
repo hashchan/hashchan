@@ -1,6 +1,6 @@
 {
   "address": "0x999A7D5C429637ed76b810Ed9939b57b09D805a2",
-  "abi": [
+ "abi": [
     {
       "anonymous": false,
       "inputs": [
@@ -33,6 +33,12 @@
           "internalType": "string",
           "name": "content",
           "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
         }
       ],
       "name": "Comment",
@@ -76,6 +82,12 @@
           "internalType": "string",
           "name": "content",
           "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
         }
       ],
       "name": "Thread",

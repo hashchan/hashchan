@@ -15,14 +15,16 @@ contract HashChan {
     bytes32 indexed id,
     string imgUrl,
     string title,
-    string content
+    string content,
+    uint256 timestamp
   );
   event Comment (
     address indexed creator,
     bytes32 indexed threadId,
     bytes32 indexed id,
     string imgUrl,
-    string content
+    string content,
+    uint256 timestamp
   );
 
   function createThread(
@@ -36,7 +38,7 @@ contract HashChan {
         board,
         title,
         msg.sender,
-        block.coinbase
+        block.timestamp
       ));
 
     emit Thread (
@@ -45,7 +47,8 @@ contract HashChan {
       threadId,
       url,
       title,
-      content
+      content,
+      block.timestamp
     );
   }
 
@@ -54,13 +57,14 @@ contract HashChan {
     string  memory imgUrl,
     string  memory content
   ) public {
-    bytes32 id = keccak256(abi.encode(msg.sender, block.coinbase));
+    bytes32 id = keccak256(abi.encode(msg.sender, block.timestamp, threadId));
     emit Comment (
       msg.sender,
       threadId,
       id,
       imgUrl,
-      content
+      content,
+      block.timestamp
     );
   }
 }
