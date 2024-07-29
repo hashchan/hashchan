@@ -46,7 +46,7 @@ export const useThread = (threadId: string) => {
     if (publicClient && address) {
       const filter = await publicClient.createEventFilter({
         address: hashChanAddress as `0x${string}`,
-        event: parseAbiItem("event Thread(uint8 indexed, address indexed, bytes32 indexed, string, string, string)"),
+        event: parseAbiItem("event Thread(uint8 indexed, address indexed, bytes32 indexed, string, string, string, uint256)"),
         args: {
           threadId: threadId
         },
@@ -61,9 +61,10 @@ export const useThread = (threadId: string) => {
       setOp({
         creator: logs[0].args[1],
         id: logs[0].args[2],
-        title: logs[0].args[3],
-        imgUrl: logs[0].args[4],
-        content: logs[0].args[5]
+        imgUrl: logs[0].args[3],
+        title: logs[0].args[4],
+        content: logs[0].args[5],
+        timestamp: logs[0].args[6]
 
       })
     }
@@ -72,7 +73,7 @@ export const useThread = (threadId: string) => {
     if (publicClient && address) {
       const filter = await publicClient.createEventFilter({
         address: hashChanAddress as `0x${string}`,
-        event: parseAbiItem("event Comment(address indexed, bytes32 indexed, bytes32 indexed, string, string)"),
+        event: parseAbiItem("event Comment(address indexed, bytes32 indexed, bytes32 indexed, string, string, uint256)"),
         fromBlock: 0n,
         toBlock: 'latest',
         args: {
@@ -88,7 +89,8 @@ export const useThread = (threadId: string) => {
           creator: log.args[0],
           id: log.args[1],
           imgUrl: log.args[3],
-          content: log.args[4]
+          content: log.args[4],
+          timestamp: log.args[5]
         }
       })
       

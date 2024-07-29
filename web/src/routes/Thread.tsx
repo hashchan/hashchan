@@ -12,7 +12,7 @@ const Post = ({
   imgUrl: string,
   content: string
 })  => {
-
+  const [expanded, setExpanded] = useState(false)
   return (
     <div style={{
       display: 'grid',
@@ -34,7 +34,13 @@ const Post = ({
           gridColumn: '1',
           gridRow: '3',
         }}
-      ><img src={imgUrl}/></div>
+      ><a target="_blank" href={imgUrl}>{imgUrl.substring(0,33)}...</a>
+        <img 
+          onClick={() => setExpanded(!expanded)}
+        style={{
+          maxWidth: expanded ? '100vw' : '23vw',
+        }}
+      src={imgUrl}/></div>
       <div
         style={{
           gridColumn: '2/3',
