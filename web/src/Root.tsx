@@ -1,6 +1,8 @@
-import { Link, Outlet } from 'react-router-dom'
+import { Link, Outlet, useParams } from 'react-router-dom'
 import { ConnectWallet } from './components/ConnectWallet'
+import { About } from "@/components/About"
 export const Root = () => {
+  const { thread, board } = useParams()
   return (
     <>
       <div style={{width: '80vw', display: 'flex', alignItems: 'center', height: '10px'}}>
@@ -16,7 +18,11 @@ export const Root = () => {
         <h1><Link to="/">Hash Chan</Link></h1>
         <ConnectWallet />
       </div>
-      <Outlet />
+      {(!board && !thread) ? (
+        <About />
+      ):(
+        <Outlet />
+      )}
     </>
   )
 }
