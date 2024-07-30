@@ -17,8 +17,8 @@ const Post = ({
   return (
     <div style={{
       display: 'grid',
-      gridTemplateRows: '40px 1fr',
-      gridTemplateColumns: '0.238fr 0.854fr',
+      gridTemplateRows: '23px 23px 1fr',
+      gridTemplateColumns: '161px 0.854fr',
       }}> 
       <div
         style={{
@@ -32,23 +32,30 @@ const Post = ({
       </div>
       <div
         style={{
-          gridColumn: '1',
-          gridRow: '3',
+          gridColumn: '1/3',
+          gridRow: '2',
         }}
-      ><a target="_blank" href={imgUrl}>{ imgUrl && imgUrl.substring(0,33)}...</a>
+      ><a style={{width: '100%'}} target="_blank" href={imgUrl}>{ imgUrl && imgUrl.substring(0,33)}...</a>
+      </div>
+      <div
+        style={{
+          gridColumn: '1/-1',
+          gridRow: '3'
+        }}>
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          }}>
         <img 
           onClick={() => setExpanded(!expanded)}
         style={{
-          maxWidth: expanded ? '95vw' : '23vw',
+          maxWidth: expanded ? '95vw' : '161px',
           maxHeight: expanded ? '95vh' : '28vh',
         }}
-      src={imgUrl}/></div>
-      <div
-        style={{
-          gridColumn: '2/3',
-          gridRow: '3',
-        }}
-      ><p>{content}</p></div>
+      src={imgUrl}/>
+          <p style={{paddingLeft: '15px'}}>{content}</p>
+        </div>
+      </div>
     </div>
   )
 }
