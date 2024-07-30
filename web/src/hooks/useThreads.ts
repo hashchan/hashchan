@@ -28,22 +28,24 @@ export const useThreads = ({board}: {board: string}) => {
     if (publicClient && address) {
       publicClient.getLogs({
         address: hashChanAddress as `0x${string}`,
-        event: parseAbiItem('event Thread(uint8 indexed, address indexed, bytes32 indexed, string, string, string)'),
+        event: parseAbiItem('event Thread(uint8 indexed, address indexed, bytes32 indexed, string, string, string, uint256)'),
         fromBlock: 0n,
         toBlock: 'latest'
       }).then((logs) => {
         console.log('threads logs', logs)
         const threads = logs.map((log) => {
           return {
-            title: log.args[3],
             creator: log.args[1],
             id: log.args[2],
-            imgUrl: log.args[4],
-            content: log.args[5]
+            imgUrl: log.args[3],
+            title: log.args[4],
+            content: log.args[5],
+            timestamp: Number(log.args[6])
+
           }
         })
 
-        setThreads(threads)
+        setThreads(threads.slice(0,-1))
       })
     }
   }, [publicClient, address])
@@ -55,7 +57,7 @@ export const useThreads = ({board}: {board: string}) => {
        abi,
        eventName: 'Thread',
        args: {
-         board: 0
+         board: boardsMap[board]
        },
        onLogs(logs) {
          const thread = {

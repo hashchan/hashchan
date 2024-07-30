@@ -11,8 +11,10 @@ const Account = () => {
   return (
     <div >
       {ensAvatar && <img alt="ENS Avatar" src={ensAvatar} />}
-      {address && <div>{ensName ? `${ensName} (${truncateEthAddress(address)})` : address}</div>}
+      <div>
+        {address && <span style={{padding: '0px 10px'}}>{ensName ? `${ensName} (${truncateEthAddress(address)})` : truncateEthAddress(address)}</span>}
       <button onClick={() => disconnect()}>Disconnect</button>
+      </div>
     </div>
   )
 }

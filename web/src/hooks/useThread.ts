@@ -32,7 +32,8 @@ export const useThread = (threadId: string) => {
             creator: logs[0].args.creator,
             id: logs[0].args.id,
             imgUrl: logs[0].args.imgUrl,
-            content: logs[0].args.content
+            content: logs[0].args.content,
+            timestamp: Number(logs[0].args.timestamp)
           }
           setPosts(old => [...old, post])
         }
@@ -64,7 +65,7 @@ export const useThread = (threadId: string) => {
         imgUrl: logs[0].args[3],
         title: logs[0].args[4],
         content: logs[0].args[5],
-        timestamp: logs[0].args[6]
+        timestamp: Number(logs[0].args[6])
 
       })
     }
@@ -90,7 +91,7 @@ export const useThread = (threadId: string) => {
           id: log.args[1],
           imgUrl: log.args[3],
           content: log.args[4],
-          timestamp: log.args[5]
+          timestamp: Number(log.args[5])
         }
       })
       
