@@ -45,7 +45,7 @@ export const useThreads = ({board}: {board: string}) => {
           }
         })
 
-        setThreads(threads.slice(0,-1))
+        setThreads(threads)
       })
     }
   }, [publicClient, address])
@@ -60,6 +60,7 @@ export const useThreads = ({board}: {board: string}) => {
          board: boardsMap[board]
        },
        onLogs(logs) {
+         console.log('watchthreads', logs)
          const thread = {
            title: logs[0].args.title,
            creator: logs[0].args.creator,
@@ -68,7 +69,6 @@ export const useThreads = ({board}: {board: string}) => {
            content: logs[0].args.content
          }
          setThreads(old => [...old, thread])
-         console.log(logs)
        }
      })
    }
@@ -79,7 +79,7 @@ export const useThreads = ({board}: {board: string}) => {
       fetchThreads()
       watchThreads()
     }
-  }, [publicClient, address, board, watchThreads])
+  }, [publicClient, address, board, watchThreads, fetchThreads])
   return {
     threads,
     fetchThreads

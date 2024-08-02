@@ -10,6 +10,7 @@
   "description": "",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.9",
     "hardhat": "^2.22.6"
   },
   "dependencies": {

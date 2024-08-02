@@ -1,10 +1,13 @@
 import { http, createConfig } from 'wagmi'
-import { mainnet, localhost } from 'wagmi/chains'
+import { sepolia, localhost } from 'wagmi/chains'
+import { unstable_connector } from '@wagmi/core'
+import { injected } from 'wagmi/connectors'
 //import { injected } from 'wagmi/connectors'
 export const config = createConfig({
-  chains: [localhost, mainnet ],
+  chains: [localhost, sepolia ],
+  connectors: [injected()],
   transports: {
     [localhost.id]: http(),
-    [mainnet.id]: http(),
+    [sepolia.id]: unstable_connector(injected),
   },
 })

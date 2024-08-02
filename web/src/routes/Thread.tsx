@@ -4,17 +4,30 @@ import { useParams  } from 'react-router-dom'
 import { useThread } from '@/hooks/useThread'
 import { CreatePost } from '@/components/CreatePost'
 import {truncateEthAddress} from '@/utils'
+
+const parseContent = (content: string) => {
+  const parsed = content.replaceAll(/@(0x.{64})/gm, (a) => {
+    a = a.replace(/@+/g,'')
+    console.log('trying to replace all')
+    console.log('a', a)
+    return "@" + truncateEthAddress(a)
+  })
+    return (<p style={{paddingLeft: '15px', float:'right', width: '62vw'}}>{parsed}</p>)
+}
+
+
 const Post = ({
-  creator, id, imgUrl, content, timestamp
+  creator, id, imgUrl, content, timestamp, handleOpenPost
 }:{
   creator: string,
   id: string,
   imgUrl: string,
   content: string,
-  timestamp: number
+  timestamp: number,
+  openCreatePost: (id: string) => void
 })  => {
   const [expanded, setExpanded] = useState(false)
-  return (
+    return (
     <div style={{
       display: 'grid',
       gridTemplateRows: '23px 23px 1fr',
@@ -28,7 +41,8 @@ const Post = ({
       ><span style={{
         color: 'green',
         fontWeight: 'bold'
-          }}>{creator && truncateEthAddress(creator)}</span>&nbsp;<span>(id: {id && truncateEthAddress(id)})</span><span>&nbsp;{timestamp && new Date(timestamp * 1000).toLocaleString()}</span>
+          }}>{creator && truncateEthAddress(creator)}</span>&nbsp;<span
+            onClick={() => handleOpenPost(id)}>(id: {id && truncateEthAddress(id)})</span><span>&nbsp;{timestamp && new Date(timestamp * 1000).toLocaleString()}</span>
       </div>
       <div
         style={{
@@ -49,11 +63,11 @@ const Post = ({
         <img 
           onClick={() => setExpanded(!expanded)}
         style={{
-          maxWidth: expanded ? '95vw' : '161px',
+          maxWidth: expanded ? '95vw' : '20vw',
           maxHeight: expanded ? '95vh' : '28vh',
         }}
       src={imgUrl}/>
-          <p style={{paddingLeft: '15px'}}>{content}</p>
+          {content && parseContent(content)}
         </div>
       </div>
     </div>
@@ -62,19 +76,47 @@ const Post = ({
 
 
 export const Thread = () => {
-  const [openMakePost, setOpenMakePost] = useState(false)
+  const [makeReply, setMakeReply] = useState(null)
   const { board, thread } = useParams()
 
   const { op, posts, fetchPosts } = useThread(thread)
 
-
+  const handleOpenPost = (threadId:string) => {
+    setMakeReply(threadId)
+  }
   return (
     <>
       <h3>Thread {thread}</h3>
-      <Post creator={op?.creator} id={op?.id} imgUrl={op?.imgUrl} content={op?.content} timestamp={op?.timestamp}/>
+      <Post
+        creator={op?.creator}
+        id={op?.id}
+        imgUrl={op?.imgUrl}
+        content={op?.content}
+        timestamp={op?.timestamp}
+        handleOpenPost={handleOpenPost}
+      />
       {posts && posts.map((post, i) => {
-        return (<Post key={i} creator={post?.creator} id={post?.id} imgUrl={post?.imgUrl} content={post?.content} timestamp={post?.timestamp} />)
+        return (
+          <Post
+            key={i}
+            creator={post?.creator}
+            id={post?.id}
+            imgUrl={post?.imgUrl}
+            content={post?.content}
+            timestamp={post?.timestamp}
+            handleOpenPost={handleOpenPost}
+          />
+        )
       })
+      }{ makeReply && (
+        <div
+          style={{
+            position: 'absolute'
+          }}
+        >
+          <CreatePost threadId={thread} replyId={makeReply} />
+        </div>
+      )
       }
     </>
   )

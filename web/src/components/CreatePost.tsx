@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useForm  } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { useThread } from "@/hooks/useThread";
-export const CreatePost = ({threadId}: {threadId: string}) => {
+import { truncateEthAddress } from '@/utils'
+export const CreatePost = ({threadId, replyId}: {threadId: string, replyId: string | null }) => {
   const { register, handleSubmit, formState: { errors  }  } = useForm();
   const { createPost, fetchLatestPosts } = useThread(threadId)
   const navigate = useNavigate();
@@ -32,7 +33,9 @@ export const CreatePost = ({threadId}: {threadId: string}) => {
       </div>
       <label htmlFor="content">Content</label>
       <div>
-        <textarea style={{width:'60vw', height:'120px'}} defaultValue="" {...register("content", { required: true  })} />
+        <textarea style={{width:'60vw', height:'120px'}} defaultValue={
+          replyId ? `@${replyId} ` : ''
+        } {...register("content", { required: true  })} />
         {errors.content && <span>This field is required</span>}
       </div>
       <div>

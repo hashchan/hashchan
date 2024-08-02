@@ -23,9 +23,10 @@ const truncateRegex = /^(0x[a-zA-Z0-9]{7})[a-zA-Z0-9]+([a-zA-Z0-9]{7})$/;
  * @returns Truncated address
  */
 export const truncateEthAddress = (address: string) => {
+  console.log('trying to truncate', address)
   const match = address.match(truncateRegex);
   if (!match) return address;
   return `${match[1]}…${match[2]}`;
 };
 
-export default truncateEthAddress;
+

@@ -88,19 +88,19 @@ export const useThread = (threadId: string) => {
       const initialPosts = logs.map((log) => {
         return {
           creator: log.args[0],
-          id: log.args[1],
+          id: log.args[2],
           imgUrl: log.args[3],
           content: log.args[4],
           timestamp: Number(log.args[5])
         }
       })
       
-      setPosts(initialPosts.slice(0,-1))
+      setPosts(initialPosts)
 
       console.log('post logs', logs)
 
     }
-  }, [publicClient, address])
+  }, [publicClient, address, threadId])
   const createPost = useCallback(async (
     imgUrl: string,
     content: string
