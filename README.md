@@ -1,4 +1,4 @@
-# Hashchan (Alpha)
+# [Hashchan](https://hashchan.network) (Alpha)
 An imageboard inside ethereum event logs
 
 ## Why Hashchan
