@@ -13,6 +13,8 @@ export const About = () => {
       <p> - more expensive to botnet swarm</p><br/>
       <p> - botnet swarms trying will pad your ethereum bags</p><br/>
       <p> - no profits or hidden fees: just gas</p><br/>
+      <h3>Supported Chains</h3>
+      <p>Sepolia Testnet</p>
   </div>
   )
 }

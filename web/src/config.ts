@@ -5,7 +5,7 @@ import { injected } from 'wagmi/connectors'
 //import { injected } from 'wagmi/connectors'
 export const config = createConfig({
   chains: [localhost, sepolia ],
-  connectors: [injected()],
+  connectors: [],
   transports: {
     [localhost.id]: http(),
     [sepolia.id]: unstable_connector(injected),

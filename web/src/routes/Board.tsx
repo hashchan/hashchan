@@ -25,7 +25,7 @@ export const Board = () => {
       <p>[<Link to={`/boards/${board}/catalogue`}>Catalogue</Link>]</p>
       {openMakeContent && (<>
         { thread ? (
-          <CreatePost threadId={thread} />
+          <CreatePost threadId={thread} replyId={null} />
         ): (
           <CreateThread board={board}/>
           )

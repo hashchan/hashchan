@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Connector, useConnect  } from 'wagmi'
-import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from 'wagmi'
-import {truncateEthAddress} from '@/utils'
+import { useAccount, useDisconnect, useEnsAvatar, useEnsName  } from 'wagmi'
+
+import {truncateEthAddress, chainIdMap} from '@/utils'
 const Account = () => {
-  const { address } = useAccount()
+  const { address, chainId } = useAccount()
   const { disconnect } = useDisconnect()
   const { data: ensName } = useEnsName({ address })
   const { data: ensAvatar } = useEnsAvatar({ name: ensName! })
@@ -12,7 +13,13 @@ const Account = () => {
     <div >
       {ensAvatar && <img alt="ENS Avatar" src={ensAvatar} />}
       <div>
-        {address && <span style={{padding: '0px 10px'}}>{ensName ? `${ensName} (${truncateEthAddress(address)})` : truncateEthAddress(address)}</span>}
+        {address && <>
+          <span>{chainIdMap(chainId)}</span>
+        <span style={{padding: '0px 10px'}}>
+
+        {ensName ? `${ensName} (${truncateEthAddress(address)})` : truncateEthAddress(address)}
+        </span>
+        </>}
       <button onClick={() => disconnect()}>Disconnect</button>
       </div>
     </div>
@@ -21,7 +28,7 @@ const Account = () => {
 
 const WalletOptions = () => {
   const { connectors, connect  } = useConnect()
-
+  console.log('connectors', connectors)
   return connectors.map((connector) => (
     <WalletOption
       key={connector.uid}
