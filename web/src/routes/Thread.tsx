@@ -24,14 +24,16 @@ const Post = ({
   imgUrl: string,
   content: string,
   timestamp: number,
-  openCreatePost: (id: string) => void
+  handleOpenPost: (id: string) => void
 })  => {
   const [expanded, setExpanded] = useState(false)
     return (
     <div style={{
       display: 'grid',
-      gridTemplateRows: '23px 23px 1fr',
+      gridTemplateRows: '28px 33px 1fr',
       gridTemplateColumns: '161px 0.854fr',
+      paddingBottom: '23px'
+
       }}> 
       <div
         style={{
@@ -63,8 +65,10 @@ const Post = ({
         <img 
           onClick={() => setExpanded(!expanded)}
         style={{
-          maxWidth: expanded ? '95vw' : '20vw',
-          maxHeight: expanded ? '95vh' : '28vh',
+          justifyContent: 'center',
+          objectFit: 'contain',
+          width: expanded ? '95vw' : '261px',
+          height: expanded ? '95vh' : '28vh',
         }}
       src={imgUrl}/>
           {content && parseContent(content)}

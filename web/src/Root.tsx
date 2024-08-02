@@ -1,6 +1,7 @@
 import { Link, Outlet, useParams } from 'react-router-dom'
 import { ConnectWallet } from './components/ConnectWallet'
 import { About } from "@/components/About"
+import HashchanLogo from '@/assets/logo.png'
 export const Root = () => {
   const { thread, board } = useParams()
   return (
@@ -15,7 +16,7 @@ export const Root = () => {
          ]</p>
       </div>
       <div style={{width: '80vw', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-        <h1><Link to="/">Hash Chan</Link></h1>
+        <h1><Link to="/"><img src={HashchanLogo} style={{height: '162px'}} /></Link></h1>
         <ConnectWallet />
       </div>
       {(!board && !thread) ? (
