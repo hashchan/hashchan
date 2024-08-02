@@ -7,6 +7,7 @@ An imageboard inside ethereum event logs
 - Uncensorable
 - Expensive to Botswarm (Botswarms that try will pad your bags)
 - No profits or hidden fees (just gas)
+- Adfree
 
 ## Deployments
 |Chain| Address |
