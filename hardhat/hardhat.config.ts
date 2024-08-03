@@ -24,9 +24,15 @@ const config: HardhatUserConfig = {
       chainId: 11155420,
       accounts: {
         mnemonic: process.env.MNEMONIC
-
       }
     },
+    optimism: {
+      url: `https://optimism-mainnet.infura.io/v3/${process.env.INFURA}`,
+      chainId: 10,
+      accounts: {
+        mnemonic: process.env.MNEMONIC
+      }
+    }
   },
   etherscan: {
     apiKey: {
