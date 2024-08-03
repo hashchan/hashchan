@@ -28,15 +28,3 @@ export const truncateEthAddress = (address: string) => {
   return `${match[1]}…${match[2]}`;
 };
 
-export const chainIdMap = (chainId: number) => {
-  switch (chainId) {
-    case 11155111:
-      return 'Sepolia Testnet'
-    break;
-    case 31337:
-      return 'Localhost'
-    break;
-    default:
-      return "Unsupported Chain"  
-  }
-}
