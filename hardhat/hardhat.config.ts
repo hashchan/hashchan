@@ -11,6 +11,13 @@ const config: HardhatUserConfig = {
         mnemonic: process.env.MNEMONIC
       }
     },
+    mainnet: {
+      url: `https://mainnet.infura.io/v3/${process.env.INFURA}`,
+      chainId: 1,
+      accounts: {
+        mnemonic: process.env.MNEMONIC
+      }
+    },
     sepolia: {
       url: `https://sepolia.infura.io/v3/${process.env.INFURA}`,
       chainId: 11155111,
@@ -36,6 +43,7 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
+      mainnet: process.env.ETHERSCAN,
       sepolia: process.env.ETHERSCAN,
       'optimism-sepolia': process.env.BLOCKSCOUT
     },

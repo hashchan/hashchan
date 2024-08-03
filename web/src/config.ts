@@ -1,6 +1,6 @@
 import { http, createConfig } from 'wagmi'
 
-import { sepolia, localhost, optimismSepolia, optimism } from 'wagmi/chains'
+import { mainnet, sepolia, localhost, optimismSepolia, optimism } from 'wagmi/chains'
 import { unstable_connector } from '@wagmi/core'
 import { injected, walletConnect } from 'wagmi/connectors'
 
@@ -17,7 +17,7 @@ const metadata = {
 }
 
 export const config = createConfig({
-  chains: [localhost, sepolia, optimismSepolia, optimism ],
+  chains: [localhost, sepolia, optimismSepolia, optimism, mainnet ],
   connectors: [
     walletConnect({
       projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID,
@@ -25,6 +25,7 @@ export const config = createConfig({
     }),
   ],
   transports: {
+    [mainnet.id]: unstable_connector(injected),
     [localhost.id]: http(),
     [sepolia.id]: unstable_connector(injected),
     [optimismSepolia.id]: unstable_connector(injected),
@@ -34,6 +35,9 @@ export const config = createConfig({
 
 export const chainIdMap = (chainId: number) => {
   switch (chainId) {
+    case 1:
+      return 'Ethereum Mainnet'
+    break;
     case 11155111:
       return 'Sepolia Testnet'
     break;
