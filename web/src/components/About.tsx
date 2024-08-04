@@ -21,6 +21,7 @@ export const About = () => {
       <p>Dont use default public rpcs, go to alchemy, infura, get the free tier and paste the websocket apis into metamask</p>
       <p>Even better, run your own archive node of the chain you'd like to use</p>
       <p>Phone posting is buggy, and walletconnect is a central point of failure, use desktop at least for now</p>
+      <p>Use web3.storage or another ipfs pinning service to host your images, they provide cryptographic provenance of your images with cids</p>
   </div>
   )
 }

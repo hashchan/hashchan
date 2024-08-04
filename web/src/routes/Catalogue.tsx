@@ -67,7 +67,8 @@ const List = ({threads}: {threads: any}) => {
 
 export const Catalogue = () => {
   const { board } = useParams()
-  const { threads } = useThreads(board)
+  console.log('board', board)
+  const { threads } = useThreads({board})
 
   return (
     <>

@@ -45,40 +45,43 @@ export const useThread = (threadId: string) => {
 
   const fetchThread = useCallback(async () => {
     if (publicClient && address) {
-      const filter = await publicClient.createEventFilter({
+      const filter = await publicClient.createContractEventFilter({
         address: hashChanAddress as `0x${string}`,
-        event: parseAbiItem("event Thread(uint8 indexed, address indexed, bytes32 indexed, string, string, string, uint256)"),
+        abi,
+        eventName: 'Thread',
+        //event: parseAbiItem("event Thread(uint8 indexed, address indexed, bytes32 indexed, string, string, string, uint256)"),
         args: {
-          threadId: threadId
+          id: threadId
         },
         fromBlock: 0n,
         toBlock: 'latest'
       })
 
-      let logs = await publicClient.getFilterLogs({
+       const logs = await publicClient.getFilterLogs({
         filter,
       })
       console.log('logs 60 op', logs)
       setOp({
-        creator: logs[0].args[1],
-        id: logs[0].args[2],
-        imgUrl: logs[0].args[3],
-        title: logs[0].args[4],
-        content: logs[0].args[5],
-        timestamp: Number(logs[0].args[6])
+        creator: logs[0].args.creator,
+        id: logs[0].args.id,
+        imgUrl: logs[0].args.imgUrl,
+        title: logs[0].args.title,
+        content: logs[0].args.content,
+        timestamp: Number(logs[0].args.timestamp)
 
       })
     }
   }, [publicClient, address, threadId])
   const fetchPosts = useCallback(async () => {
-    if (publicClient && address) {
-      const filter = await publicClient.createEventFilter({
+    if (publicClient && address && threadId) {
+      const filter = await publicClient.createContractEventFilter({
         address: hashChanAddress as `0x${string}`,
-        event: parseAbiItem("event Comment(address indexed, bytes32 indexed, bytes32 indexed, string, string, uint256)"),
+        abi,
+        eventName: 'Comment',
         fromBlock: 0n,
         toBlock: 'latest',
         args: {
-          threadId
+          threadId: threadId
         }
       })
 
@@ -87,11 +90,11 @@ export const useThread = (threadId: string) => {
       })
       const initialPosts = logs.map((log) => {
         return {
-          creator: log.args[0],
-          id: log.args[2],
-          imgUrl: log.args[3],
-          content: log.args[4],
-          timestamp: Number(log.args[5])
+          creator: log.args.creator,
+          id: log.args.id,
+          imgUrl: log.args.imgUrl,
+          content: log.args.content,
+          timestamp: Number(log.args.timestamp)
         }
       })
       

@@ -25,30 +25,41 @@ export const useThreads = ({board}: {board: string}) => {
   })
  */
   const fetchThreads = useCallback(async () => {
-    if (publicClient && address) {
-      publicClient.getLogs({
+    if (publicClient && address && board) {
+
+      const filter = await publicClient.createContractEventFilter({
         address: hashChanAddress as `0x${string}`,
-        event: parseAbiItem('event Thread(uint8 indexed, address indexed, bytes32 indexed, string, string, string, uint256)'),
+        abi,
+        eventName: 'Thread',
+        //event: parseAbiItem('event Thread(uint8 indexed, address indexed, bytes32 indexed, string, string, string, uint256)'),
+        args: {
+          board: boardsMap[board]
+        },
         fromBlock: 0n,
         toBlock: 'latest'
-      }).then((logs) => {
-        console.log('threads logs', logs)
-        const threads = logs.map((log) => {
-          return {
-            creator: log.args[1],
-            id: log.args[2],
-            imgUrl: log.args[3],
-            title: log.args[4],
-            content: log.args[5],
-            timestamp: Number(log.args[6])
-
-          }
-        })
-
-        setThreads(threads)
       })
+
+
+      const logs = await publicClient.getFilterLogs({
+        filter,
+      })
+      console.log('boardsMap[board]', boardsMap[board])
+      console.log('logs', logs)
+      const threads = logs.map((log) => {
+        return {
+          creator: log.args.creator,
+          id: log.args.id,
+          imgUrl: log.args.imgUrl,
+          title: log.args.title,
+          content: log.args.content,
+          timestamp: Number(log.args.timestamp),
+
+        }
+      })
+
+      setThreads(threads)
     }
-  }, [publicClient, address])
+  }, [publicClient, address, board])
 
   const watchThreads = useCallback(async () => {
    if (publicClient && address) {
@@ -75,7 +86,7 @@ export const useThreads = ({board}: {board: string}) => {
   }, [publicClient, address, board])
 
   useEffect(() => {
-    if (publicClient && address) {
+    if (publicClient && address && board ) {
       fetchThreads()
       watchThreads()
     }
