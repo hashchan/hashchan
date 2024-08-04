@@ -11,7 +11,7 @@ export const Board = () => {
 
   return (
     <>
-      <div style={{marginTop: '0px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '80vw'}}>
+      <div style={{marginTop: '0px', display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
         <h2><Link to={`/boards/${board}`}>/{board}/</Link></h2>
       { address ? (
         <button style={{height: '40px'}} onClick={() => {
