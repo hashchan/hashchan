@@ -16,6 +16,7 @@ An imageboard inside ethereum event logs
 ## Deployments
 |Chain| Address |
 | --- | ---- |
+| Classic | [0x7cE23ee9023A138193C33F060A0060E918246E59](https://etc.blockscout.com/address/0x7cE23ee9023A138193C33F060A0060E918246E59)
 | Mainnet | [0x7cE23ee9023A138193C33F060A0060E918246E59](https://etherscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59)
 | Optimism | [0x7cE23ee9023A138193C33F060A0060E918246E59](https://optimistic.etherscan.io/address/0x788CED731764Cf1BdBF0DA8aCEdAcA7CaE4C9997)
 | Sepolia | [0x7cE23ee9023A138193C33F060A0060E918246E59](https://sepolia.etherscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59)
