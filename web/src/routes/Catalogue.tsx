@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom'
 import { useThreads } from '@/hooks/useThreads'
 import { useNavigate } from 'react-router-dom'
 import { truncateEthAddress } from '@/utils'
-
+import { useAccount } from 'wagmi'
 const ListItem = ({
   threadId, title, imgUrl, content
 }: {
@@ -67,14 +67,17 @@ const List = ({threads}: {threads: any}) => {
 
 export const Catalogue = () => {
   const { board } = useParams()
+  const { address }  = useAccount()
   console.log('board', board)
   const { threads } = useThreads({board})
-
   return (
     <>
       <h3>Catalogue</h3>
-      { threads && 
-      <List threads={threads} />
+      { address  ?  (
+         <List threads={threads} />
+      ) : (
+        <p>You need an ethereum rpc connection to scrape ethereum logs, please connect a wallet</p>
+      )
       }
     </>
   )
