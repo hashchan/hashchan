@@ -23,6 +23,7 @@ export const About = () => {
           width: '300px'
         }}>
         <h3>Supported Chains</h3>
+        <p> - Classic</p>
         <p> - Mainnet</p>
         <p> - Optimism</p>
         <p> - Sepolia Testnet</p>

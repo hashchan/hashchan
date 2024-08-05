@@ -11,6 +11,13 @@ const config: HardhatUserConfig = {
         mnemonic: process.env.MNEMONIC
       }
     },
+    classic: {
+      url:`https://etc.rpc.rivet.cloud/${process.env.ETC}`,
+      chainId: 61,
+      accounts: {
+        mnemonic: process.env.MNEMONIC
+      }
+    },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA}`,
       chainId: 1,
