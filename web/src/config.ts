@@ -35,6 +35,9 @@ export const config = createConfig({
 
 export const chainIdMap = (chainId: number) => {
   switch (chainId) {
+    case 61:
+      return 'Ethereum Classic'
+    break;
     case 1:
       return 'Ethereum Mainnet'
     break;
