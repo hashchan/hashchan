@@ -1,6 +1,6 @@
 import { http, createConfig } from 'wagmi'
 
-import { mainnet, sepolia, localhost, optimismSepolia, optimism } from 'wagmi/chains'
+import { classic, mainnet, sepolia, localhost, optimismSepolia, optimism } from 'wagmi/chains'
 import { unstable_connector } from '@wagmi/core'
 import { injected, walletConnect } from 'wagmi/connectors'
 
@@ -17,7 +17,7 @@ const metadata = {
 }
 
 export const config = createConfig({
-  chains: [localhost, sepolia, optimismSepolia, optimism, mainnet ],
+  chains: [localhost, sepolia, optimismSepolia, optimism, mainnet, classic ],
   connectors: [
     walletConnect({
       projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID,
@@ -25,6 +25,7 @@ export const config = createConfig({
     }),
   ],
   transports: {
+    [classic.id]: unstable_connector(injected),
     [mainnet.id]: unstable_connector(injected),
     [localhost.id]: http(),
     [sepolia.id]: unstable_connector(injected),

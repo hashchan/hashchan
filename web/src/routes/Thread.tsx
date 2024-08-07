@@ -30,7 +30,7 @@ const Post = ({
     return (
     <div style={{
       display: 'grid',
-      gridTemplateRows: '28px 33px 1fr',
+      gridTemplateRows: '56px 33px 1fr',
       gridTemplateColumns: '161px 0.854fr',
       paddingBottom: '23px'
 
@@ -71,7 +71,7 @@ const Post = ({
           height: expanded ? '95vh' : '28vh',
         }}
       src={imgUrl}/>
-          {content && parseContent(content)}
+          <span style={{wordWrap: 'break-word'}}>{content && parseContent(content)}</span>
         </div>
       </div>
     </div>
