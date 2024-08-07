@@ -8,8 +8,8 @@ import { boardsMap } from '@/utils'
 export const useThreads = ({board}: {board: string}) => {
   const { address } = useAccount()
   const publicClient = usePublicClient();
-  const blockNumber = useBlockNumber()
-
+  const blockNumber = useBlockNumber();
+  const [logErrors, setLogErrors] = useState([])
   //const walletClient = useWalletClient()
   const [threads, setThreads] = useState([])
   /*
@@ -26,43 +26,48 @@ export const useThreads = ({board}: {board: string}) => {
  */
   const fetchThreads = useCallback(async () => {
     if (publicClient && address && board) {
+      try {
+        const filter = await publicClient.createContractEventFilter({
+          address: hashChanAddress as `0x${string}`,
+          abi,
+          eventName: 'Thread',
+          args: {
+            board: boardsMap[board]
+          },
+          fromBlock: 0n,
+          toBlock: 'latest'
+        })
 
-      const filter = await publicClient.createContractEventFilter({
-        address: hashChanAddress as `0x${string}`,
-        abi,
-        eventName: 'Thread',
-        //event: parseAbiItem('event Thread(uint8 indexed, address indexed, bytes32 indexed, string, string, string, uint256)'),
-        args: {
-          board: boardsMap[board]
-        },
-        fromBlock: 0n,
-        toBlock: 'latest'
-      })
 
+        const logs = await publicClient.getFilterLogs({
+          filter,
+        })
+        console.log('boardsMap[board]', boardsMap[board])
+        console.log('logs', logs)
+        const threads = logs.map((log) => {
+          return {
+            creator: log.args.creator,
+            id: log.args.id,
+            imgUrl: log.args.imgUrl,
+            title: log.args.title,
+            content: log.args.content,
+            timestamp: Number(log.args.timestamp),
 
-      const logs = await publicClient.getFilterLogs({
-        filter,
-      })
-      console.log('boardsMap[board]', boardsMap[board])
-      console.log('logs', logs)
-      const threads = logs.map((log) => {
-        return {
-          creator: log.args.creator,
-          id: log.args.id,
-          imgUrl: log.args.imgUrl,
-          title: log.args.title,
-          content: log.args.content,
-          timestamp: Number(log.args.timestamp),
+          }
+        })
 
-        }
-      })
+        setThreads(threads)
 
-      setThreads(threads)
+      } catch (e) {
+        console.log('log error', e)
+        setLogErrors(old => [...old, e.toString()])
+      }
     }
   }, [publicClient, address, board])
 
   const watchThreads = useCallback(async () => {
    if (publicClient && address) {
+     try {
      const unwatch = publicClient.watchContractEvent({
        address: hashChanAddress as `0x${string}`,
        abi,
@@ -82,6 +87,11 @@ export const useThreads = ({board}: {board: string}) => {
          setThreads(old => [...old, thread])
        }
      })
+
+     } catch (e) {
+        console.log('log error', e)
+       setLogErrors(old => [...old, e.toString()])
+     }
    }
   }, [publicClient, address, board])
 
@@ -93,7 +103,8 @@ export const useThreads = ({board}: {board: string}) => {
   }, [publicClient, address, board, watchThreads, fetchThreads])
   return {
     threads,
-    fetchThreads
+    fetchThreads,
+    logErrors
   }
 
 }

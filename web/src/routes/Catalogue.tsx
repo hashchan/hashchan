@@ -41,7 +41,7 @@ const ListItem = ({
           textAlign: 'center',
         }}
       >{content.substring(0, 100)}</p>
-  </div>)
+    </div>)
 }
 
 
@@ -50,11 +50,11 @@ const List = ({threads}: {threads: any}) => {
   return (
     <div
       style={{
-      width: '95vw',
-      display: 'flex',
-      flexWrap: 'wrap',
-      flexDirection: 'row',
-      gap: '10px',
+        width: '95vw',
+        display: 'flex',
+        flexWrap: 'wrap',
+        flexDirection: 'row',
+        gap: '10px',
       }}>
       {
         threads.map(({id, title, imgUrl, content}, i) => {
@@ -69,14 +69,21 @@ export const Catalogue = () => {
   const { board } = useParams()
   const { address }  = useAccount()
   console.log('board', board)
-  const { threads } = useThreads({board})
+  const { threads, logErrors } = useThreads({board})
   return (
     <>
       <h3>Catalogue</h3>
       { address  ?  (
-         <List threads={threads} />
+        <List threads={threads} />
       ) : (
         <p>You need an ethereum rpc connection to scrape ethereum logs, please connect a wallet</p>
+      )
+
+      }
+      { logErrors.length > 0 && (
+        logErrors.map((error, i) => {
+          return <p key={i}>{error}</p>
+        })
       )
       }
     </>

@@ -83,7 +83,7 @@ export const Thread = () => {
   const [makeReply, setMakeReply] = useState(null)
   const { board, thread } = useParams()
 
-  const { op, posts, fetchPosts } = useThread(thread)
+  const { op, posts, logErrors } = useThread(thread)
 
   const handleOpenPost = (threadId:string) => {
     setMakeReply(threadId)
@@ -121,6 +121,17 @@ export const Thread = () => {
           <CreatePost threadId={thread} replyId={makeReply} />
         </div>
       )
+      }
+      {
+        logErrors.length > 0  && logErrors.map((error, i) => {
+          return (
+            <div
+              key={i}
+            >
+              {error}
+            </div>
+          )
+        })
       }
     </>
   )
