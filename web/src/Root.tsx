@@ -6,7 +6,7 @@ export const Root = () => {
   const { thread, board } = useParams()
   return (
     <>
-      <div style={{display: 'flex', flexWrap: 'wrap'}}>
+      <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'center'}}>
         [<Link to="/boards/pol">pol</Link>,&nbsp;
         <Link to="/boards/biz">biz</Link>,&nbsp;
         <Link to="/boards/g">g</Link>,&nbsp;

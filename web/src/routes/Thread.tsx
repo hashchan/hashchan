@@ -12,7 +12,7 @@ const parseContent = (content: string) => {
     console.log('a', a)
     return "@" + truncateEthAddress(a)
   })
-    return (<p style={{paddingLeft: '15px', float:'right', width: '62vw'}}>{parsed}</p>)
+  return (<p style={{textAlign: 'justify', padding: '2.5vh 2.5vw', wordBreak: 'break-word'}}>{parsed}</p>)
 }
 
 
@@ -29,16 +29,12 @@ const Post = ({
   const [expanded, setExpanded] = useState(false)
     return (
     <div style={{
-      display: 'grid',
-      gridTemplateRows: '56px 33px 1fr',
-      gridTemplateColumns: '161px 0.854fr',
-      paddingBottom: '23px'
+      display: 'flex',
+      flexWrap: 'wrap'
 
       }}> 
       <div
         style={{
-          gridColumn: '1/4',
-          gridRow: '1',
         }}
       ><span style={{
         color: 'green',
@@ -46,32 +42,24 @@ const Post = ({
           }}>{creator && truncateEthAddress(creator)}</span>&nbsp;<span
             onClick={() => handleOpenPost(id)}>(id: {id && truncateEthAddress(id)})</span><span>&nbsp;{timestamp && new Date(timestamp * 1000).toLocaleString()}</span>
       </div>
+      <a style={{paddingLeft: '1.25vw'}} target="_blank" href={imgUrl}>{ imgUrl && imgUrl.substring(0,33)}...</a>
       <div
         style={{
-          gridColumn: '1/3',
-          gridRow: '2',
-        }}
-      ><a style={{width: '100%'}} target="_blank" href={imgUrl}>{ imgUrl && imgUrl.substring(0,33)}...</a>
-      </div>
-      <div
-        style={{
-          gridColumn: '1/-1',
-          gridRow: '3'
         }}>
         <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
           }}>
         <img 
           onClick={() => setExpanded(!expanded)}
         style={{
+          float: 'left',
           justifyContent: 'center',
           objectFit: 'contain',
+          paddingRight: '1.25vw',
           width: expanded ? '95vw' : '261px',
           height: expanded ? '95vh' : '28vh',
         }}
       src={imgUrl}/>
-          <span style={{wordWrap: 'break-word'}}>{content && parseContent(content)}</span>
+          {content && parseContent(content)}
         </div>
       </div>
     </div>
@@ -90,7 +78,7 @@ export const Thread = () => {
   }
   return (
     <>
-      <h3>Thread {thread}</h3>
+      <h3 style={{wordWrap: 'break-word'}}>Thread {thread}</h3>
       <Post
         creator={op?.creator}
         id={op?.id}
