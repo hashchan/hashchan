@@ -7,15 +7,56 @@ import {
 } from 'wagmi'
 import { writeContract,waitForTransactionReceipt  } from '@wagmi/core'
 import { address as hashChanAddress, abi } from '@/assets/HashChan.json'
+
 import { parseAbiItem, parseEventLogs } from 'viem'
 
 import { boardsMap } from '@/utils'
 import { config } from '@/config'
+import { truncateEthAddress } from '@/utils'
+import reactStringReplace from 'react-string-replace';
+
+export const ReplyLink = ({replyId}: {replyId: string}) => {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <span
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        color: hovered ? '#20c20E':'#DF3DF1',
+      textDecoration: 'underline'}
+      }>
+      {replyId}
+    </span>
+  )
+}
+
+const parseContent = (content: string) => {
+  const replyIds: string[] = []
+  const parsed = reactStringReplace(
+    content,
+    /@(0x.{64})/gm,
+    (match, i) => {
+      replyIds.push(match)
+      match = match.replace(/@+/g,'')
+      match = "@" + truncateEthAddress(match)
+      return <ReplyLink key={i} replyId={match} />
+    }
+  )
+  console.log('replyIds', replyIds)
+
+  return {
+    replyIds,
+     parsed
+  }
+    
+}
+
 export const useThread = (threadId: string) => {
   const { address } = useAccount()
   const publicClient = usePublicClient();
   const walletClient = useWalletClient()
   const [op, setOp] = useState(null)
+  //const [opReplies, setOpReplies] = useState(null)
   const [posts, setPosts] = useState([])
   const [logErrors, setLogErrors] = useState([])
   const watchThread = useCallback(async () => {
@@ -56,7 +97,6 @@ export const useThread = (threadId: string) => {
           address: hashChanAddress as `0x${string}`,
           abi,
           eventName: 'Thread',
-          //event: parseAbiItem("event Thread(uint8 indexed, address indexed, bytes32 indexed, string, string, string, uint256)"),
           args: {
             id: threadId
           },
@@ -68,14 +108,15 @@ export const useThread = (threadId: string) => {
           filter,
         })
         console.log('logs 60 op', logs)
+        const {replyIds, parsed} = parseContent(logs[0].args.content)
         setOp({
           creator: logs[0].args.creator,
           id: logs[0].args.id,
           imgUrl: logs[0].args.imgUrl,
           title: logs[0].args.title,
-          content: logs[0].args.content,
-          timestamp: Number(logs[0].args.timestamp)
-
+          content: parsed,
+          timestamp: Number(logs[0].args.timestamp),
+          replies: []
         })
 
       } catch (e) {
@@ -86,7 +127,35 @@ export const useThread = (threadId: string) => {
   }, [publicClient, address, threadId])
   const fetchPosts = useCallback(async () => {
     if (publicClient && address && threadId) {
-      try {
+
+        const threadFilter = await publicClient.createContractEventFilter({
+          address: hashChanAddress as `0x${string}`,
+          abi,
+          eventName: 'Thread',
+          args: {
+            id: threadId
+          },
+          fromBlock: 0n,
+          toBlock: 'latest'
+        })
+
+        const threadLogs = await publicClient.getFilterLogs({
+          filter: threadFilter,
+        })
+
+        const logsObj = {
+          [threadLogs[0].args.id]: {
+            creator: threadLogs[0].args.creator,
+            id: threadLogs[0].args.id,
+            imgUrl: threadLogs[0].args.imgUrl,
+            content: threadLogs[0].args.content,
+            timestamp: Number(threadLogs[0].args.timestamp),
+            replies: []
+          }
+        }
+
+
+     // try {
         const filter = await publicClient.createContractEventFilter({
           address: hashChanAddress as `0x${string}`,
           abi,
@@ -101,24 +170,34 @@ export const useThread = (threadId: string) => {
         const logs = await publicClient.getFilterLogs({
           filter
         })
-        const initialPosts = logs.map((log) => {
-          return {
+
+        
+        logs.forEach((log) => {
+          console.log('log', log.args.id)
+          const { replyIds, parsed } = parseContent(log.args.content)
+          logsObj[log.args.id] = {
             creator: log.args.creator,
             id: log.args.id,
             imgUrl: log.args.imgUrl,
-            content: log.args.content,
-            timestamp: Number(log.args.timestamp)
+            timestamp: Number(log.args.timestamp),
+            replies: []
           }
+
+          replyIds.forEach((replyId, i) => {
+            console.log('replyId', replyId)
+            console.log('logs.args.id', log.args.id)
+            logsObj[replyId].replies.push(log.args.id)
+          })
+          logsObj[log.args.id].content = parsed
         })
 
-        setPosts(initialPosts)
+        console.log('logsObj', logsObj)
+        setPosts(Object.values(logsObj))
 
-        console.log('post logs', logs)
-
-      } catch (e) {
-        console.log('logErrors', e.text)
-        setLogErrors(old => [...old, e.toString()])
-      }
+      //} catch (e) {
+        //console.log('logErrors', e.text)
+        //setLogErrors(old => [...old, e.toString()])
+      //}
 
     }
   }, [publicClient, address, threadId])
@@ -156,11 +235,11 @@ export const useThread = (threadId: string) => {
 
   useEffect(() => {
     if (threadId) {
-      fetchThread()
+      //fetchThread()
       fetchPosts()
       watchThread()
     }
-  }, [threadId, fetchThread, fetchPosts, watchThread])
+  }, [threadId, /*fetchThread,*/ fetchPosts, watchThread])
 
   return {
     op: op,

@@ -16,6 +16,7 @@
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.52.1",
     "react-router-dom": "^6.25.1",
+    "react-string-replace": "^1.1.1",
     "viem": "^2.18.2",
     "wagmi": "^2.12.1"
   },
