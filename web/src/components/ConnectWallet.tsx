@@ -30,7 +30,7 @@ const WalletOptions = () => {
   const { connectors, connect  } = useConnect()
   console.log('connectors', connectors)
   return (
-    <div>
+    <div style={{padding:'0 1.25vw'}}>
       {connectors.map((connector) => (
         <WalletOption
           key={connector.uid}
@@ -39,35 +39,35 @@ const WalletOptions = () => {
         />
       ))}
     </div>
-    )
+  )
 }
 
-         const WalletOption = ({
-           connector,
-           onClick,
-         }: {
-           connector: Connector
-           onClick: () => void
-         })  => {
-           const [ready, setReady] = useState(false)
+const WalletOption = ({
+  connector,
+  onClick,
+}: {
+  connector: Connector
+  onClick: () => void
+})  => {
+  const [ready, setReady] = useState(false)
 
-           useEffect(() => {
-             ;(async () => {
-               const provider = await connector.getProvider()
-               setReady(!!provider)
-             })()
-           }, [connector])
+  useEffect(() => {
+    ;(async () => {
+      const provider = await connector.getProvider()
+      setReady(!!provider)
+    })()
+  }, [connector])
 
-           return (
-             <button style={{height: '40px'}} disabled={!ready} onClick={onClick}>
-               {connector.name}
-             </button>
-           )
-         }
+  return (
+    <button style={{margin: '0 1.25vw'}} disabled={!ready} onClick={onClick}>
+      {connector.name}
+    </button>
+  )
+}
 
 
-         export  const ConnectWallet = () => {
-           const { isConnected } = useAccount()
-           if (isConnected) return <Account />
-             return <WalletOptions />
-         }
+export  const ConnectWallet = () => {
+  const { isConnected } = useAccount()
+  if (isConnected) return <Account />
+    return <WalletOptions />
+}

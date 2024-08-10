@@ -14,7 +14,7 @@ export const Board = () => {
       <div style={{marginTop: '0px', display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
         <h2><Link to={`/boards/${board}`}>/{board}/</Link></h2>
         { address ? (<> { chain ? (
-          <button style={{height: '40px'}} onClick={() => {
+          <button  onClick={() => {
             setOpenMakeContent(!openMakeContent)
           }}>{thread ? "Make Post" : "Make Thread"}</button>
         ):(
