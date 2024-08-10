@@ -11,7 +11,6 @@ export const Root = () => {
         flexWrap: 'wrap',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 1.25vw'
         }}>
         <Link to="/"><img src={HashchanLogo}/></Link>
       <div style={{
