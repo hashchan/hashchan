@@ -1,4 +1,4 @@
-import {useState, useEffect, useCallback} from 'react'
+import {useState, useEffect, useCallback, createRef} from 'react'
 import {
   useAccount,
   usePublicClient,
@@ -14,32 +14,24 @@ import { boardsMap } from '@/utils'
 import { config } from '@/config'
 import { truncateEthAddress } from '@/utils'
 import reactStringReplace from 'react-string-replace';
+import { ReplyLink } from '@/components/ReplyLink'
 
-export const ReplyLink = ({replyId}: {replyId: string}) => {
-  const [hovered, setHovered] = useState(false)
-  return (
-    <span
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        color: hovered ? '#20c20E':'#DF3DF1',
-      textDecoration: 'underline'}
-      }>
-      {replyId}
-    </span>
-  )
-}
-
-const parseContent = (content: string) => {
+const parseContent = (content: string, refsObj:any) => {
   const replyIds: string[] = []
   const parsed = reactStringReplace(
     content,
     /@(0x.{64})/gm,
     (match, i) => {
       replyIds.push(match)
-      match = match.replace(/@+/g,'')
-      match = "@" + truncateEthAddress(match)
-      return <ReplyLink key={i} replyId={match} />
+      if (refsObj) {
+        const ref = refsObj[match]
+        match = match.replace(/@+/g,'')
+        return <ReplyLink key={i} replyId={match} ref={ref} />
+      } else {
+        match = match.replace(/@+/g,'')
+        return <ReplyLink key={i} replyId={match} ref={createRef()} />
+
+      }
     }
   )
   console.log('replyIds', replyIds)
@@ -108,7 +100,7 @@ export const useThread = (threadId: string) => {
           filter,
         })
         console.log('logs 60 op', logs)
-        const {replyIds, parsed} = parseContent(logs[0].args.content)
+        const {replyIds, parsed} = parseContent(logs[0].args.content, null)
         setOp({
           creator: logs[0].args.creator,
           id: logs[0].args.id,
@@ -143,6 +135,10 @@ export const useThread = (threadId: string) => {
           filter: threadFilter,
         })
 
+        const refsObj = {
+          [threadLogs[0].args.id] : createRef(),
+        }
+
         const logsObj = {
           [threadLogs[0].args.id]: {
             creator: threadLogs[0].args.creator,
@@ -150,7 +146,8 @@ export const useThread = (threadId: string) => {
             imgUrl: threadLogs[0].args.imgUrl,
             content: threadLogs[0].args.content,
             timestamp: Number(threadLogs[0].args.timestamp),
-            replies: []
+            replies: [],
+            ref: refsObj[threadLogs[0].args.id]
           }
         }
 
@@ -171,27 +168,29 @@ export const useThread = (threadId: string) => {
           filter
         })
 
+      
+
         
         logs.forEach((log) => {
           console.log('log', log.args.id)
-          const { replyIds, parsed } = parseContent(log.args.content)
+          const { replyIds, parsed } = parseContent(log.args.content, refsObj)
+          refsObj[log.args.id] = createRef()
+
           logsObj[log.args.id] = {
             creator: log.args.creator,
             id: log.args.id,
             imgUrl: log.args.imgUrl,
             timestamp: Number(log.args.timestamp),
-            replies: []
+            replies: [],
+            ref: refsObj[log.args.id]
           }
 
           replyIds.forEach((replyId, i) => {
-            console.log('replyId', replyId)
-            console.log('logs.args.id', log.args.id)
-            logsObj[replyId].replies.push(log.args.id)
+            logsObj[replyId].replies.push({ref: refsObj[log.args.id], id: log.args.id})
           })
           logsObj[log.args.id].content = parsed
         })
 
-        console.log('logsObj', logsObj)
         setPosts(Object.values(logsObj))
 
       //} catch (e) {
