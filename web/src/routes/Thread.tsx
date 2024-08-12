@@ -1,11 +1,11 @@
 import { useState, forwardRef  } from 'react'
-import { findDOMNode } from 'react-dom'
 import { useParams  } from 'react-router-dom'
 
 import { useThread } from '@/hooks/useThread'
 import { CreatePost } from '@/components/CreatePost'
 import {truncateEthAddress} from '@/utils'
-
+import { useTip } from '@/hooks/useTip'
+import { useForm  } from "react-hook-form";
 
 const PostIdSpan = ({postId, handleOpenPost}:{postId:string, handleOpenPost: (postId:string) => void}) => {
   const [hovered, setHovered] = useState(false)
@@ -59,10 +59,58 @@ const ReplySpans = ({replies}: {replies: any}) => {
   return null
 }
 
+const TipCreator = ({creator}: {creator: `0x${string}`}) => {
+  const { createTip } = useTip()
+  const [hovered, setHovered] = useState(false)
+  const { register, handleSubmit, formState: { errors  }  } = useForm();
+  const [rpcError, setRpcError] = useState(null)
+  const onSubmit = async (data) => {
+    console.log(data)
+    const response = await createTip(
+      creator,
+      data.amount
+    )
+    if (response.hash) {
+      console.log('response', response)
+    } else {
+      console.log('error', response.error.message)
+      setRpcError(response.error.message)
+    }
+  }
+
+  return (
+    <span
+      onMouseEnter={() => setHovered(true)}
+      style={{
+        color: hovered ? '#20c20E': 'green',
+      }}
+    >{creator && truncateEthAddress(creator)}
+      {hovered &&
+        <form
+          onMouseLeave={() => setHovered(false)}
+          style={{
+          backgroundColor:"#090909",
+          position: 'absolute',
+          padding: '1.25vh 1.25vw',
+          }}
+          onSubmit={handleSubmit(onSubmit)}
+        ><label htmlFor="amount">Tip: </label>
+          <input style={{width:'5vw'}} defaultValue="0.01" {...register("amount", { required: true })} />
+          {errors.amount && <span>This field is required</span>}
+          <input type="submit" />
+        </form>
+      }
+      {rpcError && <div 
+        onMouseLeave={() => setRpcError(null)}
+        style={{ backgroundColor: 'red', position: 'absolute' }}
+      >{rpcError}</div>}
+    </span>
+  )
+}
 const Post = forwardRef(({
   creator, postId, imgUrl, content, timestamp, replies, handleOpenPost
 }:{
-  creator: string,
+  creator: `0x${string}`,
   postId: string,
   imgUrl: string,
   content: string,
@@ -81,13 +129,7 @@ const Post = forwardRef(({
       }}> 
       <div
       >
-        <span
-          style={{
-            color: 'green',
-            fontWeight: 'bold'
-          }}
-        >{creator && truncateEthAddress(creator)}
-        </span>&nbsp;
+        <TipCreator creator={creator} />&nbsp;
         <PostIdSpan postId={postId} handleOpenPost={handleOpenPost} />
         <span>&nbsp;{timestamp && new Date(timestamp * 1000).toLocaleString()}</span>
         <ReplySpans replies={replies} />
