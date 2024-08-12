@@ -119,7 +119,7 @@ export const Thread = () => {
   const { posts, logErrors } = useThread(thread)
 
   const handleOpenPost = (threadId:string) => {
-postIdsetMakeReply(threadId)
+     setMakeReply(threadId)
   }
   return (
     <>

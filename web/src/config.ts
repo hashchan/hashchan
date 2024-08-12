@@ -17,7 +17,7 @@ const metadata = {
 }
 
 export const config = createConfig({
-  chains: [localhost, sepolia, optimismSepolia, optimism, mainnet, classic ],
+  chains: [classic, mainnet, sepolia, localhost, optimismSepolia, optimism],
   connectors: [
     walletConnect({
       projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID,
@@ -27,8 +27,8 @@ export const config = createConfig({
   transports: {
     [classic.id]: unstable_connector(injected),
     [mainnet.id]: unstable_connector(injected),
-    [localhost.id]: http(),
     [sepolia.id]: unstable_connector(injected),
+    [localhost.id]: http(),
     [optimismSepolia.id]: unstable_connector(injected),
     [optimism.id]: unstable_connector(injected),
   },

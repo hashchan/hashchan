@@ -7,6 +7,7 @@ const config: HardhatUserConfig = {
   solidity: "0.8.26",
   networks: {
     hardhat:{
+      chainId: 31337,
       accounts: {
         mnemonic: process.env.MNEMONIC
       }

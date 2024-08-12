@@ -34,7 +34,6 @@ const parseContent = (content: string, refsObj:any) => {
       }
     }
   )
-  console.log('replyIds', replyIds)
 
   return {
     replyIds,
@@ -47,12 +46,13 @@ export const useThread = (threadId: string) => {
   const { address } = useAccount()
   const publicClient = usePublicClient();
   const walletClient = useWalletClient()
-  const [op, setOp] = useState(null)
-  //const [opReplies, setOpReplies] = useState(null)
+  const [refsObj, setRefsObj] = useState(null)
+  const [logsObj, setLogsObj] = useState(null)
   const [posts, setPosts] = useState([])
   const [logErrors, setLogErrors] = useState([])
+  const [isWatchingEnabled, setIsWatchingEnabled] = useState(false)
   const watchThread = useCallback(async () => {
-    if (publicClient && address) {
+    if (publicClient && address && threadId && isWatchingEnabled) {
       try {
         const unwatch = publicClient.watchContractEvent({
           address: hashChanAddress as `0x${string}`,
@@ -62,14 +62,26 @@ export const useThread = (threadId: string) => {
             threadId
           },
           onLogs(logs) {
+            const localRefsObj = refsObj
+            const localLogsObj = logsObj
+            const { replyIds, parsed } = parseContent(log[0].args.content, localRefsObj)
+            localRefsObj[logs[0].args.id] = createRef()
+
+            replyIds.forEach((replyId, i) => {
+              localLogsObj[replyId].replies.push({ref: localRefsObj[log.args.id], id: log.args.id})
+            })
             const post = {
               creator: logs[0].args.creator,
               id: logs[0].args.id,
               imgUrl: logs[0].args.imgUrl,
-              content: logs[0].args.content,
-              timestamp: Number(logs[0].args.timestamp)
+              content: parsed,
+              timestamp: Number(logs[0].args.timestamp),
+              replies: [],
+              ref: localRefsObj[logs[0].args.id]
             }
             setPosts(old => [...old, post])
+            setRefsObj(refsObj)
+            setLogsObj(logsObj)
           }
         })
 
@@ -78,45 +90,9 @@ export const useThread = (threadId: string) => {
         setLogErrors(old => [...old, e.toString()])
       }
     }  
-  }, [publicClient, address, threadId])
+  }, [publicClient, address, threadId, refsObj, logsObj])
 
 
-
-  const fetchThread = useCallback(async () => {
-    if (publicClient && address) {
-      try {
-        const filter = await publicClient.createContractEventFilter({
-          address: hashChanAddress as `0x${string}`,
-          abi,
-          eventName: 'Thread',
-          args: {
-            id: threadId
-          },
-          fromBlock: 0n,
-          toBlock: 'latest'
-        })
-
-        const logs = await publicClient.getFilterLogs({
-          filter,
-        })
-        console.log('logs 60 op', logs)
-        const {replyIds, parsed} = parseContent(logs[0].args.content, null)
-        setOp({
-          creator: logs[0].args.creator,
-          id: logs[0].args.id,
-          imgUrl: logs[0].args.imgUrl,
-          title: logs[0].args.title,
-          content: parsed,
-          timestamp: Number(logs[0].args.timestamp),
-          replies: []
-        })
-
-      } catch (e) {
-        console.log('logErrors', e.toString())
-        setLogErrors(old => [...old, e.toString()])
-      }
-    }
-  }, [publicClient, address, threadId])
   const fetchPosts = useCallback(async () => {
     if (publicClient && address && threadId) {
 
@@ -135,24 +111,32 @@ export const useThread = (threadId: string) => {
           filter: threadFilter,
         })
 
-        const refsObj = {
-          [threadLogs[0].args.id] : createRef(),
-        }
-
-        const logsObj = {
-          [threadLogs[0].args.id]: {
-            creator: threadLogs[0].args.creator,
-            id: threadLogs[0].args.id,
-            imgUrl: threadLogs[0].args.imgUrl,
-            content: threadLogs[0].args.content,
-            timestamp: Number(threadLogs[0].args.timestamp),
-            replies: [],
-            ref: refsObj[threadLogs[0].args.id]
+        let localRefsObj;
+        if (!refsObj) {
+          localRefsObj = {
+            [threadLogs[0].args.id] : createRef(),
           }
+        } else {
+          localRefsObj = refsObj
+        }
+        let localLogsObj;
+        if (!logsObj) {
+          localLogsObj = {
+            [threadLogs[0].args.id]: {
+              creator: threadLogs[0].args.creator,
+              id: threadLogs[0].args.id,
+              imgUrl: threadLogs[0].args.imgUrl,
+              content: threadLogs[0].args.content,
+              timestamp: Number(threadLogs[0].args.timestamp),
+              replies: [],
+              ref: localRefsObj[threadLogs[0].args.id]
+            }
+          }
+        } else {
+          localLogsObj = logsObj
         }
 
-
-     // try {
+     try {
         const filter = await publicClient.createContractEventFilter({
           address: hashChanAddress as `0x${string}`,
           abi,
@@ -167,39 +151,39 @@ export const useThread = (threadId: string) => {
         const logs = await publicClient.getFilterLogs({
           filter
         })
-
-      
-
         
         logs.forEach((log) => {
-          console.log('log', log.args.id)
-          const { replyIds, parsed } = parseContent(log.args.content, refsObj)
-          refsObj[log.args.id] = createRef()
+          const { replyIds, parsed } = parseContent(log.args.content, localRefsObj)
+          localRefsObj[log.args.id] = createRef()
 
-          logsObj[log.args.id] = {
+          localLogsObj[log.args.id] = {
             creator: log.args.creator,
             id: log.args.id,
             imgUrl: log.args.imgUrl,
             timestamp: Number(log.args.timestamp),
             replies: [],
-            ref: refsObj[log.args.id]
+            ref: localRefsObj[log.args.id]
           }
 
           replyIds.forEach((replyId, i) => {
-            logsObj[replyId].replies.push({ref: refsObj[log.args.id], id: log.args.id})
+            localLogsObj[replyId].replies.push({ref: localRefsObj[log.args.id], id: log.args.id})
           })
-          logsObj[log.args.id].content = parsed
+          localLogsObj[log.args.id].content = parsed
         })
 
-        setPosts(Object.values(logsObj))
-
-      //} catch (e) {
-        //console.log('logErrors', e.text)
-        //setLogErrors(old => [...old, e.toString()])
-      //}
+        setPosts(Object.values(localLogsObj))
+        setLogsObj(localLogsObj)
+        setRefsObj(localRefsObj)
+        setIsWatchingEnabled(true)
+      } catch (e) {
+        console.log('logErrors', e.text)
+        setLogErrors(old => [...old, e.toString()])
+      }
 
     }
-  }, [publicClient, address, threadId])
+  }, [publicClient, address, threadId, logsObj, refsObj])
+
+
   const createPost = useCallback(async (
     imgUrl: string,
     content: string
@@ -217,6 +201,9 @@ export const useThread = (threadId: string) => {
           ]
         })
         console.log(result)
+        if (!isWatchingEnabled) {
+          fetchPosts()
+        }
         return {
           hash: result,
           error: null
@@ -229,7 +216,7 @@ export const useThread = (threadId: string) => {
       }
 
     } 
-  }, [walletClient, address, threadId])
+  }, [walletClient, address, threadId, isWatchingEnabled, fetchPosts])
 
 
   useEffect(() => {
@@ -241,7 +228,6 @@ export const useThread = (threadId: string) => {
   }, [threadId, /*fetchThread,*/ fetchPosts, watchThread])
 
   return {
-    op: op,
     posts: posts,
     fetchPosts: fetchPosts,
     createPost: createPost,

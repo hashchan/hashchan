@@ -8,7 +8,8 @@ export const Board = () => {
   const { address, chain } = useAccount()
   const { board, thread } = useParams()
   const [openMakeContent, setOpenMakeContent] = useState(false)
-
+  console.log('address', address)
+  console.log('chain', chain)
   return (
     <>
       <div style={{marginTop: '0px', display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>

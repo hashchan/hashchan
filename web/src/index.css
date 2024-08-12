@@ -16,6 +16,11 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.emoji {
+  height: 18px;
+  vertical-align: middle;
+}
+
 a {
   font-weight: 685;
   color: #ffffff;
