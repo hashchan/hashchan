@@ -15,7 +15,7 @@ const Account = () => {
       <div>
         {address && <>
           <span>{chainId && chainIdMap(chainId)}</span>
-          <span style={{padding: '0px 10px'}}>
+          <span style={{padding: '0px 1.25vw'}}>
 
             {ensName ? `${ensName} (${truncateEthAddress(address)})` : truncateEthAddress(address)}
           </span>
@@ -30,7 +30,11 @@ const WalletOptions = () => {
   const { connectors, connect  } = useConnect()
   console.log('connectors', connectors)
   return (
-    <div style={{padding:'0 1.25vw'}}>
+    <div style={{
+      padding:'0 1.25vw',
+      display: 'flex',
+      alignItems: 'center',
+      }}>
       {connectors.map((connector) => (
         <WalletOption
           key={connector.uid}

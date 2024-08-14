@@ -12,7 +12,12 @@ export const Board = () => {
   console.log('chain', chain)
   return (
     <>
-      <div style={{marginTop: '0px', display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+      <div style={{
+        marginTop: '0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+        }}>
         <h2><Link to={`/boards/${board}`}>/{board}/</Link></h2>
         { address ? (<> { chain ? (
           <button  onClick={() => {
@@ -28,6 +33,7 @@ export const Board = () => {
         }
       </div>
       <p>[<Link to={`/boards/${board}/catalogue`}>Catalogue</Link>]</p>
+      
       {openMakeContent && (<>
         { thread ? (
           <CreatePost threadId={thread} replyId={null} />

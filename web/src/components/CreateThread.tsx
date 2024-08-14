@@ -3,10 +3,11 @@ import { useForm  } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useCreateThread } from "@/hooks/useCreateThread";
 export const CreateThread = ({board}: {board: string}) => {
-  const { register, handleSubmit, formState: { errors  }  } = useForm();
+  const { register, handleSubmit, formState: { errors, isSubmitting  }  } = useForm();
   const { createThread, threadId } = useCreateThread()
   const [rpcError, setRpcError] = useState(null)
   const navigate = useNavigate();
+
   const onSubmit = async (data) => {
     console.log(data)
     const response = await createThread(
@@ -28,23 +29,37 @@ export const CreateThread = ({board}: {board: string}) => {
   useEffect(() => {}, [threadId])
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form 
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: "rgba(0,0,0,0.5)",
+
+      }}
+      onSubmit={handleSubmit(onSubmit)}>
       <label htmlFor="title">Title</label>
       <div>
-        <input style={{width:'60vw'}} defaultValue="" {...register("title")} />
+        <input style={{width:'61.8vw'}} defaultValue="" {...register("title", { required: true })} />
+      {errors.title && <span>This field is required</span>}
       </div>
       <label htmlFor="imageUrl">Image Url</label>
       <div>
-      <input style={{width:'60vw'}} defaultValue="" {...register("imageUrl", { required: true })} />
+      <input style={{width:'61.8vw'}} defaultValue="" {...register("imageUrl", { required: true })} />
       {errors.imageUrl && <span>This field is required</span>}
       </div>
       <label htmlFor="content">Content</label>
       <div>
-        <textarea style={{width:'60vw', height:'120px'}} defaultValue="" {...register("content", { required: true  })} />
+        <textarea style={{width:'61.8vw', height:'23.6vh'}} defaultValue="" {...register("content", { required: true  })} />
         {errors.content && <span>This field is required</span>}
       </div>
       <div>
-        <input type="submit" />
+        <button
+          disabled={isSubmitting}
+          type="submit">
+          {isSubmitting ? (<span>Submitting...</span>): (<span>Make Post</span>)}
+          </button>
         {rpcError && <p>{rpcError}</p>}
       </div>
     </form>

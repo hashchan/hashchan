@@ -26,8 +26,8 @@ const ListItem = ({
       }}
       onClick={() => navigate(`/boards/${board}/thread/${threadId}`)}
     >
-      <h3 style={{paddingTop: '10px', textAlign: 'center', width: '100%'}}>{title}</h3>
-      <p style={{paddingBottom: '10px', textAlign: 'center', width: '100%'}}>{truncateEthAddress(threadId)}</p>
+      <h3 style={{paddingTop: '1.25vh', textAlign: 'center', width: '100%'}}>{title}</h3>
+      <p style={{paddingBottom: '1.25vh', textAlign: 'center', width: '100%'}}>{truncateEthAddress(threadId)}</p>
       <img
         style={{
           maxWidth: '95%',
@@ -56,10 +56,13 @@ const List = ({threads}: {threads: any}) => {
         flexDirection: 'row',
         gap: '10px',
       }}>
-      {
+      { threads.length > 0 ? (
         threads.map(({id, title, imgUrl, content}, i) => {
           return <ListItem key={id + i} threadId={id} title={title} imgUrl={imgUrl} content={content} />
         })
+      ): (
+        <p>Nothing here yet, be the first to post</p>
+      )
       }
     </div>
   )

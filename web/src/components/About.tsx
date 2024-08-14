@@ -7,10 +7,12 @@ import Classic from '../assets/emoji/classic.png'
 import Optimism from '../assets/emoji/optimism.png'
 import Sepolia from '../assets/emoji/sepolia.png'
 import OptimismSepolia from '../assets/emoji/optimism-sepolia.png'
+import Computer from '../assets/emoji/computer.gif'
 import Plug from '../assets/emoji/outlet_plug.png'
 import Archive from '../assets/emoji/archive.png'
 import Disguise from '../assets/emoji/disguise.png'
 import Tips from '../assets/emoji/tips.png'
+
 export const About = () => {
   return (
     <div style={{
@@ -18,7 +20,7 @@ export const About = () => {
         flexWrap: 'wrap',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        padding: '0 10vw',
+        padding: '0 5vw',
       }}>
       <div >
       <h3>Welcome to Hashchan</h3>
@@ -53,9 +55,9 @@ export const About = () => {
       </div>
       <div>
         <h3>Powering up Hashchan</h3>
+        <p><img src={Computer} className="emoji" /> Run site locally</p>
         <p><img src={Plug} className="emoji" /> Use dedicated websocket RPCs</p>
         <p><img src={Archive} className="emoji" /> Run an Archive Node</p>
-        <p><img src={IPFS} className="emoji" /> Use IPFS pinning services</p>
         <p><img src={Disguise} className="emoji" /> PseudoAnonymize your wallets</p>
         <p><img src={Tips} className="emoji" /> Tip quality Posts</p>
       </div>
