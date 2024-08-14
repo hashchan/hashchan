@@ -1,11 +1,13 @@
+import { useState, useEffect } from 'react'
 import { Link, Outlet, useParams } from 'react-router-dom'
 import { ConnectWallet } from './components/ConnectWallet'
 import { About } from "@/components/About"
-//import HashchanLogo from '@/assets/logo-3.png'
+import HashchanLogo from '@/assets/logo-4.png'
 import HashchanLogoGif from '@/assets/animated-banner.gif'
 import Github from '@/assets/emoji/github.png'
 export const Root = () => {
   const { thread, board } = useParams()
+  const [homeHover, setHomeHover] = useState(false)
   return (
     <>
       <div style={{
@@ -14,7 +16,11 @@ export const Root = () => {
         alignItems: 'center',
         justifyContent: 'space-between',
         }}>
-        <Link className="button" to="/"><img src={HashchanLogoGif}/></Link>
+        <Link className="button" to="/">
+          <img 
+            onMouseEnter={() => setHomeHover(true)}
+            onMouseLeave={() => setHomeHover(false)}
+            src={homeHover ? HashchanLogo : HashchanLogoGif}/></Link>
       <div style={{
         display: 'flex',
         flexWrap: 'wrap',
