@@ -116,7 +116,7 @@ const Post = forwardRef(({
   content: string,
   timestamp: number,
   replies: string[],
-  handleOpenPost: (id: string) => void,
+  handleOpenPost: (replyId: string) => void,
 }, ref)  => {
   const [expanded, setExpanded] = useState(false)
     return (
@@ -155,13 +155,13 @@ const Post = forwardRef(({
 
 
 export const Thread = () => {
-  const [makeReply, setMakeReply] = useState(null)
+  const [makeReply, setMakeReply] = useState([])
   const { board, thread } = useParams()
 
   const { posts, logErrors } = useThread(thread)
 
   const handleOpenPost = (threadId:string) => {
-     setMakeReply(threadId)
+    setMakeReply(old => [...old, threadId])
   }
   return (
     <>
@@ -187,7 +187,7 @@ export const Thread = () => {
             position: 'absolute'
           }}
         >
-          <CreatePost threadId={thread} replyId={makeReply} />
+          <CreatePost threadId={thread} replyIds={makeReply} />
         </div>
       )
       }

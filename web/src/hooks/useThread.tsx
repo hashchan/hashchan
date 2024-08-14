@@ -8,11 +8,8 @@ import {
 import { writeContract,waitForTransactionReceipt  } from '@wagmi/core'
 import { address as hashChanAddress, abi } from '@/assets/HashChan.json'
 
-import { parseAbiItem, parseEventLogs } from 'viem'
 
-import { boardsMap } from '@/utils'
 import { config } from '@/config'
-import { truncateEthAddress } from '@/utils'
 import reactStringReplace from 'react-string-replace';
 import { ReplyLink } from '@/components/ReplyLink'
 
@@ -50,9 +47,8 @@ export const useThread = (threadId: string) => {
   const [logsObj, setLogsObj] = useState(null)
   const [posts, setPosts] = useState([])
   const [logErrors, setLogErrors] = useState([])
-  const [isWatchingEnabled, setIsWatchingEnabled] = useState(false)
   const watchThread = useCallback(async () => {
-    if (publicClient && address && threadId && isWatchingEnabled) {
+    if (publicClient && address && threadId) {
       try {
         const unwatch = publicClient.watchContractEvent({
           address: hashChanAddress as `0x${string}`,
@@ -64,7 +60,7 @@ export const useThread = (threadId: string) => {
           onLogs(logs) {
             const localRefsObj = refsObj
             const localLogsObj = logsObj
-            const { replyIds, parsed } = parseContent(log[0].args.content, localRefsObj)
+            const { replyIds, parsed } = parseContent(logs[0].args.content, localRefsObj)
             localRefsObj[logs[0].args.id] = createRef()
 
             replyIds.forEach((replyId, i) => {
@@ -111,17 +107,11 @@ export const useThread = (threadId: string) => {
           filter: threadFilter,
         })
 
-        let localRefsObj;
-        if (!refsObj) {
-          localRefsObj = {
+          const localRefsObj = {
             [threadLogs[0].args.id] : createRef(),
           }
-        } else {
-          localRefsObj = refsObj
-        }
-        let localLogsObj;
-        if (!logsObj) {
-          localLogsObj = {
+            console.log('threadLogs', threadLogs)
+          const localLogsObj = {
             [threadLogs[0].args.id]: {
               creator: threadLogs[0].args.creator,
               id: threadLogs[0].args.id,
@@ -132,9 +122,6 @@ export const useThread = (threadId: string) => {
               ref: localRefsObj[threadLogs[0].args.id]
             }
           }
-        } else {
-          localLogsObj = logsObj
-        }
 
      try {
         const filter = await publicClient.createContractEventFilter({
@@ -153,6 +140,7 @@ export const useThread = (threadId: string) => {
         })
         
         logs.forEach((log) => {
+          console.log('log', log)
           const { replyIds, parsed } = parseContent(log.args.content, localRefsObj)
           localRefsObj[log.args.id] = createRef()
 
@@ -164,8 +152,9 @@ export const useThread = (threadId: string) => {
             replies: [],
             ref: localRefsObj[log.args.id]
           }
-
+          console.log('replyIds', replyIds)
           replyIds.forEach((replyId, i) => {
+            console.log('replyId', replyId)
             localLogsObj[replyId].replies.push({ref: localRefsObj[log.args.id], id: log.args.id})
           })
           localLogsObj[log.args.id].content = parsed
@@ -174,14 +163,13 @@ export const useThread = (threadId: string) => {
         setPosts(Object.values(localLogsObj))
         setLogsObj(localLogsObj)
         setRefsObj(localRefsObj)
-        setIsWatchingEnabled(true)
       } catch (e) {
         console.log('logErrors', e.text)
         setLogErrors(old => [...old, e.toString()])
       }
 
     }
-  }, [publicClient, address, threadId, logsObj, refsObj])
+  }, [publicClient, address, threadId ])
 
 
   const createPost = useCallback(async (
@@ -216,16 +204,17 @@ export const useThread = (threadId: string) => {
       }
 
     } 
-  }, [walletClient, address, threadId, isWatchingEnabled, fetchPosts])
+  }, [walletClient, address, threadId, fetchPosts])
 
 
   useEffect(() => {
     if (threadId) {
+      console.log('fetching posts')
       //fetchThread()
       fetchPosts()
-      watchThread()
+      //watchThread()
     }
-  }, [threadId, /*fetchThread,*/ fetchPosts, watchThread])
+  }, [threadId, /*fetchThread,*/ fetchPosts, /*watchThread*/])
 
   return {
     posts: posts,

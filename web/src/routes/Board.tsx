@@ -36,7 +36,7 @@ export const Board = () => {
       
       {openMakeContent && (<>
         { thread ? (
-          <CreatePost threadId={thread} replyId={null} />
+          <CreatePost threadId={thread} replyIds={[]} />
         ): (
         <CreateThread board={board}/>
         )
