@@ -20,9 +20,11 @@ const ListItem = ({
         display: 'flex',
         alignItems: 'center',
         flexDirection: 'column',
-        backgroundColor: "rgba(0,0,0,0.5)",
+        backgroundColor: "rgba(0,0,0,0.618)",
         width: "377px",
-        height: "610px"
+        height: "610px",
+        borderRadius: '16px',
+        border: '1px solid #20C20E',
       }}
       onClick={() => navigate(`/boards/${board}/thread/${threadId}`)}
     >
@@ -30,8 +32,9 @@ const ListItem = ({
       <p style={{paddingBottom: '1.25vh', textAlign: 'center', width: '100%'}}>{truncateEthAddress(threadId)}</p>
       <img
         style={{
-          maxWidth: '95%',
-          maxHeight: '65%'
+          objectFit: 'contain',
+          height: '261px',
+          width: '161px',
         }}
         src={imgUrl}
       />

@@ -31,12 +31,15 @@ export const CreateThread = ({board}: {board: string}) => {
   return (
     <form 
       style={{
+        margin: '0 auto',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: "rgba(0,0,0,0.5)",
-
+        width: '85.4vw',
+        backgroundColor: "rgba(0,0,0,0.618)",
+        borderRadius: '16px',
+        border: '1px solid #20C20E',
       }}
       onSubmit={handleSubmit(onSubmit)}>
       <label htmlFor="title">Title</label>

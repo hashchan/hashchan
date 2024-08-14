@@ -5,7 +5,9 @@ import { useThread } from "@/hooks/useThread";
 import { truncateEthAddress } from '@/utils'
 
 
-export const CreatePost = ({threadId, replyIds}: {threadId: string, replyIds: string[] }) => {
+export const CreatePost = ({
+  threadId, replyIds, handleClose}:
+    {threadId: string, replyIds: string[], handleClose : () => void }) => {
   const { register, handleSubmit, formState: { errors, isSubmitting  }  } = useForm();
   const { createPost, fetchLatestPosts } = useThread(threadId)
   const navigate = useNavigate();
@@ -29,13 +31,29 @@ export const CreatePost = ({threadId, replyIds}: {threadId: string, replyIds: st
 
     <form
       style={{
+        width: '85.4vw',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: "rgba(0,0,0,0.5)",
+        backgroundColor: "rgba(0,0,0,0.618)",
+        borderRadius: '16px',
+        border: '1px solid #20C20E',
       }}
       onSubmit={handleSubmit(onSubmit)}>
+      <div style={{
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'flex-end',
+        }} >
+      <button
+        style={{
+          color: 'red',
+          margin: '6.18px 16.18px',
+          padding: '6.18px 16.18px',
+        }}
+      onClick={() => handleClose()}>x</button>
+      </div>
       <label htmlFor="imageUrl">Image Url</label>
       <div>
         <input style={{width:'61.8vw'}} defaultValue="" {...register("imageUrl", { required: true })} />

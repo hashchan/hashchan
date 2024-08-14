@@ -10,6 +10,9 @@ export const Board = () => {
   const [openMakeContent, setOpenMakeContent] = useState(false)
   console.log('address', address)
   console.log('chain', chain)
+  const handleClose = () => {
+    setOpenMakeContent(!openMakeContent)
+  }
   return (
     <>
       <div style={{
@@ -36,9 +39,14 @@ export const Board = () => {
       
       {openMakeContent && (<>
         { thread ? (
-          <CreatePost threadId={thread} replyIds={[]} />
+          <div style={{
+            width: '85.4vw',
+            margin: '0 auto',
+          }}>
+          <CreatePost threadId={thread} replyIds={[]} handleClose={handleClose} />
+          </div>
         ): (
-        <CreateThread board={board}/>
+        <CreateThread board={board} replyIds={[]} handleClose={handleClose}/>
         )
         }
         </>)

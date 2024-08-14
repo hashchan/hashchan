@@ -156,12 +156,18 @@ const Post = forwardRef(({
 
 export const Thread = () => {
   const [makeReply, setMakeReply] = useState([])
+  const [toggleReply, setToggleReply] = useState(false)
   const { board, thread } = useParams()
 
   const { posts, logErrors } = useThread(thread)
 
   const handleOpenPost = (threadId:string) => {
     setMakeReply(old => [...old, threadId])
+    setToggleReply(true)
+    console.log('hi')
+  }
+  const handleClose = () => {
+    setToggleReply(!toggleReply)
   }
   return (
     <>
@@ -181,14 +187,15 @@ export const Thread = () => {
           />
         )
       })
-      }{ makeReply && (
-        <div
-          style={{
-            position: 'absolute'
-          }}
-        >
-          <CreatePost threadId={thread} replyIds={makeReply} />
-        </div>
+      }{ toggleReply && (
+        <div style={{
+          position: 'fixed',
+          inset: 'unset',
+          top: '50vh',
+          left: '7.3vw',
+          }}>
+          <CreatePost threadId={thread} replyIds={makeReply} handleClose={handleClose} />
+          </div>
       )
       }
       {

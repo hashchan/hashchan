@@ -110,7 +110,6 @@ export const useThread = (threadId: string) => {
           const localRefsObj = {
             [threadLogs[0].args.id] : createRef(),
           }
-            console.log('threadLogs', threadLogs)
           const localLogsObj = {
             [threadLogs[0].args.id]: {
               creator: threadLogs[0].args.creator,
@@ -140,7 +139,6 @@ export const useThread = (threadId: string) => {
         })
         
         logs.forEach((log) => {
-          console.log('log', log)
           const { replyIds, parsed } = parseContent(log.args.content, localRefsObj)
           localRefsObj[log.args.id] = createRef()
 
@@ -152,9 +150,7 @@ export const useThread = (threadId: string) => {
             replies: [],
             ref: localRefsObj[log.args.id]
           }
-          console.log('replyIds', replyIds)
           replyIds.forEach((replyId, i) => {
-            console.log('replyId', replyId)
             localLogsObj[replyId].replies.push({ref: localRefsObj[log.args.id], id: log.args.id})
           })
           localLogsObj[log.args.id].content = parsed
@@ -188,7 +184,6 @@ export const useThread = (threadId: string) => {
             content 
           ]
         })
-        console.log(result)
         if (!isWatchingEnabled) {
           fetchPosts()
         }
@@ -209,12 +204,11 @@ export const useThread = (threadId: string) => {
 
   useEffect(() => {
     if (threadId) {
-      console.log('fetching posts')
       //fetchThread()
       fetchPosts()
-      //watchThread()
+      watchThread()
     }
-  }, [threadId, /*fetchThread,*/ fetchPosts, /*watchThread*/])
+  }, [threadId, /*fetchThread,*/ fetchPosts, watchThread])
 
   return {
     posts: posts,
