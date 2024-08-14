@@ -1,6 +1,7 @@
 # [Hashchan](https://hashchan.network) 
 
-![logo-2](https://github.com/user-attachments/assets/a133e7b4-8886-4d2f-b838-6129133dbeda)
+![banner-gif](https://github.com/user-attachments/assets/394c2d1e-9e8f-4c61-ac1d-64f5f723218e)
+
 
 (Alpha)
 An imageboard inside ethereum event logs
