@@ -47,13 +47,21 @@ const config: HardhatUserConfig = {
       accounts: {
         mnemonic: process.env.MNEMONIC
       }
+    },
+    fantom: {
+      url: `https://fantom-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
+      chainId: 250,
+      accounts: {
+        mnemonic: process.env.MNEMONIC
+      }
     }
   },
   etherscan: {
     apiKey: {
       mainnet: process.env.ETHERSCAN,
       sepolia: process.env.ETHERSCAN,
-      'optimism-sepolia': process.env.BLOCKSCOUT
+      'optimism-sepolia': process.env.BLOCKSCOUT,
+      fantom: process.env.FTMSCAN
     },
     customChains: [
       {
@@ -62,6 +70,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: "https://optimism-sepolia.blockscout.com/api",
           browserURL: "https://optimism-sepolia.blockscout.com",
+        }
+      },
+      {
+        network: "fantom",
+        chainId: 250,
+        urls: {
+          apiURL: "https://api.ftmscan.com/api",
+          browserURL: "https://ftmscan.com",
         }
       }
     ]
