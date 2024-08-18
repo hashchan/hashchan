@@ -30,12 +30,10 @@ export const CreateThread = ({board}: {board: string}) => {
 
   return (
     <form 
+      className="flex-wrap-center"
       style={{
         margin: '0 auto',
-        display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
         width: '85.4vw',
         backgroundColor: "rgba(0,0,0,0.618)",
         borderRadius: '16px',

@@ -15,10 +15,10 @@ export const Board = () => {
   }
   return (
     <>
-      <div style={{
+      <div
+        className="flex-wrap-center"
+        style={{
         marginTop: '0',
-        display: 'flex',
-        alignItems: 'center',
         justifyContent: 'space-between'
         }}>
         <h2><Link to={`/boards/${board}`}>/{board}/</Link></h2>

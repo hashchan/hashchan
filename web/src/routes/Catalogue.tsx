@@ -16,9 +16,8 @@ const ListItem = ({
   const navigate  = useNavigate()
   return (
     <div
+      className="flex-wrap-center"
       style={{
-        display: 'flex',
-        alignItems: 'center',
         flexDirection: 'column',
         backgroundColor: "rgba(0,0,0,0.618)",
         width: "377px",

@@ -15,12 +15,11 @@ import Tips from '../assets/emoji/tips.png'
 
 export const About = () => {
   return (
-    <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: '0 5vw',
+    <div
+      className="flex-wrap-center"
+      style={{
+          justifyContent: 'space-between',
+          padding: '0 5vw',
       }}>
       <div >
       <h3>Welcome to Hashchan</h3>

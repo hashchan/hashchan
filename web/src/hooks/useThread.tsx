@@ -15,7 +15,7 @@ import { ReplyLink } from '@/components/ReplyLink'
 
 const parseContent = (content: string, refsObj:any) => {
   const replyIds: string[] = []
-  const parsed = reactStringReplace(
+  let parsed = reactStringReplace(
     content,
     /@(0x.{64})/gm,
     (match, i) => {
@@ -31,6 +31,12 @@ const parseContent = (content: string, refsObj:any) => {
       }
     }
   )
+  parsed = reactStringReplace(
+    parsed,
+    />(.*?)\\n/gm,
+    (match, i) => {
+      return <p key={i + 'm'} style={{color: '#DF3DF1'}}>{"> " + match}</p>
+    } )
 
   return {
     replyIds,
@@ -184,9 +190,6 @@ export const useThread = (threadId: string) => {
             content 
           ]
         })
-        if (!isWatchingEnabled) {
-          fetchPosts()
-        }
         return {
           hash: result,
           error: null
@@ -199,16 +202,16 @@ export const useThread = (threadId: string) => {
       }
 
     } 
-  }, [walletClient, address, threadId, fetchPosts])
+  }, [walletClient, address, threadId])
 
 
   useEffect(() => {
     if (threadId) {
       //fetchThread()
       fetchPosts()
-      watchThread()
+      //watchThread()
     }
-  }, [threadId, /*fetchThread,*/ fetchPosts, watchThread])
+  }, [threadId, /*fetchThread,*/ fetchPosts, /*watchThread*/])
 
   return {
     posts: posts,

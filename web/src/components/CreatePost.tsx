@@ -30,12 +30,10 @@ export const CreatePost = ({
   return (
 
     <form
+      className="flex-wrap-center"
       style={{
         width: '85.4vw',
-        display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
         backgroundColor: "rgba(0,0,0,0.618)",
         borderRadius: '16px',
         border: '1px solid #20C20E',
