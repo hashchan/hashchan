@@ -5,6 +5,7 @@ import FlyingMoney from '../assets/emoji/flying-money.png'
 import Tree from '../assets/emoji/tree.gif'
 import Classic from '../assets/emoji/classic.png'
 import Optimism from '../assets/emoji/optimism.png'
+import Fantom from '../assets/emoji/fantom.png'
 import Sepolia from '../assets/emoji/sepolia.png'
 import OptimismSepolia from '../assets/emoji/optimism-sepolia.png'
 import Computer from '../assets/emoji/computer.gif'
@@ -42,6 +43,10 @@ export const About = () => {
         <p>
           <img src={Optimism} className="emoji" />
           <a target="_blank" href="https://optimistic.etherscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Optimism</a>
+        </p>
+        <p>
+          <img src={Fantom} className="emoji" />
+          <a target="_blank" href="https://etherscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Fantom</a>
         </p>
         <p>
           <img src={Sepolia} className="emoji" />

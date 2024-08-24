@@ -6,7 +6,6 @@ html {
   font-family: Monospace, Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.618;
   font-weight: 424;
-  color-scheme: light dark;
   color: #20C20E ;
   background-color: #090909;
   font-size: 18px;
@@ -57,19 +56,6 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
 }
 
 .flex-wrap-center {
