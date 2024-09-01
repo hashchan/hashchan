@@ -1,5 +1,5 @@
-import { useState, forwardRef  } from 'react'
-import { useParams  } from 'react-router-dom'
+import { useState,useEffect, forwardRef  } from 'react'
+import { useParams, useLocation  } from 'react-router-dom'
 
 import { useThread } from '@/hooks/useThread'
 import { CreatePost } from '@/components/CreatePost'
@@ -7,6 +7,8 @@ import {truncateEthAddress} from '@/utils'
 import { useTip } from '@/hooks/useTip'
 import { useForm  } from "react-hook-form";
 
+import MarkdownEditor from '@uiw/react-markdown-editor';
+import json2md from 'json2md'
 const PostIdSpan = ({postId, handleOpenPost}:{postId:string, handleOpenPost: (postId:string) => void}) => {
   const [hovered, setHovered] = useState(false)
   return (
@@ -118,6 +120,15 @@ const Post = forwardRef(({
   replies: string[],
   handleOpenPost: (replyId: string) => void,
 }, ref)  => {
+  const location = useLocation()
+
+  useEffect(() => {
+    if (ref && location.hash.includes(`#${postId}`)) {
+      ref.current.scrollIntoView({behavior: 'smooth', block: 'start'})
+    }
+
+  }, [location, postId,ref])
+  console.log('content', content)
   const [expanded, setExpanded] = useState(false)
     return (
     <div
@@ -135,7 +146,8 @@ const Post = forwardRef(({
         <ReplySpans replies={replies} />
       </div>
       <a style={{paddingLeft: '1.25vw'}} target="_blank" href={imgUrl}>{ imgUrl && imgUrl.substring(0,33)}...</a>
-      <div>
+      <div className="flex-wrap-center" style={{
+        }}>
         <img 
           onClick={() => setExpanded(!expanded)}
         style={{
@@ -143,11 +155,11 @@ const Post = forwardRef(({
           justifyContent: 'center',
           objectFit: 'contain',
           paddingRight: '1.25vw',
-          width: expanded ? '95vw' : '261px',
+          maxWidth: expanded ? '95vw' : '261px',
           height: expanded ? '95vh' : '28vh',
         }}
       src={imgUrl}/>
-          {content && content}
+        <MarkdownEditor.Markdown style={{display: 'flex', flexWrap: 'wrap', width: window.innerWidth - 500 + 'px'}} source={content} /> 
       </div>
     </div>
   )

@@ -4,11 +4,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useThread } from "@/hooks/useThread";
 import { truncateEthAddress } from '@/utils'
 
+import MarkdownEditor from '@uiw/react-markdown-editor';
 
 export const CreatePost = ({
   threadId, replyIds, handleClose}:
     {threadId: string, replyIds: string[], handleClose : () => void }) => {
-  const { register, handleSubmit, formState: { errors, isSubmitting  }  } = useForm();
+  const { register, handleSubmit, setValue, formState: { errors, isSubmitting  }  } = useForm();
   const { createPost, fetchLatestPosts } = useThread(threadId)
   const navigate = useNavigate();
   const [rpcError, setRpcError] = useState(null)
@@ -59,10 +60,18 @@ export const CreatePost = ({
       </div>
       <label htmlFor="content">Content</label>
       <div>
-        <textarea style={{width:'61.8vw', height:'120px'}} defaultValue={
-          replyIds.length > 0 ? ( replyIds.map((replyId) => {
-            return `@${replyId} \n`})) : ''
-          } {...register("content", { required: true  })} />
+        <MarkdownEditor
+          {...register("content", { required: true  })}
+          height= '23.6vh'
+          width="61.8vw"
+          value={
+            replyIds.length > 0 ? ( replyIds.map((replyId) => {
+              return `[${truncateEthAddress(replyId)}](${window.location.href}#${replyId}) \n`}).toString()) : ''
+          }
+          onChange={(value, viewUpdate) => {
+             setValue('content', value)
+          }} 
+        />
         {errors.content && <span>This field is required</span>}
       </div>
       <div>
