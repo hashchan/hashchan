@@ -1,18 +1,23 @@
 import {useState, useEffect, useCallback, createRef} from 'react'
+
 import {
   useAccount,
   usePublicClient,
   useWatchContractEvent,
   useWalletClient
 } from 'wagmi'
+import { config } from '@/config'
 import { writeContract,waitForTransactionReceipt  } from '@wagmi/core'
 import { address as hashChanAddress, abi } from '@/assets/HashChan.json'
 
 
-import { config } from '@/config'
-import reactStringReplace from 'react-string-replace';
-import { ReplyLink } from '@/components/ReplyLink'
+import  sanitizeMarkdown  from 'sanitize-markdown'
 
+import reactStringReplace from 'react-string-replace';
+
+
+/*
+import { ReplyLink } from '@/components/ReplyLink'
 const parseContent = (content: string, refsObj:any) => {
   const replyIds: string[] = []
   let parsed = reactStringReplace(
@@ -44,6 +49,7 @@ const parseContent = (content: string, refsObj:any) => {
   }
     
 }
+ */
 const parseContentTwo = (content: string, refsObj:any) => {
   const replyIds: string[] = []
   let parsed = reactStringReplace(
@@ -102,7 +108,7 @@ export const useThread = (threadId: string) => {
               creator,
               id,
               imgUrl,
-              content: content,
+              content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
               //content: parsed,
               timestamp: Number(timestamp),
               replies: [],
@@ -150,7 +156,7 @@ export const useThread = (threadId: string) => {
               creator,
               id,
               imgUrl,
-              content,
+              content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
               timestamp: Number(timestamp),
               replies: [],
               ref: localRefsObj[id]
@@ -191,7 +197,7 @@ export const useThread = (threadId: string) => {
             localLogsObj[replyId].replies.push({ref: localRefsObj[id], id})
           })
           //localLogsObj[log.args.id].content = parsed
-          localLogsObj[id].content = content
+          localLogsObj[id].content = sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] })
         })
 
         setPosts(Object.values(localLogsObj))

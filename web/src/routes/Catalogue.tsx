@@ -20,20 +20,20 @@ const ListItem = ({
       style={{
         flexDirection: 'column',
         backgroundColor: "rgba(0,0,0,0.618)",
-        width: "377px",
-        height: "610px",
+        width: "233px",
+        height: "377px",
         borderRadius: '16px',
         border: '1px solid #20C20E',
       }}
       onClick={() => navigate(`/boards/${board}/thread/${threadId}`)}
     >
-      <h3 style={{paddingTop: '1.25vh', textAlign: 'center', width: '100%'}}>{title}</h3>
-      <p style={{paddingBottom: '1.25vh', textAlign: 'center', width: '100%'}}>{truncateEthAddress(threadId)}</p>
+      <p style={{ textAlign: 'center', width: '100%'}}>{title.substring(0, 55)}</p>
+      <p style={{ textAlign: 'center', width: '100%'}}>{truncateEthAddress(threadId)}</p>
       <img
         style={{
           objectFit: 'contain',
-          height: '261px',
-          width: '161px',
+          height: '161px',
+          width: '61px',
         }}
         src={imgUrl}
       />
@@ -41,8 +41,9 @@ const ListItem = ({
         style={{
           width: '90%',
           textAlign: 'center',
+          overflow: 'hidden',
         }}
-      >{content.substring(0, 100)}</p>
+      >{content.substring(0, 61)}</p>
     </div>)
 }
 
