@@ -113,18 +113,20 @@ export const useThread = (threadId: string) => {
           filter: threadFilter,
         })
 
+        const { args } = threadLogs[0]
+
           const localRefsObj = {
-            [threadLogs[0].args.id] : createRef(),
+            [args.id] : createRef(),
           }
           const localLogsObj = {
-            [threadLogs[0].args.id]: {
-              creator: threadLogs[0].args.creator,
-              id: threadLogs[0].args.id,
-              imgUrl: threadLogs[0].args.imgUrl,
-              content: threadLogs[0].args.content,
-              timestamp: Number(threadLogs[0].args.timestamp),
+            [args.id]: {
+              creator: args.creator,
+              id: args.id,
+              imgUrl: args.imgUrl,
+              content: args.content,
+              timestamp: Number(args.timestamp),
               replies: [],
-              ref: localRefsObj[threadLogs[0].args.id]
+              ref: localRefsObj[args.id]
             }
           }
 
@@ -178,9 +180,9 @@ export const useThread = (threadId: string) => {
     imgUrl: string,
     content: string
   ) => {
-    if (walletClient && address) {
+    if (publicClient && walletClient && address) {
       try {
-        const result = await writeContract(config, {
+        const hash = await writeContract(config, {
           address: hashChanAddress as `0x${string}`,
           abi,
           functionName: 'createComment',
@@ -190,28 +192,33 @@ export const useThread = (threadId: string) => {
             content 
           ]
         })
+
+        const receipt = await waitForTransactionReceipt(config, {hash})
+ 
+
         return {
-          hash: result,
+          receipt: receipt,
           error: null
         }
       } catch (e) {
+        console.log('e', e)
         return {
-          hash: null,
+          receipt: null,
           error: e
         }
       }
 
     } 
-  }, [walletClient, address, threadId])
+  }, [publicClient, walletClient, address, threadId])
 
 
   useEffect(() => {
     if (threadId) {
       //fetchThread()
       fetchPosts()
-      //watchThread()
+      watchThread()
     }
-  }, [threadId, /*fetchThread,*/ fetchPosts, /*watchThread*/])
+  }, [threadId, /*fetchThread,*/ fetchPosts, watchThread])
 
   return {
     posts: posts,

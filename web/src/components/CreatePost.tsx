@@ -14,15 +14,15 @@ export const CreatePost = ({
   const [rpcError, setRpcError] = useState(null)
   const onSubmit = async (data) => {
     console.log(data)
-    const response = await createPost(
+    const {receipt, error } = await createPost(
       data.imageUrl,
       data.content
     )
-    if (response.hash) {
-      console.log('response', response)
-
+    if (receipt) {
+      console.log('receipt', receipt)
+      handleClose()
     } else {
-      setRpcError(response.error.message)
+      setRpcError(error.message)
       console.log('error')
     }
   }

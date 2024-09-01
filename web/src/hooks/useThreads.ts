@@ -7,7 +7,7 @@ import { config } from '@/config'
 import { boardsMap } from '@/utils'
 export const useThreads = ({board}: {board: string}) => {
   const { address } = useAccount()
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({config});
   const blockNumber = useBlockNumber();
   const [logErrors, setLogErrors] = useState([])
   //const walletClient = useWalletClient()
@@ -27,6 +27,9 @@ export const useThreads = ({board}: {board: string}) => {
   const fetchThreads = useCallback(async () => {
     if (publicClient && address && board) {
       try {
+        console.log("brave debug: fetching threads")
+        console.log('brave debug publicClient', publicClient)
+        console.log('brave debug window.ethereum', window.ethereum)
         const filter = await publicClient.createContractEventFilter({
           address: hashChanAddress as `0x${string}`,
           abi,
@@ -37,24 +40,26 @@ export const useThreads = ({board}: {board: string}) => {
           fromBlock: 0n,
           toBlock: 'latest'
         })
+        console.log('brave debug: filter created')
 
 
         const logs = await publicClient.getFilterLogs({
           filter,
         })
-        console.log('boardsMap[board]', boardsMap[board])
-        console.log('logs', logs)
-        const threads = logs.map((log) => {
-          return {
-            creator: log.args.creator,
-            id: log.args.id,
-            imgUrl: log.args.imgUrl,
-            title: log.args.title,
-            content: log.args.content,
-            timestamp: Number(log.args.timestamp),
+        console.log('brave debug: logs fetched', logs)
 
+        const threads = logs.map((log) => {
+          const { creator, id, imgUrl, title, content, timestamp } = log.args
+          return {
+            creator,
+            id,
+            imgUrl,
+            title,
+            content,
+            timestamp: Number(timestamp),
           }
         })
+        console.log('brave debug: threads parsed', threads)
 
         setThreads(threads)
 

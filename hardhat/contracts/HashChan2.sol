@@ -1,16 +1,7 @@
 pragma solidity 0.8.26;
 
 contract HashChan2 {
-  /*
-  enum Board {
-    pol,
-    biz,
-    g,
-    sci,
-    x
-  }
-   */
-
+  
   uint256 public boardCount;
   mapping(uint256 => string) boards;
 
@@ -30,31 +21,26 @@ contract HashChan2 {
     uint256 timestamp
   );
 
-  event Comment (
+  event Post (
     address indexed creator,
     bytes32 indexed threadId,
     bytes32 indexed id,
+    bytes32[] replyIds,
     string imgUrl,
     string content,
     uint256 timestamp
   );
   constructor() {
-    boardCount = 4;
-    boards[0] = "pol";
-    emit Board(0, "pol");
-    boards[1] = "biz";
-    emit Board(1, "biz");
-    boards[2] = "g";
-    emit Board(2, "g");
-    boards[3] = "sci";
-    emit Board(3, "sci");
-    boards[4] = "x";
-    emit Board(4, "x");
+    createBoard('pol');
+    createBoard('biz');
+    createBoard('g');
+    createBoard('sci');
+    createBoard('x');
   }
 
-  function addBoard(string memory name) public returns (uint256) {
-    boardCount++;
+  function createBoard(string memory name) public returns (uint256) {
     boards[boardCount] = name;
+    boardCount++;
     emit Board(boardCount, name);
     return boardCount;
   }
@@ -86,14 +72,20 @@ contract HashChan2 {
 
   function createComment(
     bytes32  threadId,
+    bytes32[] memory replyIds
     string  memory imgUrl,
-    string  memory content
+    string  memory content,
   ) public {
-    bytes32 id = keccak256(abi.encode(msg.sender, block.timestamp, threadId));
+    bytes32 id = keccak256(abi.encode(
+      msg.sender,
+      block.timestamp,
+      threadId
+    ));
     emit Comment (
       msg.sender,
       threadId,
       id,
+      replyIds,
       imgUrl,
       content,
       block.timestamp

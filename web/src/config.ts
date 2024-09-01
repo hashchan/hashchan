@@ -1,10 +1,10 @@
 import { http, createConfig } from 'wagmi'
 
 import { classic, mainnet, sepolia, localhost, optimismSepolia, optimism, fantom } from 'wagmi/chains'
-import { unstable_connector } from '@wagmi/core'
+import { custom } from 'viem'
+import { unstable_connector, fallback } from '@wagmi/core'
 import { injected, walletConnect } from 'wagmi/connectors'
 
-//import { injected } from 'wagmi/connectors'
 console.log(import.meta.env.VITE_WALLETCONNECT_PROJECT_ID)
 
 
@@ -25,13 +25,13 @@ export const config = createConfig({
     }),
   ],
   transports: {
-    [classic.id]: unstable_connector(injected),
-    [mainnet.id]: unstable_connector(injected),
-    [sepolia.id]: unstable_connector(injected),
-    [localhost.id]: http(),
-    [optimismSepolia.id]: unstable_connector(injected),
-    [optimism.id]: unstable_connector(injected),
-    [fantom.id]: unstable_connector(injected),
+    [classic.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+    [mainnet.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+    [sepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+    [localhost.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+    [optimismSepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+    [optimism.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+    [fantom.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
   },
 })
 
