@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react'
 import { useForm  } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useCreateThread } from "@/hooks/useCreateThread";
+import MarkdownEditor from '@uiw/react-markdown-editor';
+
 export const CreateThread = ({board}: {board: string}) => {
-  const { register, handleSubmit, formState: { errors, isSubmitting  }  } = useForm();
+
+  const { register, handleSubmit, formState: { errors, isSubmitting  }, setValue  } = useForm();
   const { createThread, threadId } = useCreateThread()
   const [rpcError, setRpcError] = useState(null)
   const navigate = useNavigate();
@@ -27,6 +30,10 @@ export const CreateThread = ({board}: {board: string}) => {
   }
 
   useEffect(() => {}, [threadId])
+  useEffect(() => {
+
+    console.log('markdown', markdown)
+  }, [markdown])
 
   return (
     <form 
@@ -52,7 +59,14 @@ export const CreateThread = ({board}: {board: string}) => {
       </div>
       <label htmlFor="content">Content</label>
       <div>
-        <textarea style={{width:'61.8vw', height:'23.6vh'}} defaultValue="" {...register("content", { required: true  })} />
+        <MarkdownEditor
+          {...register("content", { required: true  })}
+          height= '23.6vh'
+          width="61.8vw"
+          onChange={(value, viewUpdate) => {
+             setValue('content', value)
+          }} 
+        />
         {errors.content && <span>This field is required</span>}
       </div>
       <div>

@@ -44,6 +44,30 @@ const parseContent = (content: string, refsObj:any) => {
   }
     
 }
+const parseContentTwo = (content: string, refsObj:any) => {
+  const replyIds: string[] = []
+  let parsed = reactStringReplace(
+    content,
+    /@(0x.{64})/gm,
+    (match, i) => {
+      replyIds.push(match)
+      if (refsObj) {
+        const ref = refsObj[match]
+        match = match.replace(/@+/g,'')
+        return `[${match}](${window.location.href}#${match})`
+      } else {
+        match = match.replace(/@+/g,'')
+        return `[${match}](${window.location.href}#${match})`
+
+      }
+    }
+  )
+
+  return {
+    replyIds
+  }
+    
+}
 
 export const useThread = (threadId: string) => {
   const { address } = useAccount()
@@ -64,22 +88,25 @@ export const useThread = (threadId: string) => {
             threadId
           },
           onLogs(logs) {
+            const { creator, content, id, imgUrl, timestamp } = logs[0].args
             const localRefsObj = refsObj
             const localLogsObj = logsObj
-            const { replyIds, parsed } = parseContent(logs[0].args.content, localRefsObj)
-            localRefsObj[logs[0].args.id] = createRef()
+            //const { replyIds, parsed } = parseContent(logs[0].args.content, localRefsObj)
+            const { replyIds } = parseContentTwo(content, localRefsObj)
+            localRefsObj[id] = createRef()
 
             replyIds.forEach((replyId, i) => {
-              localLogsObj[replyId].replies.push({ref: localRefsObj[log.args.id], id: log.args.id})
+              localLogsObj[replyId].replies.push({ref: localRefsObj[id], id})
             })
             const post = {
-              creator: logs[0].args.creator,
-              id: logs[0].args.id,
-              imgUrl: logs[0].args.imgUrl,
-              content: parsed,
-              timestamp: Number(logs[0].args.timestamp),
+              creator,
+              id,
+              imgUrl,
+              content: content,
+              //content: parsed,
+              timestamp: Number(timestamp),
               replies: [],
-              ref: localRefsObj[logs[0].args.id]
+              ref: localRefsObj[id]
             }
             setPosts(old => [...old, post])
             setRefsObj(refsObj)
@@ -113,20 +140,20 @@ export const useThread = (threadId: string) => {
           filter: threadFilter,
         })
 
-        const { args } = threadLogs[0]
+        const { creator, id, imgUrl, content, timestamp } = threadLogs[0].args
 
           const localRefsObj = {
-            [args.id] : createRef(),
+            [id] : createRef(),
           }
           const localLogsObj = {
-            [args.id]: {
-              creator: args.creator,
-              id: args.id,
-              imgUrl: args.imgUrl,
-              content: args.content,
-              timestamp: Number(args.timestamp),
+            [id]: {
+              creator,
+              id,
+              imgUrl,
+              content,
+              timestamp: Number(timestamp),
               replies: [],
-              ref: localRefsObj[args.id]
+              ref: localRefsObj[id]
             }
           }
 
@@ -147,21 +174,24 @@ export const useThread = (threadId: string) => {
         })
         
         logs.forEach((log) => {
-          const { replyIds, parsed } = parseContent(log.args.content, localRefsObj)
-          localRefsObj[log.args.id] = createRef()
+          const { creator, id, imgUrl, content, timestamp } = log.args
+          const { replyIds } = parseContentTwo(content, localRefsObj)
+          //const { replyIds, parsed } = parseContentTwo(content, localRefsObj)
+          localRefsObj[id] = createRef()
 
-          localLogsObj[log.args.id] = {
-            creator: log.args.creator,
-            id: log.args.id,
-            imgUrl: log.args.imgUrl,
-            timestamp: Number(log.args.timestamp),
+          localLogsObj[id] = {
+            creator,
+            id,
+            imgUrl,
+            timestamp: Number(timestamp),
             replies: [],
-            ref: localRefsObj[log.args.id]
+            ref: localRefsObj[id]
           }
           replyIds.forEach((replyId, i) => {
-            localLogsObj[replyId].replies.push({ref: localRefsObj[log.args.id], id: log.args.id})
+            localLogsObj[replyId].replies.push({ref: localRefsObj[id], id})
           })
-          localLogsObj[log.args.id].content = parsed
+          //localLogsObj[log.args.id].content = parsed
+          localLogsObj[id].content = content
         })
 
         setPosts(Object.values(localLogsObj))
@@ -216,9 +246,9 @@ export const useThread = (threadId: string) => {
     if (threadId) {
       //fetchThread()
       fetchPosts()
-      watchThread()
+      //watchThread()
     }
-  }, [threadId, /*fetchThread,*/ fetchPosts, watchThread])
+  }, [threadId, /*fetchThread,*/ fetchPosts, /*watchThread*/])
 
   return {
     posts: posts,
