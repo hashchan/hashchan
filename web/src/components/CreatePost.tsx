@@ -66,7 +66,7 @@ export const CreatePost = ({
           width="61.8vw"
           value={
             replyIds.length > 0 ? ( replyIds.map((replyId) => {
-              return `[${truncateEthAddress(replyId)}](${window.location.href}#${replyId}) \n`}).toString()) : ''
+              return `[${truncateEthAddress(replyId)}](#${replyId}) \n`}).toString()) : ''
           }
           onChange={(value, viewUpdate) => {
              setValue('content', value)
