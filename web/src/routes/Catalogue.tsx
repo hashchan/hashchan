@@ -27,7 +27,7 @@ const ListItem = ({
       }}
       onClick={() => navigate(`/boards/${board}/thread/${threadId}`)}
     >
-      <p style={{ textAlign: 'center', width: '100%'}}>{title.substring(0, 55)}</p>
+      <p style={{ textAlign: 'center', width: '100%'}}>{title.substring(0, 45)}</p>
       <p style={{ textAlign: 'center', width: '100%'}}>{truncateEthAddress(threadId)}</p>
       <img
         style={{
@@ -43,7 +43,7 @@ const ListItem = ({
           textAlign: 'center',
           overflow: 'hidden',
         }}
-      >{content.substring(0, 61)}</p>
+      >{content.substring(0, 30)}</p>
     </div>)
 }
 
