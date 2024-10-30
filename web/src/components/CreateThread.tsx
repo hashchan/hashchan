@@ -30,10 +30,6 @@ export const CreateThread = ({board}: {board: string}) => {
   }
 
   useEffect(() => {}, [threadId])
-  useEffect(() => {
-
-    console.log('markdown', markdown)
-  }, [markdown])
 
   return (
     <form 
