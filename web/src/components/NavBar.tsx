@@ -37,8 +37,7 @@ export const NavBar = () => {
       <div
         className="flex-wrap-center"
         style={{
-          padding: '0 1.25vw',
-          paddingBottom: '1.25vh'
+          padding: '1.25vh 1.25vw',
         }}>
         [<Link to="/boards/pol/catalogue">pol</Link>,&nbsp;
         <Link to="/boards/biz/catalogue">biz</Link>,&nbsp;
