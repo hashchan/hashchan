@@ -4,6 +4,7 @@ import HashchanLogoGif from '@/assets/animated-banner.gif'
 import {FaGithub, FaSquareXTwitter, FaDiscord} from 'react-icons/fa6'
 import { Link } from 'react-router-dom'
 import { ConnectWallet } from './ConnectWallet'
+import { ConnectW3Storage } from './ConnectW3Storage'
 
 const IconLink = ({href, Logo}: {href: string, Logo: ReactNode}) => {
   return (
@@ -11,7 +12,10 @@ const IconLink = ({href, Logo}: {href: string, Logo: ReactNode}) => {
       href={href}
       target="_blank"
       style={{
-        padding: '0 1.25vw'
+        display: 'flex',
+        alignItems: 'center',
+        margin: '0.618vh 0.618vw',
+        padding: '0.618vh 0.618vw'
       }}>
       {Logo}
     </a>
@@ -37,7 +41,7 @@ export const NavBar = () => {
       <div
         className="flex-wrap-center"
         style={{
-          padding: '1.25vh 1.25vw',
+          padding: '0.618vh 0.618vw',
         }}>
         [<Link to="/boards/pol/catalogue">pol</Link>,&nbsp;
         <Link to="/boards/biz/catalogue">biz</Link>,&nbsp;
@@ -46,6 +50,7 @@ export const NavBar = () => {
         <Link to="/boards/x/catalogue">x</Link>]
       </div>
       <ConnectWallet />
+      <ConnectW3Storage />
       <div
         className="flex-wrap-center"
         style={{

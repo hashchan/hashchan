@@ -39,19 +39,14 @@ export const chainIdMap = (chainId: number) => {
   switch (chainId) {
     case 250:
       return 'Fantom Opera'
-    break;
     case 61:
       return 'Ethereum Classic'
-    break;
     case 1:
       return 'Ethereum Mainnet'
-    break;
     case 11155111:
       return 'Sepolia Testnet'
-    break;
     case 31337:
       return 'Localhost'
-    break;
     case 11155420:
       return 'Optimism Sepolia Testnet'
     case 10:

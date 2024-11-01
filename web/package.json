@@ -12,6 +12,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5.51.15",
     "@uiw/react-markdown-editor": "^6.1.2",
+    "@web3-storage/w3up-client": "^16.4.0",
     "@web3modal/wagmi": "^5.0.11",
     "json2md": "^2.0.1",
     "react": "^18.3.1",
