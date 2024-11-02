@@ -128,7 +128,6 @@ const Post = forwardRef(({
     }
 
   }, [location, postId,ref])
-  console.log('content', content)
   const [expanded, setExpanded] = useState(false)
     return (
     <div

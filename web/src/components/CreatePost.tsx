@@ -61,7 +61,7 @@ export const CreatePost = ({
       onClick={() => handleClose()}>x</button>
       </div>
       <label htmlFor="imageUrl">Image Url</label>
-      {account.model.id && <input type="file" {...register("w3Image", { required: false })} />}
+      {account?.model?.id && <input type="file" {...register("w3Image", { required: false })} />}
       <div>
         <input style={{width:'61.8vw'}} defaultValue="" {...register("imageUrl", { required: false })} />
       </div>

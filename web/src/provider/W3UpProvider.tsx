@@ -53,7 +53,7 @@ export const W3UpProvider = ({children}: {children: ReactNode| ReactNode[]}) => 
     const spa = await cli.createSpace(`hashchan`, {account: acc})
     //await cli.setCurrentSpace(spa.did)
     console.log(spa)
-
+    localStorage.setItem('w3up', JSON.stringify({privateKey, email}))
     setPrinciple(prin)
     setStore(sto)
     setClient(cli)
@@ -72,6 +72,15 @@ export const W3UpProvider = ({children}: {children: ReactNode| ReactNode[]}) => 
       
     }
   }
+
+  useEffect(() => {
+    /*
+    const w3up = JSON.parse(localStorage.getItem('w3up'))
+    if (w3up) {
+      handleLogin(w3up.privateKey, w3up.email)
+    }
+     */
+  }, [])
   return (
     <W3UpContext.Provider value={{
       emailWaiting,
