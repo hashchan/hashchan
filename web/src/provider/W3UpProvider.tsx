@@ -4,6 +4,7 @@ import * as Signer from '@ucanto/principal/ed25519'
 import * as Client from '@web3-storage/w3up-client'
 import { StoreMemory } from '@web3-storage/w3up-client/stores/memory'
 import { Space } from '@web3-storage/capabilities/types'
+
 interface W3UpContextType {
   emailWaiting: boolean
   principal: Signer.Principal
@@ -22,7 +23,7 @@ export const W3UpContext = createContext({
   account: null,
   space: null,
   handleLogin: async (privateKey:string, email: `${string}@${string}`) => {},
-  uploadFile: async (file: File) => {},
+  uploadFile: async (file: File): Promise<string> => {},
 
 })
 
@@ -50,6 +51,7 @@ export const W3UpProvider = ({children}: {children: ReactNode| ReactNode[]}) => 
     setEmailWaiting(false)
 
     const spa = await cli.createSpace(`hashchan`, {account: acc})
+    //await cli.setCurrentSpace(spa.did)
     console.log(spa)
 
     setPrinciple(prin)
@@ -60,7 +62,15 @@ export const W3UpProvider = ({children}: {children: ReactNode| ReactNode[]}) => 
   }
 
   const uploadFile = async (file: File) => {
+
     console.log(file)
+    try {
+      const res = await client.uploadFile(file[0])
+      return `https://${res.toString()}.ipfs.w3s.link`
+    } catch (e) {
+      console.log('e', e)
+      
+    }
   }
   return (
     <W3UpContext.Provider value={{

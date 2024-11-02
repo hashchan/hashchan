@@ -5,18 +5,25 @@ import { useThread } from "@/hooks/useThread";
 import { truncateEthAddress } from '@/utils'
 
 import MarkdownEditor from '@uiw/react-markdown-editor';
-
+import { useW3Storage } from '@/hooks/useW3Storage'
 export const CreatePost = ({
   threadId, replyIds, handleClose}:
     {threadId: string, replyIds: string[], handleClose : () => void }) => {
+  const {  account, uploadFile } = useW3Storage()
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting  }  } = useForm();
   const { createPost, fetchLatestPosts } = useThread(threadId)
   const navigate = useNavigate();
   const [rpcError, setRpcError] = useState(null)
   const onSubmit = async (data) => {
     console.log(data)
+    let img = ''
+    if (data.w3Image) {
+      img = await uploadFile(data.w3Image)
+    } else if (data.imageUrl) {
+      img = data.imageUrl
+    }
     const {receipt, error } = await createPost(
-      data.imageUrl,
+      img,
       data.content
     )
     if (receipt) {
@@ -54,9 +61,9 @@ export const CreatePost = ({
       onClick={() => handleClose()}>x</button>
       </div>
       <label htmlFor="imageUrl">Image Url</label>
+      {account.model.id && <input type="file" {...register("w3Image", { required: false })} />}
       <div>
-        <input style={{width:'61.8vw'}} defaultValue="" {...register("imageUrl", { required: true })} />
-        {errors.imageUrl && <span>This field is required</span>}
+        <input style={{width:'61.8vw'}} defaultValue="" {...register("imageUrl", { required: false })} />
       </div>
       <label htmlFor="content">Content</label>
       <div>
