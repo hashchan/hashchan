@@ -18,23 +18,23 @@ import reactStringReplace from 'react-string-replace';
 
 const parseContentTwo = (content: string, refsObj:any) => {
   const replyIds: string[] = []
+  console.log('content', content)
   let parsed = reactStringReplace(
     content,
-    /@(0x.{64})/gm,
+    /[#@](0x.{64})/gm,
     (match, i) => {
       replyIds.push(match)
       if (refsObj) {
         const ref = refsObj[match]
-        match = match.replace(/@+/g,'')
+        match = match.replace(/[#@]+/g,'')
         return `[${match}](${window.location.href}#${match})`
       } else {
-        match = match.replace(/@+/g,'')
+        match = match.replace(/[@#]+/g,'')
         return `[${match}](${window.location.href}#${match})`
 
       }
     }
   )
-
   return {
     replyIds
   }
@@ -172,6 +172,7 @@ export const useThread = (threadId: string) => {
             replies: [],
             ref: localRefsObj[id]
           }
+          console.log('replyids', replyIds)
           replyIds.forEach((replyId, i) => {
             localLogsObj[replyId].replies.push({ref: localRefsObj[id], id})
           })
@@ -179,6 +180,7 @@ export const useThread = (threadId: string) => {
           localLogsObj[id].content = sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] })
         })
         setPosts(Object.values(localLogsObj))
+        console.log('posts', Object.values(localLogsObj))
         setLogsObj(localLogsObj)
         setRefsObj(localRefsObj)
       } catch (e) {

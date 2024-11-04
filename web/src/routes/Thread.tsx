@@ -8,7 +8,6 @@ import { useTip } from '@/hooks/useTip'
 import { useForm  } from "react-hook-form";
 
 import MarkdownEditor from '@uiw/react-markdown-editor';
-import json2md from 'json2md'
 const PostIdSpan = ({postId, handleOpenPost}:{postId:string, handleOpenPost: (postId:string) => void}) => {
   const [hovered, setHovered] = useState(false)
   return (
