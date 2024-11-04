@@ -30,8 +30,6 @@ const ConnectW3StorageModal = () => {
 
 
   return (
-    <div
-    >
       <form
         onSubmit={handleSubmit(onSubmit)}
         style={{
@@ -40,20 +38,30 @@ const ConnectW3StorageModal = () => {
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          backgroundColor:"#090909",
+          backgroundColor: "rgba(0,0,0,0.618)",
+          borderRadius: '16px',
+          border: '1px solid #20C20E',
           padding: '0.618vh 0.618vw',
+          margin: '0.618vh 0.618vw',
         }}
       >
-        <label htmlFor="email">Email</label>
-        <input style={{width:'5vw'}} defaultValue="" {...register("email", { required: true })} />
-        {errors.email && <span>This field is required</span>}
-        <label htmlFor="privateKey">PrivateKey</label>
-        <input style={{width:'5vw'}} defaultValue="" {...register("privateKey", { required: true })} />
-        {errors.privateKey && <span>This field is required</span>}
-        <input type="submit" />
-      { emailWaiting && <p>logging in... please check your email to register with web3.storage</p> }
+        <div className="flex-wrap-center"
+          style={{
+          flexDirection: 'column',
+          }}>
+          <h3>Create an <i>optional</i> Epheremeral <a target="_blank" href="https://web3.storage">W3Storage</a> Session</h3>
+          <p>web3.storage is an ipfs pinning provider, if your comfortable providing your email to them this makes adding images to your posts more convenient</p>
+          <label htmlFor="email">Email</label>
+          <input style={{width:'261px'}} defaultValue="" {...register("email", { required: true })} />
+          {errors.email && <span>This field is required</span>}
+          <label htmlFor="privateKey">PrivateKey</label>
+          <p>you can create this with <u>npx ucan-key ed --json</u></p>
+          <input style={{width:'261px'}} defaultValue="" {...register("privateKey", { required: true })} />
+          {errors.privateKey && <span>This field is required</span>}
+          <input type="submit" />
+        { emailWaiting && <p>logging in... please check your email to register with web3.storage</p> }
+        </div>
       </form>
-    </div>
   )
 }
 
