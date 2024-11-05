@@ -39,6 +39,7 @@ p {
 }
 
 button {
+  margin: 0.618vh 0.618vw;
   border-radius: 40px;
   color: #ffffff;
   border: 1px solid #20C20E ;
@@ -65,4 +66,12 @@ button:focus-visible {
   flex-direction: row;
   justify-content: center;
   align-items: center;
+}
+
+.overlay {
+  border-radius: 16px;
+  border: 1px solid #20C20E;
+  background-color: rgba(0, 0, 0, 0.854);
+  padding: 0.618vh 0.618vw;
+  margin: 0.618vh 0.618vw;
 }

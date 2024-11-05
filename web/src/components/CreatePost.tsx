@@ -38,13 +38,10 @@ export const CreatePost = ({
   return (
 
     <form
-      className="flex-wrap-center"
+      className="flex-wrap-center overlay"
       style={{
         width: '85.4vw',
         flexDirection: 'column',
-        backgroundColor: "rgba(0,0,0,0.618)",
-        borderRadius: '16px',
-        border: '1px solid #20C20E',
       }}
       onSubmit={handleSubmit(onSubmit)}>
       <div style={{
