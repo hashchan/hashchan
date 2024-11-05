@@ -15,13 +15,7 @@ const ConnectW3StorageModal = () => {
 
   const {
     emailWaiting,
-    principal,
-    store,
-    client,
-    account,
-    space,
     loginUser,
-    uploadFile
   } = useW3Storage()
 
   const onSubmit = async (data) => {
@@ -31,6 +25,7 @@ const ConnectW3StorageModal = () => {
 
   return (
       <form
+        className="overlay"
         onSubmit={handleSubmit(onSubmit)}
         style={{
           //overlapping modal css
@@ -38,11 +33,6 @@ const ConnectW3StorageModal = () => {
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          backgroundColor: "rgba(0,0,0,0.618)",
-          borderRadius: '16px',
-          border: '1px solid #20C20E',
-          padding: '0.618vh 0.618vw',
-          margin: '0.618vh 0.618vw',
         }}
       >
         <div className="flex-wrap-center"
@@ -58,7 +48,7 @@ const ConnectW3StorageModal = () => {
           <p>you can create this with <u>npx ucan-key ed --json</u></p>
           <input style={{width:'261px'}} defaultValue="" {...register("privateKey", { required: true })} />
           {errors.privateKey && <span>This field is required</span>}
-          <input type="submit" />
+          <button disabled={isSubmitting} type="submit">Submit</button>
         { emailWaiting && <p>logging in... please check your email to register with web3.storage</p> }
         </div>
       </form>

@@ -18,9 +18,9 @@ import { Catalogue } from "./routes/Catalogue";
 import { Thread } from "./routes/Thread";
 ReactDOM.createRoot(document.getElementById('root')!).render(
 
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={new QueryClient()}>
-        <W3UpProvider>
+  <WagmiProvider config={config}>
+    <QueryClientProvider client={new QueryClient()}>
+      <W3UpProvider>
         <BrowserRouter>
           <NavBar />
           <Routes>
@@ -32,9 +32,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
-          </BrowserRouter>
-          </W3UpProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+        </BrowserRouter>
+      </W3UpProvider>
+    </QueryClientProvider>
+  </WagmiProvider>
   ,
 )

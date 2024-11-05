@@ -46,14 +46,11 @@ export const CreateThread = ({board}: {board: string}) => {
 
   return (
     <form 
-      className="flex-wrap-center"
+      className="flex-wrap-center overlay"
       style={{
         margin: '0 auto',
         flexDirection: 'column',
         width: '85.4vw',
-        backgroundColor: "rgba(0,0,0,0.618)",
-        borderRadius: '16px',
-        border: '1px solid #20C20E',
       }}
       onSubmit={handleSubmit(onSubmit)}>
       <label htmlFor="title">Title</label>
@@ -63,7 +60,7 @@ export const CreateThread = ({board}: {board: string}) => {
       </div>
       <label htmlFor="imageUrl">Image Url</label>
       <div>
-      {account.model.id && <input type="file" {...register("w3Image", { required: false })} />}
+      {account?.model?.id && <input type="file" {...register("w3Image", { required: false })} />}
       <input style={{width:'61.8vw'}} defaultValue="" {...register("imageUrl", { required: false })} />
       </div>
       <label htmlFor="content">Content</label>
