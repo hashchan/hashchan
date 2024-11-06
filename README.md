@@ -24,4 +24,5 @@ An imageboard inside ethereum event logs
 | Base | [0x848F3ceF2F761Faa11b8B179c4b02a186c1D2B2c](https://basescan.org/address/0x848F3ceF2F761Faa11b8B179c4b02a186c1D2B2c)
 | Sepolia | [0x7cE23ee9023A138193C33F060A0060E918246E59](https://sepolia.etherscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59)
 | Optimism-Sepolia | [0x7cE23ee9023A138193C33F060A0060E918246E59](https://optimism-sepolia.blockscout.com/address/0x7cE23ee9023A138193C33F060A0060E918246E59)
+| Base-Sepolia | [0x0f379a480aC2AC95A5EF8a54094C3d3021332B73](https://sepolia.basescan.org/address/0x0f379a480aC2AC95A5EF8a54094C3d3021332B73)
 
