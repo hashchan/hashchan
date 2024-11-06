@@ -28,6 +28,7 @@ export const About = () => {
       <h3>Welcome to Hashchan</h3>
         <p><img src={EthereumEmoji} className="emoji" /> Threads in Ethereum event logs</p>
         <p><img src={Serverless} className="emoji" /> Runnable Locally</p>
+        <p><img src={Archive} className="emoji" /> Cryptographic Provenance</p>
         <p><img src={IPFS} className="emoji" /> Hotlinked/ IPFS pinned images</p>
         <p><img src={Bars} className="emoji" /> Spam Resistant</p>
         <p><img src={Robot} className="emoji" /> Botswarms support crypto</p>

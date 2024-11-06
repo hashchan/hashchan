@@ -82,7 +82,7 @@ export const Catalogue = () => {
       { address  ?  (
         <List threads={threads} />
       ) : (
-        <p>You need an ethereum rpc connection to scrape ethereum logs, please connect a wallet</p>
+        <p>You need an ethereum rpc connection to scrape logs, please connect an ethereum client like metamask</p>
       )
 
       }

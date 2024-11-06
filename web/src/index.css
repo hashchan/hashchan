@@ -75,3 +75,10 @@ button:focus-visible {
   padding: 0.618vh 0.618vw;
   margin: 0.618vh 0.618vw;
 }
+
+.nav-icon {
+  display: flex;
+  align-items: center;
+  margin: 0.618vh 0.618vw;
+  padding: 0.618vh 0.618vw;
+}
