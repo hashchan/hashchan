@@ -98,7 +98,7 @@ const TipCreator = ({creator}: {creator: `0x${string}`}) => {
         ><label htmlFor="amount">Tip: </label>
           <input style={{width:'5vw'}} defaultValue="0.01" {...register("amount", { required: true })} />
           {errors.amount && <span>This field is required</span>}
-          <input type="submit" />
+          <button type="submit">Tip</button>
         </form>
       }
       {rpcError && <div 

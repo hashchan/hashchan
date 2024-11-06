@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { abi, address as hashChanAddress, baseAddress } from '@/assets/HashChan.json'
+import { useContract } from '@/hooks/useContract'
 import { useWalletClient, useAccount } from 'wagmi'
 import { writeContract, waitForTransactionReceipt } from '@wagmi/core'
 
@@ -10,6 +10,7 @@ import { boardsMap } from '@/utils'
 
 export const useCreateThread = () => {
   const { address, chain } = useAccount()
+  const { contractAddress, abi } = useContract()
   const walletClient = useWalletClient()
   const [threadId, setThreadId] = useState(null)
 
@@ -23,7 +24,7 @@ export const useCreateThread = () => {
       console.log('chain', chain)
       try {
         const tx = await writeContract(config, {
-          address: chain.name === 'Base' ?  baseAddress as `0x${string}`: hashChanAddress as `0x${string}`,
+          address: contractAddress,
           abi,
           functionName: 'createThread',
           args: [
@@ -56,7 +57,7 @@ export const useCreateThread = () => {
         }
       }
     }
-  }, [address, walletClient, chain])
+  }, [address, walletClient, chain, contractAddress, abi])
 
 
   return {
