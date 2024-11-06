@@ -63,7 +63,7 @@ const WalletOption = ({
   }, [connector])
 
   return (
-    <button style={{padding: '0.618vh 0.618vw', margin: '0.618vh 0.618vw'}} disabled={!ready} onClick={onClick}>
+    <button  disabled={!ready} onClick={onClick}>
       {connector.name}
     </button>
   )

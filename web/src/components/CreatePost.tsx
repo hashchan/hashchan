@@ -51,9 +51,7 @@ export const CreatePost = ({
         }} >
       <button
         style={{
-          color: 'red',
-          margin: '6.18px 16.18px',
-          padding: '6.18px 16.18px',
+          color: 'red'
         }}
       onClick={() => handleClose()}>x</button>
       </div>

@@ -65,10 +65,6 @@ export const ConnectW3Storage = () => {
   const { account } = useW3Storage()
   return (<>
     <button
-      style={{
-        padding: '0.618vh 0.618vw',
-        margin: '0.618vh 0.618vw',
-      }}
       onClick={() => handleShowModal()}
     >
       {account ? account.model.id: 'Connect W3Storage'}

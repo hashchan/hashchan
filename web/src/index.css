@@ -40,10 +40,10 @@ p {
 
 button {
   margin: 0.618vh 0.618vw;
+  padding: 0.618vh 0.618vw;
   border-radius: 40px;
   color: #ffffff;
   border: 1px solid #20C20E ;
-  padding: 0.23em 0.38em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
@@ -81,4 +81,16 @@ button:focus-visible {
   align-items: center;
   margin: 0.618vh 0.618vw;
   padding: 0.618vh 0.618vw;
+}
+
+input {
+  background-color: #161B22;
+  color: #fff;
+  border: 1px solid #20C20E;
+  padding: 0.618vh 0.618vw;
+  margin: 0.618vh 0.618vw;
+  border-radius: 40px;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
 }
