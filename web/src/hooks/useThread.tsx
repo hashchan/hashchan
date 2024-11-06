@@ -8,8 +8,7 @@ import {
 } from 'wagmi'
 import { config } from '@/config'
 import { writeContract,waitForTransactionReceipt  } from '@wagmi/core'
-import { address as hashChanAddress, abi, baseAddress } from '@/assets/HashChan.json'
-
+import { useContract } from '@/hooks/useContract'
 
 import  sanitizeMarkdown  from 'sanitize-markdown'
 
@@ -50,13 +49,14 @@ export const useThread = (threadId: string) => {
   const [logsObj, setLogsObj] = useState(null)
   const [posts, setPosts] = useState([])
   const [logErrors, setLogErrors] = useState([])
+  const { contractAddress, abi } = useContract()
 
   const watchThread = useCallback(async () => {
     let unwatch
     if (publicClient && address && threadId && chain) {
       try {
         unwatch = publicClient.watchContractEvent({
-          address: chain.name === 'Base' ?  baseAddress as `0x${string}`: hashChanAddress as `0x${string}`,
+          address: contractAddress,
           abi,
           eventName: 'Comment',
           fromBlock: lastBlock ? lastBlock: await publicClient.getBlockNumber(),
@@ -103,7 +103,7 @@ export const useThread = (threadId: string) => {
         unwatch()
       }
     }  
-  }, [publicClient, address, threadId, lastBlock, chain])
+  }, [publicClient, address, threadId, lastBlock, chain, contractAddress, abi])
 
 
   const fetchPosts = useCallback(async () => {
@@ -111,7 +111,7 @@ export const useThread = (threadId: string) => {
     if (publicClient && address && threadId && chain) {
       setLastBlock(await publicClient.getBlockNumber())
       const threadFilter = await publicClient.createContractEventFilter({
-        address: chain.name === 'Base' ?  baseAddress as `0x${string}`: hashChanAddress as `0x${string}`,
+        address: contractAddress,
         abi,
         eventName: 'Thread',
         args: {
@@ -144,7 +144,7 @@ export const useThread = (threadId: string) => {
 
       try {
         const filter = await publicClient.createContractEventFilter({
-          address: chain.name === 'Base' ?  baseAddress as `0x${string}`: hashChanAddress as `0x${string}`,
+          address: contractAddress,
           abi,
           eventName: 'Comment',
           fromBlock: 0n,
@@ -159,6 +159,7 @@ export const useThread = (threadId: string) => {
         })
 
         logs.forEach((log) => {
+          console.log('log', log)
           const { creator, id, imgUrl, content, timestamp } = log.args
           const { replyIds } = parseContentTwo(content, localRefsObj)
           //const { replyIds, parsed } = parseContentTwo(content, localRefsObj)
@@ -189,7 +190,7 @@ export const useThread = (threadId: string) => {
       }
 
     }
-  }, [publicClient, address, threadId, chain])
+  }, [publicClient, address, threadId, chain, contractAddress, abi])
 
 
   const createPost = useCallback(async (
@@ -199,7 +200,7 @@ export const useThread = (threadId: string) => {
     if (publicClient && walletClient && address && chain) {
       try {
         const hash = await writeContract(config, {
-          address: chain.name === 'Base' ?  baseAddress as `0x${string}`: hashChanAddress as `0x${string}`,
+          address: contractAddress,
           abi,
           functionName: 'createComment',
           args: [
@@ -224,23 +225,13 @@ export const useThread = (threadId: string) => {
       }
 
     } 
-  }, [publicClient, walletClient, address, threadId, chain])
+  }, [publicClient, walletClient, address, threadId, chain, contractAddress, abi])
 
 
   useEffect(() => {
-    console.log('twice fire')
     fetchPosts()
     watchThread()
-    /*
-    if (threadId && posts.length === 0) {
-      console.log('here twice?')
-      //fetchThread()
-      fetchPosts()
-      watchThread()
-    }
-     */
-  }, [])
-  //}, [threadId, /*fetchThread,*/ fetchPosts, watchThread, posts])
+  }, [fetchPosts, watchThread])
 
   return {
     posts: posts,

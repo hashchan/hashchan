@@ -62,6 +62,13 @@ const config: HardhatUserConfig = {
       accounts: {
         mnemonic: process.env.MNEMONIC
       }
+    },
+    'base-sepolia': {
+      url: `https://base-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY}`,
+      chainId: 84532,
+      accounts: {
+        mnemonic: process.env.MNEMONIC
+      }
     }
   },
   etherscan: {
@@ -70,7 +77,8 @@ const config: HardhatUserConfig = {
       sepolia: process.env.ETHERSCAN || '',
       'optimism-sepolia': process.env.BLOCKSCOUT || '',
       fantom: process.env.FTMSCAN || '',
-      base: process.env.BASESCAN || ''
+      base: process.env.BASESCAN || '',
+      'base-sepolia': process.env.BASESCAN || '',
     },
     customChains: [
       {

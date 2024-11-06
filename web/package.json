@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@coinbase/onchainkit": "^0.35.4",
     "@tanstack/react-query": "^5.51.15",
     "@uiw/react-markdown-editor": "^6.1.2",
     "@web3-storage/w3up-client": "^16.4.0",
