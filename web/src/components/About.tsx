@@ -64,6 +64,10 @@ export const About = () => {
           <img src={OptimismSepolia} className="emoji" />
           <a target="_blank" href="https://optimism-sepolia.blockscout.com/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Optimism Sepolia Testnet</a>
         </p>
+        <p>
+          <img src={Sepolia} className="emoji" />
+          <a target="_blank" href="https://sepolia.basescan.org/address/0x0f379a480aC2AC95A5EF8a54094C3d3021332B73"> Base Sepolia Testnet</a>
+        </p>
       </div>
       <div>
         <h3>Powering up Hashchan</h3>

@@ -78,7 +78,7 @@ const config: HardhatUserConfig = {
       'optimism-sepolia': process.env.BLOCKSCOUT || '',
       fantom: process.env.FTMSCAN || '',
       base: process.env.BASESCAN || '',
-      'base-sepolia': process.env.BASESCAN || '',
+      baseSepolia: process.env.BASESCAN || '',
     },
     customChains: [
       {
