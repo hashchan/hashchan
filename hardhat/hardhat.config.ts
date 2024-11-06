@@ -2,6 +2,7 @@ import 'dotenv/config';
 import type { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox-viem";
 import "@nomicfoundation/hardhat-verify";
+import "@nomicfoundation/hardhat-ignition-viem";
 
 const config: HardhatUserConfig = {
   solidity: "0.8.26",
@@ -54,14 +55,22 @@ const config: HardhatUserConfig = {
       accounts: {
         mnemonic: process.env.MNEMONIC
       }
+    },
+    base: {
+      url: `https://base-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
+      chainId: 8453,
+      accounts: {
+        mnemonic: process.env.MNEMONIC
+      }
     }
   },
   etherscan: {
     apiKey: {
-      mainnet: process.env.ETHERSCAN,
-      sepolia: process.env.ETHERSCAN,
-      'optimism-sepolia': process.env.BLOCKSCOUT,
-      fantom: process.env.FTMSCAN
+      mainnet: process.env.ETHERSCAN || '',
+      sepolia: process.env.ETHERSCAN || '',
+      'optimism-sepolia': process.env.BLOCKSCOUT || '',
+      fantom: process.env.FTMSCAN || '',
+      base: process.env.BASESCAN || ''
     },
     customChains: [
       {

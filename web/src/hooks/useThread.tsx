@@ -8,7 +8,7 @@ import {
 } from 'wagmi'
 import { config } from '@/config'
 import { writeContract,waitForTransactionReceipt  } from '@wagmi/core'
-import { address as hashChanAddress, abi } from '@/assets/HashChan.json'
+import { address as hashChanAddress, abi, baseAddress } from '@/assets/HashChan.json'
 
 
 import  sanitizeMarkdown  from 'sanitize-markdown'
@@ -43,7 +43,7 @@ const parseContentTwo = (content: string, refsObj:any) => {
 
 export const useThread = (threadId: string) => {
   const [lastBlock, setLastBlock] = useState(null)
-  const { address } = useAccount()
+  const { address, chain } = useAccount()
   const publicClient = usePublicClient();
   const walletClient = useWalletClient()
   const [refsObj, setRefsObj] = useState(null)
@@ -53,10 +53,10 @@ export const useThread = (threadId: string) => {
 
   const watchThread = useCallback(async () => {
     let unwatch
-    if (publicClient && address && threadId) {
+    if (publicClient && address && threadId && chain) {
       try {
         unwatch = publicClient.watchContractEvent({
-          address: hashChanAddress as `0x${string}`,
+          address: chain.name === 'Base' ?  baseAddress as `0x${string}`: hashChanAddress as `0x${string}`,
           abi,
           eventName: 'Comment',
           fromBlock: lastBlock ? lastBlock: await publicClient.getBlockNumber(),
@@ -103,15 +103,15 @@ export const useThread = (threadId: string) => {
         unwatch()
       }
     }  
-  }, [publicClient, address, threadId, lastBlock])
+  }, [publicClient, address, threadId, lastBlock, chain])
 
 
   const fetchPosts = useCallback(async () => {
     console.log('trying to fetch posts')
-    if (publicClient && address && threadId) {
+    if (publicClient && address && threadId && chain) {
       setLastBlock(await publicClient.getBlockNumber())
       const threadFilter = await publicClient.createContractEventFilter({
-        address: hashChanAddress as `0x${string}`,
+        address: chain.name === 'Base' ?  baseAddress as `0x${string}`: hashChanAddress as `0x${string}`,
         abi,
         eventName: 'Thread',
         args: {
@@ -144,7 +144,7 @@ export const useThread = (threadId: string) => {
 
       try {
         const filter = await publicClient.createContractEventFilter({
-          address: hashChanAddress as `0x${string}`,
+          address: chain.name === 'Base' ?  baseAddress as `0x${string}`: hashChanAddress as `0x${string}`,
           abi,
           eventName: 'Comment',
           fromBlock: 0n,
@@ -189,17 +189,17 @@ export const useThread = (threadId: string) => {
       }
 
     }
-  }, [publicClient, address, threadId])
+  }, [publicClient, address, threadId, chain])
 
 
   const createPost = useCallback(async (
     imgUrl: string,
     content: string
   ) => {
-    if (publicClient && walletClient && address) {
+    if (publicClient && walletClient && address && chain) {
       try {
         const hash = await writeContract(config, {
-          address: hashChanAddress as `0x${string}`,
+          address: chain.name === 'Base' ?  baseAddress as `0x${string}`: hashChanAddress as `0x${string}`,
           abi,
           functionName: 'createComment',
           args: [
@@ -224,7 +224,7 @@ export const useThread = (threadId: string) => {
       }
 
     } 
-  }, [publicClient, walletClient, address, threadId])
+  }, [publicClient, walletClient, address, threadId, chain])
 
 
   useEffect(() => {

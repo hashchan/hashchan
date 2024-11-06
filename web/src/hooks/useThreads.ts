@@ -1,12 +1,12 @@
 import {useState, useEffect, useCallback} from 'react'
 import { useAccount, usePublicClient, useWatchContractEvent, useBlockNumber } from 'wagmi'
 import { writeContract  } from '@wagmi/core'
-import { address as hashChanAddress, abi } from '@/assets/HashChan.json'
+import { address as hashChanAddress, baseAddress, abi } from '@/assets/HashChan.json'
 import { parseAbiItem } from 'viem'
 import { config } from '@/config'
 import { boardsMap } from '@/utils'
 export const useThreads = ({board}: {board: string}) => {
-  const { address } = useAccount()
+  const { address, chain } = useAccount()
   const publicClient = usePublicClient({config});
   const blockNumber = useBlockNumber();
   const [logErrors, setLogErrors] = useState([])
@@ -25,13 +25,13 @@ export const useThreads = ({board}: {board: string}) => {
   })
  */
   const fetchThreads = useCallback(async () => {
-    if (publicClient && address && board) {
+    if (publicClient && address && board && chain) {
       try {
         console.log("brave debug: fetching threads")
         console.log('brave debug publicClient', publicClient)
         console.log('brave debug window.ethereum', window.ethereum)
         const filter = await publicClient.createContractEventFilter({
-          address: hashChanAddress as `0x${string}`,
+          address: chain.name === 'Base' ?  baseAddress as `0x${string}`: hashChanAddress as `0x${string}`,
           abi,
           eventName: 'Thread',
           args: {
@@ -68,13 +68,13 @@ export const useThreads = ({board}: {board: string}) => {
         setLogErrors(old => [...old, e.toString()])
       }
     }
-  }, [publicClient, address, board])
+  }, [publicClient, address, board, chain])
 
   const watchThreads = useCallback(async () => {
-   if (publicClient && address) {
+   if (publicClient && address && chain) {
      try {
      const unwatch = publicClient.watchContractEvent({
-       address: hashChanAddress as `0x${string}`,
+       address: chain.name === 'Base' ?  baseAddress as `0x${string}`: hashChanAddress as `0x${string}`,
        abi,
        eventName: 'Thread',
        args: {
@@ -98,7 +98,7 @@ export const useThreads = ({board}: {board: string}) => {
        setLogErrors(old => [...old, e.toString()])
      }
    }
-  }, [publicClient, address, board])
+  }, [publicClient, address, board, chain])
 
   useEffect(() => {
     if (publicClient && address && board ) {

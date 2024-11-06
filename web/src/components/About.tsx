@@ -1,11 +1,13 @@
+import Bars from "../assets/emoji/5-bars.png"
 import EthereumEmoji from "../assets/emoji/ethereum.png"
 import Serverless from "../assets/emoji/serverless-generic.png"
 import IPFS from '../assets/emoji/ipfs.png'
-import FlyingMoney from '../assets/emoji/flying-money.png'
+import Robot from '../assets/emoji/robot.png'
 import Tree from '../assets/emoji/tree.gif'
 import Classic from '../assets/emoji/classic.png'
 import Optimism from '../assets/emoji/optimism.png'
 import Fantom from '../assets/emoji/fantom.png'
+import Base from '../assets/emoji/base.png'
 import Sepolia from '../assets/emoji/sepolia.png'
 import OptimismSepolia from '../assets/emoji/optimism-sepolia.png'
 import Computer from '../assets/emoji/computer.gif'
@@ -27,8 +29,9 @@ export const About = () => {
         <p><img src={EthereumEmoji} className="emoji" /> Threads in Ethereum event logs</p>
         <p><img src={Serverless} className="emoji" /> Runnable Locally</p>
         <p><img src={IPFS} className="emoji" /> Hotlinked/ IPFS pinned images</p>
-        <p><img src={FlyingMoney} className="emoji" /> Botnet swarms support ETH</p>
-        <p><img src={Tree} className="emoji" /> Just gas, no token no cuts</p>
+        <p><img src={Bars} className="emoji" /> Spam Resistant</p>
+        <p><img src={Robot} className="emoji" /> Botswarms support crypto</p>
+        <p><img src={Tree} className="emoji" /> gas only- no token, no cuts</p>
       </div>
       <div>
         <h3>Supported Chains</h3>
@@ -45,6 +48,10 @@ export const About = () => {
           <a target="_blank" href="https://optimistic.etherscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Optimism</a>
         </p>
         <p>
+          <img src={Base} className="emoji" />
+          <a target="_blank" href="https://basescan.org/address/0x848F3ceF2F761Faa11b8B179c4b02a186c1D2B2c"> Base</a>
+        </p>
+        <p>
           <img src={Fantom} className="emoji" />
           <a target="_blank" href="https://etherscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Fantom</a>
         </p>
@@ -59,6 +66,7 @@ export const About = () => {
       </div>
       <div>
         <h3>Powering up Hashchan</h3>
+        <p><img src={IPFS} className="emoji" /> Pin with <a target="_blank" href="https://web3.storage">web3.storage</a></p>
         <p><img src={Computer} className="emoji" /> Run site locally</p>
         <p><img src={Plug} className="emoji" /> Use dedicated websocket RPCs</p>
         <p><img src={Archive} className="emoji" /> Run an Archive Node</p>

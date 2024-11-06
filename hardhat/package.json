@@ -9,9 +9,9 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@nomicfoundation/hardhat-ignition-viem": "^0.15.7",
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
-    "@nomicfoundation/hardhat-verify": "^2.0.9",
-    "hardhat": "^2.22.6"
+    "@nomicfoundation/hardhat-verify": "^2.0.9"
   },
   "dependencies": {
     "dotenv": "^16.4.5"

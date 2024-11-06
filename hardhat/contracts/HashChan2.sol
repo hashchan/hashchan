@@ -70,18 +70,18 @@ contract HashChan2 {
     );
   }
 
-  function createComment(
+  function createPost(
     bytes32  threadId,
-    bytes32[] memory replyIds
+    bytes32[] memory replyIds,
     string  memory imgUrl,
-    string  memory content,
+    string  memory content
   ) public {
     bytes32 id = keccak256(abi.encode(
       msg.sender,
       block.timestamp,
       threadId
     ));
-    emit Comment (
+    emit Post(
       msg.sender,
       threadId,
       id,
