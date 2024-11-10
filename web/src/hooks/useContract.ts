@@ -9,6 +9,9 @@ export const useContract = () => {
     if (chain) {
     console.log('chain', chain.id)
       switch (chain.id) {
+        case 421614:
+          setContractAddress(HashChan.arbitrumSepoliaAddress)
+        break;
         case 84532:
           setContractAddress(HashChan.baseSepoliaAddress)
         break;

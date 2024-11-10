@@ -4,6 +4,7 @@
   "address": "0x7cE23ee9023A138193C33F060A0060E918246E59",
   "baseAddress": "0x848F3ceF2F761Faa11b8B179c4b02a186c1D2B2c",
   "baseSepoliaAddress": "0x0f379a480aC2AC95A5EF8a54094C3d3021332B73",
+  "arbitrumSepoliaAddress": "0x75Accb3c871167F66226F97092A717b2253010c9",
  "abi": [
     {
       "anonymous": false,

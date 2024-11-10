@@ -69,6 +69,27 @@ const config: HardhatUserConfig = {
       accounts: {
         mnemonic: process.env.MNEMONIC
       }
+    },
+    'arbitrum-sepolia': {
+      url: `https://arb-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY}`,
+      chainId: 421614,
+      accounts: {
+        mnemonic: process.env.MNEMONIC
+      }
+    },
+    'arbitrum-one': {
+      url: `https://arb-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
+      chainId: 42161,
+      accounts: {
+        mnemonic: process.env.MNEMONIC
+      }
+    },
+    'arbitrum-nova': {
+      url: `https://arbnova-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
+      chainId: 42170,
+      accounts: {
+        mnemonic: process.env.MNEMONIC
+      }
     }
   },
   etherscan: {
@@ -79,6 +100,9 @@ const config: HardhatUserConfig = {
       fantom: process.env.FTMSCAN || '',
       base: process.env.BASESCAN || '',
       baseSepolia: process.env.BASESCAN || '',
+      'arbitrum-sepolia': process.env.ARBISCAN || '',
+      'arbitrum-one': process.env.ARBISCAN || '',
+      'arbitrum-nova': process.env.ARBINOVASCAN || ''
     },
     customChains: [
       {
@@ -95,6 +119,30 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: "https://api.ftmscan.com/api",
           browserURL: "https://ftmscan.com",
+        }
+      },
+      {
+        network: "arbitrum-sepolia",
+        chainId: 421614,
+        urls: {
+          apiURL: "https://api-sepolia.arbiscan.io/api",
+          browserURL: "https://sepolia.arbiscan.io/",
+        }
+      },
+      {
+        network: "arbitrum-one",
+        chainId: 42161,
+        urls: {
+          apiURL: "https://api.arbiscan.io/api",
+          browserURL: "https://arbiscan.io/",
+        }
+      },
+      {
+        network: "arbitrum-nova",
+        chainId: 42170,
+        urls: {
+          apiURL: "https://api-nova.arbiscan.io/api",
+          browserURL: "https://arbiscan.io/",
         }
       }
     ]

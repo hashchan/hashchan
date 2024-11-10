@@ -1,6 +1,20 @@
 import { http, createConfig } from 'wagmi'
 
-import { classic, mainnet, sepolia, base, baseSepolia, localhost, optimismSepolia, optimism, fantom } from 'wagmi/chains'
+import {
+  classic,
+  mainnet,
+  sepolia,
+  base,
+  baseSepolia,
+  localhost,
+  optimismSepolia,
+  optimism,
+  fantom,
+  arbitrumSepolia,
+  arbitrum,
+  arbitrumNova,
+} from 'wagmi/chains'
+
 import { custom } from 'viem'
 import { unstable_connector, fallback } from '@wagmi/core'
 import { injected, walletConnect } from 'wagmi/connectors'
@@ -17,7 +31,20 @@ const metadata = {
 }
 
 export const config = createConfig({
-  chains: [classic, mainnet, sepolia, base, baseSepolia, localhost, optimismSepolia, optimism, fantom],
+  chains: [
+    classic,
+    mainnet,
+    sepolia,
+    base,
+    baseSepolia,
+    localhost,
+    optimismSepolia,
+    optimism,
+    fantom,
+    arbitrumSepolia,
+    arbitrum,
+    arbitrumNova
+  ],
   connectors: [
     walletConnect({
       projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID,
@@ -34,6 +61,9 @@ export const config = createConfig({
     [fantom.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
     [base.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
     [baseSepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+    [arbitrumSepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+    [arbitrum.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+    [arbitrumNova.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
   },
 })
 
@@ -57,6 +87,12 @@ export const chainIdMap = (chainId: number) => {
       return 'Optimism Sepolia Testnet'
     case 10:
       return "Optimism Mainnet"
+    case 421614:
+      return "Arbitrum Sepolia"
+    case 42161:
+      return "Arbitrum One"
+    case 42170:
+      return "Arbitrum Nova"
     default:
       return "Unsupported Chain"  
   }
