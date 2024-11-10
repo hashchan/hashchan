@@ -15,6 +15,8 @@ import Plug from '../assets/emoji/outlet_plug.png'
 import Archive from '../assets/emoji/archive.png'
 import Disguise from '../assets/emoji/disguise.png'
 import Tips from '../assets/emoji/tips.png'
+import ArbitrumOne from '@/assets/emoji/arbitrum-one.png'
+import ArbitrumNova from '@/assets/emoji/arbitrum-nova.png'
 
 export const About = () => {
   return (
@@ -55,6 +57,18 @@ export const About = () => {
         <p>
           <img src={Fantom} className="emoji" />
           <a target="_blank" href="https://etherscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Fantom</a>
+        </p>
+        <p>
+          <img src={ArbitrumOne} className="emoji" />
+          <a target="_blank" href="https://arbiscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Arbitrum One</a>
+        </p>
+        <p>
+          <img src={ArbitrumNova} className="emoji" />
+          <a target="_blank" href="https://nova.arbiscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Arbitrum Nova</a>
+        </p>
+        <p>
+          <img src={Sepolia} className="emoji" />
+          <a target="_blank" href="https://sepolia.arbiscan.io/address/0x75Accb3c871167F66226F97092A717b2253010c9"> Arbitrum Sepolia Testnet</a>
         </p>
         <p>
           <img src={Sepolia} className="emoji" />
