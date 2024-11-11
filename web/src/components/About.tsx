@@ -56,7 +56,7 @@ export const About = () => {
         </p>
         <p>
           <img src={Fantom} className="emoji" />
-          <a target="_blank" href="https://etherscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Fantom</a>
+          <a target="_blank" href="https://ftmscan.com/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Fantom</a>
         </p>
         <p>
           <img src={ArbitrumOne} className="emoji" />
