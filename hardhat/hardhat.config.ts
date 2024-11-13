@@ -63,6 +63,28 @@ const config: HardhatUserConfig = {
         mnemonic: process.env.MNEMONIC
       }
     },
+    flow: {
+      //url: `https://flow-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
+      url: `https://mainnet.evm.nodes.onflow.org`,
+      chainId: 747,
+      ignition: {
+        gasPrice: 100000n,
+      },
+      accounts: {
+        mnemonic: process.env.MNEMONIC
+      }
+    },
+    'flow-testnet': {
+      url: `https://flow-testnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
+      chainId: 545,
+      ignition: {
+        gasPrice: 10000n,
+      },
+      gasPrice: 10000,
+      accounts: {
+        mnemonic: process.env.MNEMONIC
+      }
+    },
     'base-sepolia': {
       url: `https://base-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY}`,
       chainId: 84532,
@@ -102,7 +124,9 @@ const config: HardhatUserConfig = {
       baseSepolia: process.env.BASESCAN || '',
       'arbitrum-sepolia': process.env.ARBISCAN || '',
       'arbitrum-one': process.env.ARBISCAN || '',
-      'arbitrum-nova': process.env.ARBINOVASCAN || ''
+      'arbitrum-nova': process.env.ARBINOVASCAN || '',
+      flow: 'nokey',
+      'flow-testnet': 'nokey'
     },
     customChains: [
       {
@@ -143,6 +167,22 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: "https://api-nova.arbiscan.io/api",
           browserURL: "https://arbiscan.io/",
+        }
+      },
+			{
+        network: "flow-testnet",
+        chainId: 545,
+        urls: {
+          apiURL: "https://evm-testnet.flowscan.io/api",
+          browserURL: "https://evm-testnet.flowscan.io/",
+        }
+      },
+			{
+        network: 'flow',
+        chainId: 747,
+        urls: {
+          apiURL: "https://evm.flowscan.io/api",
+          browserURL: "https://evm.flowscan.io/",
         }
       }
     ]

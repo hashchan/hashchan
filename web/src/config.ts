@@ -13,6 +13,8 @@ import {
   arbitrumSepolia,
   arbitrum,
   arbitrumNova,
+  flowMainnet,
+  flowTestnet,
 } from 'wagmi/chains'
 
 import { custom } from 'viem'
@@ -43,7 +45,9 @@ export const config = createConfig({
     fantom,
     arbitrumSepolia,
     arbitrum,
-    arbitrumNova
+    arbitrumNova,
+    flowMainnet,
+    flowTestnet
   ],
   connectors: [
     walletConnect({
@@ -64,6 +68,8 @@ export const config = createConfig({
     [arbitrumSepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
     [arbitrum.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
     [arbitrumNova.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+    [flowMainnet.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+    [flowTestnet.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
   },
 })
 
@@ -93,6 +99,10 @@ export const chainIdMap = (chainId: number) => {
       return "Arbitrum One"
     case 42170:
       return "Arbitrum Nova"
+    case 747:
+      return "EVM Flow Mainnet"
+    case 545:
+      return "EVM Flow Testnet"
     default:
       return "Unsupported Chain"  
   }

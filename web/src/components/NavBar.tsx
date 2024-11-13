@@ -13,7 +13,7 @@ const HomeButton = () => {
   const handleHomeHover = (inside:boolean) => {
     if (inside) {
       const roll = Math.random()
-      setLogo(roll > 0.5 ? HashchanLogoGif : HashchanLogoGlitchGif)
+      setLogo(roll > 1 / (Math.PHI ** 2) ? HashchanLogoGif : HashchanLogoGlitchGif)
     } else {
       setLogo(HashchanLogo)
     }
@@ -40,8 +40,8 @@ const IconLink = ({href, Logo}: {href: string, Logo: ReactNode}) => {
     </a>
   )
 }
-
 export const NavBar = () => {
+  const pxSize = `${100 / (Math.PHI**3) }px`
   return (
     <div
       className="flex-wrap-center"
@@ -53,7 +53,7 @@ export const NavBar = () => {
       <div
         className="flex-wrap-center"
         style={{
-          padding: '0.618vh 0.618vw',
+          padding: `${Math.PHI - 1}vh ${Math.PHI - 1}vw`,
         }}>
         [<Link to="/boards/pol/catalogue">pol</Link>,&nbsp;
         <Link to="/boards/biz/catalogue">biz</Link>,&nbsp;
@@ -73,12 +73,12 @@ export const NavBar = () => {
           className="nav-icon"
           to="docs/v1/intro"
         >
-          <FaBook size="31.25px" />
+          <FaBook size={pxSize} />
         </Link>
-        <IconLink href="https://github.com/hashchan/hashchan" Logo={<FaGithub size="31.25px"/>} />
-        <IconLink href="https://twitter.com/0xhashchan" Logo={<FaSquareXTwitter size="31.25px" />} />
-        <IconLink href="https://discord.gg/ZQPA5MQHa6" Logo={<FaDiscord size="31.25px" />} />
-        <IconLink href="https://youtube.com/@0xhashchan" Logo={<FaYoutube size="31.25px" />} />
+        <IconLink href="https://github.com/hashchan/hashchan" Logo={<FaGithub size={pxSize} />} />
+        <IconLink href="https://twitter.com/0xhashchan" Logo={<FaSquareXTwitter size={pxSize}   />} />
+        <IconLink href="https://discord.gg/ZQPA5MQHa6" Logo={<FaDiscord size={pxSize}  />} />
+        <IconLink href="https://youtube.com/@0xhashchan" Logo={<FaYoutube size={pxSize} />} />
       </div>
     </div>
   )
