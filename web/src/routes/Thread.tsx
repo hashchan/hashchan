@@ -35,7 +35,7 @@ const ReplySpan = ({reply}:{reply:any}) => {
         reply.ref.current.scrollIntoView({behavior: 'smooth', block: 'start'})
       }}
       style={{
-      paddingLeft: '1.25vw',
+      paddingLeft: `${1/ Math.PHI}vw`,
       color: hovered ? '#20c20E': '#DF3DF1',
       textDecoration: 'underline'
       }}>
@@ -49,7 +49,7 @@ const ReplySpans = ({replies}: {replies: any}) => {
     return (
       <span
         style={{
-          paddingLeft: '1.25vw',
+          paddingLeft: `${1/ Math.PHI}vw`,
           color: '#DF3DF1'
         }}
       >{ replies.map(
@@ -65,6 +65,7 @@ const TipCreator = ({creator}: {creator: `0x${string}`}) => {
   const [hovered, setHovered] = useState(false)
   const { register, handleSubmit, formState: { errors  }  } = useForm();
   const [rpcError, setRpcError] = useState(null)
+
   const onSubmit = async (data) => {
     console.log(data)
     const response = await createTip(
@@ -92,11 +93,11 @@ const TipCreator = ({creator}: {creator: `0x${string}`}) => {
           style={{
           backgroundColor:"#090909",
           position: 'absolute',
-          padding: '1.25vh 1.25vw',
+          padding: `${1/ Math.PHI}vh ${1/ Math.PHI}vw`,
           }}
           onSubmit={handleSubmit(onSubmit)}
         ><label htmlFor="amount">Tip: </label>
-          <input style={{width:'5vw'}} defaultValue="0.01" {...register("amount", { required: true })} />
+          <input style={{width:`${100/ Math.PHI}px`}} defaultValue="0.01" {...register("amount", { required: true })} />
           {errors.amount && <span>This field is required</span>}
           <button type="submit">Tip</button>
         </form>
@@ -134,7 +135,7 @@ const Post = forwardRef(({
     style={{
       display: 'flex',
       flexWrap: 'wrap',
-      padding: '1.25vh 0vh'
+      padding: `${1/ Math.PHI}vh 0vw`,
       }}> 
       <div
       >
@@ -143,7 +144,7 @@ const Post = forwardRef(({
         <span>&nbsp;{timestamp && new Date(timestamp * 1000).toLocaleString()}</span>
         <ReplySpans replies={replies} />
       </div>
-      <a style={{paddingLeft: '1.25vw'}} target="_blank" href={imgUrl}>{ imgUrl && imgUrl.substring(0,33)}...</a>
+      <a style={{paddingLeft: `${1/ Math.PHI}vw`}} target="_blank" href={imgUrl}>{ imgUrl && imgUrl.substring(0,33)}...</a>
       <div className="flex-wrap-center" style={{
         }}>
         <img 
@@ -152,12 +153,13 @@ const Post = forwardRef(({
           float: 'left',
           justifyContent: 'center',
           objectFit: 'contain',
-          paddingRight: '1.25vw',
-          maxWidth: expanded ? '95vw' : '261px',
-          height: expanded ? '95vh' : '28vh',
+          paddingRight: `${1/ Math.PHI}vw`,
+          minHeight: `${100*(Math.PHI - 1)}px`,
+          maxWidth: expanded ? '95vw' : `${100*(Math.PHI + 1)}px`,
+          maxHeight: expanded ? '95vh' : `${1000/(Math.PHI**3)}px`,
         }}
       src={imgUrl}/>
-        <MarkdownEditor.Markdown style={{display: 'flex', flexWrap: 'wrap', width: window.innerWidth - 500 + 'px'}} source={content} /> 
+        <MarkdownEditor.Markdown style={{display: 'flex', flexWrap: 'wrap', width: window.innerWidth - 618 + 'px'}} source={content} /> 
       </div>
     </div>
   )
@@ -201,7 +203,7 @@ export const Thread = () => {
         <div style={{
           position: 'fixed',
           inset: 'unset',
-          top: '50vh',
+          top: '38.2vh',
           left: '7.3vw',
           }}>
           <CreatePost threadId={thread} replyIds={makeReply} handleClose={handleClose} />

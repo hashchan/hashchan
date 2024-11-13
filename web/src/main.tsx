@@ -7,7 +7,7 @@ declare global {
      * The golden ratio (φ or phi)
      * Approximately equals 1.618033988749895
      */
-    readonly PHI: number;
+    PHI: number;
   }
 }
 
