@@ -41,7 +41,7 @@ const IconLink = ({href, Logo}: {href: string, Logo: ReactNode}) => {
   )
 }
 export const NavBar = () => {
-  const pxSize = `${100 / (Math.PHI**2) }px`
+  const pxSize = `${100 / (Math.PHI**3) }px`
   return (
     <div
       className="flex-wrap-center"

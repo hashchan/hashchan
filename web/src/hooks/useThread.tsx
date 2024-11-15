@@ -4,7 +4,8 @@ import {
   useAccount,
   usePublicClient,
   useWatchContractEvent,
-  useWalletClient
+  useWalletClient,
+  useBlockNumber
 } from 'wagmi'
 import { config } from '@/config'
 import { writeContract,waitForTransactionReceipt  } from '@wagmi/core'
@@ -43,6 +44,7 @@ const parseContentTwo = (content: string, refsObj:any) => {
 export const useThread = (threadId: string) => {
   const [lastBlock, setLastBlock] = useState(null)
   const { address, chain } = useAccount()
+  const blockNumber = useBlockNumber();
   const publicClient = usePublicClient();
   const walletClient = useWalletClient()
   const [refsObj, setRefsObj] = useState(null)
@@ -59,7 +61,7 @@ export const useThread = (threadId: string) => {
           address: contractAddress,
           abi,
           eventName: 'Comment',
-          fromBlock: lastBlock ? lastBlock: await publicClient.getBlockNumber(),
+          fromBlock: 0n,
           args: {
             threadId
           },
@@ -103,7 +105,7 @@ export const useThread = (threadId: string) => {
         unwatch()
       }
     }  
-  }, [publicClient, address, threadId, lastBlock, chain, contractAddress, abi])
+  }, [publicClient, address, threadId, chain, contractAddress, abi])
 
 
   const fetchPosts = useCallback(async () => {
@@ -118,7 +120,7 @@ export const useThread = (threadId: string) => {
           id: threadId
         },
         fromBlock: 0n,
-        toBlock: await publicClient.getBlockNumber()
+        toBlock: blockNumber.data
       })
 
       const threadLogs = await publicClient.getFilterLogs({
@@ -148,12 +150,12 @@ export const useThread = (threadId: string) => {
           abi,
           eventName: 'Comment',
           fromBlock: 0n,
-          toBlock: 'latest',
+          toBlock: blockNumber.data,
           args: {
             threadId: threadId
           }
         })
-
+        console.log('hitting api')
         const logs = await publicClient.getFilterLogs({
           filter
         })
@@ -190,7 +192,7 @@ export const useThread = (threadId: string) => {
       }
 
     }
-  }, [publicClient, address, threadId, chain, contractAddress, abi])
+  }, [publicClient, address, threadId, chain, contractAddress, abi, blockNumber.data])
 
 
   const createPost = useCallback(async (
@@ -231,7 +233,7 @@ export const useThread = (threadId: string) => {
   useEffect(() => {
     fetchPosts()
     watchThread()
-  }, [fetchPosts, watchThread])
+  },[])
 
   return {
     posts: posts,

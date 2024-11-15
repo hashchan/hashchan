@@ -17,7 +17,7 @@ import Disguise from '../assets/emoji/disguise.png'
 import Tips from '../assets/emoji/tips.png'
 import ArbitrumOne from '@/assets/emoji/arbitrum-one.png'
 import ArbitrumNova from '@/assets/emoji/arbitrum-nova.png'
-
+import Flow from '@/assets/emoji/flow.png'
 export const About = () => {
   return (
     <div
@@ -67,6 +67,10 @@ export const About = () => {
           <a target="_blank" href="https://nova.arbiscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Arbitrum Nova</a>
         </p>
         <p>
+          <img src={Flow} className="emoji" />
+          <a target="_blank" href="https://evm.flowscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Flow</a>
+        </p>
+        <p>
           <img src={Sepolia} className="emoji" />
           <a target="_blank" href="https://sepolia.arbiscan.io/address/0x75Accb3c871167F66226F97092A717b2253010c9"> Arbitrum Sepolia Testnet</a>
         </p>
@@ -81,6 +85,10 @@ export const About = () => {
         <p>
           <img src={Sepolia} className="emoji" />
           <a target="_blank" href="https://sepolia.basescan.org/address/0x0f379a480aC2AC95A5EF8a54094C3d3021332B73"> Base Sepolia Testnet</a>
+        </p>
+        <p>
+          <img src={Sepolia} className="emoji" />
+          <a target="_blank" href="https://evm-testnet.flowscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Flow Testnet</a>
         </p>
       </div>
       <div>
