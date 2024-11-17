@@ -2,7 +2,7 @@
   "_format": "hh-sol-artifact-1",
   "contractName": "HashChan2",
   "sourceName": "contracts/HashChan2.sol",
-  "address": "0xa100Ec1033095448f6D570E5e0BA30c533f0e50b",
+  "address": "0xEEe8276AEA42f61399Abe7235c015a6cAb1372AC",
   "baseSepoliaAddress":"0x49AAb31cDEf88C1AF1B8fd639b31082b89237c58",
  "abi": [
     {
@@ -22,11 +22,23 @@
         {
           "indexed": true,
           "internalType": "string",
-          "name": "name",
+          "name": "nameHash",
           "type": "string"
         },
         {
           "indexed": true,
+          "internalType": "string",
+          "name": "symbolHash",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "indexed": false,
           "internalType": "string",
           "name": "symbol",
           "type": "string"

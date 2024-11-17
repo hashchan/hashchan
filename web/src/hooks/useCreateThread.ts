@@ -57,7 +57,6 @@ export const useCreateThread = () => {
         setThreadId(logs[0].args.id)
 
         await db.threads.add({
-          timestamp: Math.floor(Date.now() / 1000),
           id: logs[0].args.id,
           boardId: logs[0].args.boardId,
           creator: logs[0].args.creator,

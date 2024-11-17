@@ -37,6 +37,7 @@ export const useThreads = ({board}: {board: string}) => {
       let threads;
       try {
         threads = await db.threads.where('boardId').equals(boardsMap[board]).toArray()
+        console.log('cached-threads', threads)
       } catch (e) {
         console.log('e', e)
         console.log('db error, skipping')
@@ -115,7 +116,7 @@ export const useThreads = ({board}: {board: string}) => {
   }, [publicClient, address, board, chain, contractAddress, abi])
 
   useEffect(() => {
-    if (!isInitialized || !address || !chain || !db ) return 
+    if (isInitialized || !address || !chain || !db ) return 
       const init = async () => {
         console.log('initing')
         await fetchThreads()

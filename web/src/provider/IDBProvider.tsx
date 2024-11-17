@@ -34,20 +34,17 @@ interface Board {
   symbol: string;
 }
 
+interface BoardsSync {
+  chainId: number;
+  lastSynced: number;
+}
+
 
 type HashchanDB = Dexie & {
-  boards: EntityTable<
-    Board,
-    'id'
-  >,
-  threads: EntityTable<
-    Thread,
-    'id'
-  >,
-  posts: EntityTable<
-    Post,
-    'id'
-  >
+  boardsSync: EntityTable<BoardsSync,'chainId'>,
+  boards: EntityTable<Board,'id'>,
+  threads: EntityTable<Thread,'id'>,
+  posts: EntityTable<Post,'id'>
 }
 
 export const IDBContext = createContext({
@@ -62,6 +59,7 @@ export const IDBProvider = ({ children }) => {
   useEffect(() => {
     const db = new Dexie('hashchandb') as HashchanDB
     db.version(1).stores({
+      boardsSync: 'chainId',
       boards: 'id, name, symbol',
       threads: 'id, boardId, timestamp',
       posts: 'id, threadId, timestamp'

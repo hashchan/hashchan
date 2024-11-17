@@ -13,8 +13,10 @@ contract HashChan2 {
 
   event NewBoard (
     uint256 indexed id,
-    string indexed name,
-    string indexed symbol
+    string indexed nameHash,
+    string indexed symbolHash,
+    string name,
+    string symbol
   );
 
   event NewThread (
@@ -53,7 +55,7 @@ contract HashChan2 {
   ) public returns (uint256) {
     boards[boardCount] = Board(name, symbol);
     boardCount++;
-    emit NewBoard(boardCount - 1, name, symbol);
+    emit NewBoard(boardCount - 1, name, symbol, name, symbol);
     return boardCount;
   }
 
