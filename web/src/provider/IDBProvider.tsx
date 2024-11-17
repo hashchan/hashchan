@@ -9,7 +9,8 @@ interface Post {
   id: string;
   creator: `0x${string}`;
   imgUrl: string;
-  replyIds: string[];
+  replyingTos: string[];
+  replyedBy: string[];
   content: string;
   timestamp: number
 

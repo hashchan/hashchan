@@ -1,5 +1,12 @@
-import {useState, useEffect, useCallback, createRef} from 'react'
-
+import {
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  createRef
+} from 'react'
+import { IDBContext } from '@/provider/IDBProvider'
+import { parseEventLogs } from 'viem'
 import {
   useAccount,
   usePublicClient,
@@ -31,17 +38,17 @@ const parseContentTwo = (content: string, refsObj:any) => {
       } else {
         match = match.replace(/[@#]+/g,'')
         return `[${match}](${window.location.href}#${match})`
-
       }
     }
   )
   return {
     replyIds
   }
-
 }
 
 export const useThread = (threadId: string) => {
+  const [isInitialized, setIsInitialized] = useState(false)
+  const { db } = useContext(IDBContext)
   const [lastBlock, setLastBlock] = useState(null)
   const { address, chain } = useAccount()
   const blockNumber = useBlockNumber();
@@ -54,13 +61,13 @@ export const useThread = (threadId: string) => {
   const { contractAddress, abi } = useContract()
 
   const watchThread = useCallback(async () => {
-    let unwatch
+    let unwatch;
     if (publicClient && address && threadId && chain) {
       try {
         unwatch = publicClient.watchContractEvent({
           address: contractAddress,
           abi,
-          eventName: 'Comment',
+          eventName: 'NewPost',
           fromBlock: 0n,
           args: {
             threadId
@@ -109,13 +116,14 @@ export const useThread = (threadId: string) => {
 
 
   const fetchPosts = useCallback(async () => {
-    console.log('trying to fetch posts')
-    if (publicClient && address && threadId && chain) {
+    if (publicClient && address && threadId && chain && db) {
+      console.log('trying to fetch posts')
       setLastBlock(await publicClient.getBlockNumber())
+
       const threadFilter = await publicClient.createContractEventFilter({
         address: contractAddress,
         abi,
-        eventName: 'Thread',
+        eventName: 'NewThread',
         args: {
           id: threadId
         },
@@ -126,6 +134,7 @@ export const useThread = (threadId: string) => {
       const threadLogs = await publicClient.getFilterLogs({
         filter: threadFilter,
       })
+      console.log('threadLogs', threadLogs)
 
       const { creator, id, imgUrl, content, timestamp } = threadLogs[0].args
 
@@ -148,7 +157,7 @@ export const useThread = (threadId: string) => {
         const filter = await publicClient.createContractEventFilter({
           address: contractAddress,
           abi,
-          eventName: 'Comment',
+          eventName: 'NewPost',
           fromBlock: 0n,
           toBlock: blockNumber.data,
           args: {
@@ -183,6 +192,7 @@ export const useThread = (threadId: string) => {
           localLogsObj[id].content = sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] })
         })
         setPosts(Object.values(localLogsObj))
+        //await db.threads.bulkPut(Object.values(localLogsObj))
         console.log('posts', Object.values(localLogsObj))
         setLogsObj(localLogsObj)
         setRefsObj(localRefsObj)
@@ -192,27 +202,46 @@ export const useThread = (threadId: string) => {
       }
 
     }
-  }, [publicClient, address, threadId, chain, contractAddress, abi, blockNumber.data])
+  }, [publicClient, address, threadId, chain, contractAddress, abi, blockNumber.data, db])
 
 
   const createPost = useCallback(async (
+    board: string,
     imgUrl: string,
-    content: string
+    content: string,
+    replyIds: string[]
   ) => {
     if (publicClient && walletClient && address && chain) {
       try {
         const hash = await writeContract(config, {
           address: contractAddress,
           abi,
-          functionName: 'createComment',
+          functionName: 'createPost',
           args: [
+            Number(board),
             threadId,
+            replyIds,
             imgUrl,
             content 
           ]
         })
 
         const receipt = await waitForTransactionReceipt(config, {hash})
+
+        const logs = parseEventLogs({
+          abi,
+          logs: receipt.logs
+        })
+
+        const id = await db.threads.add({
+          id: logs[0].args.id,
+          creator: logs[0].args.creator,
+          imgUrl: logs[0].args.imgUrl,
+          content: logs[0].args.content,
+          timestamp: logs[0].args.timestamp
+        })
+        
+        console.log('dexie id: ', id)
 
         return {
           receipt: receipt,
@@ -227,13 +256,29 @@ export const useThread = (threadId: string) => {
       }
 
     } 
-  }, [publicClient, walletClient, address, threadId, chain, contractAddress, abi])
+  }, [
+    publicClient,
+    walletClient,
+    address,
+    threadId,
+    chain,
+    contractAddress,
+    abi,
+    db
+  ])
 
 
   useEffect(() => {
-    fetchPosts()
-    watchThread()
-  },[])
+    if (isInitialized || !address || !chain || !db) return
+    const init = async () => {
+      await fetchPosts()
+      await watchThread()
+      setIsInitialized(true)
+    }
+
+    init()
+
+  },[address, chain, fetchPosts, isInitialized, watchThread, db])
 
   return {
     posts: posts,

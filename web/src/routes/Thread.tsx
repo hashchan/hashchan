@@ -149,16 +149,17 @@ const Post = forwardRef(({
         }}>
         <img 
           onClick={() => setExpanded(!expanded)}
-        style={{
-          float: 'left',
-          justifyContent: 'center',
-          objectFit: 'contain',
-          paddingRight: `${1/ Math.PHI}vw`,
-          minHeight: `${100*(Math.PHI - 1)}px`,
-          maxWidth: expanded ? '95vw' : `${100*(Math.PHI + 1)}px`,
-          maxHeight: expanded ? '95vh' : `${1000/(Math.PHI**3)}px`,
-        }}
-      src={imgUrl}/>
+          style={{
+            float: 'left',
+            justifyContent: 'center',
+            objectFit: 'contain',
+            paddingRight: `${1/ Math.PHI}vw`,
+            minHeight: `${100*(Math.PHI - 1)}px`,
+            maxWidth: expanded ? '95vw' : `${100*(Math.PHI + 1)}px`,
+            maxHeight: expanded ? '95vh' : `${1000/(Math.PHI**3)}px`,
+          }}
+          src={imgUrl}
+        />
         <MarkdownEditor.Markdown style={{display: 'flex', flexWrap: 'wrap', width: window.innerWidth - 618 + 'px'}} source={content} /> 
       </div>
     </div>
@@ -181,6 +182,7 @@ export const Thread = () => {
   const handleClose = () => {
     setToggleReply(!toggleReply)
   }
+
   return (
     <>
       <h3 style={{wordWrap: 'break-word'}}>Thread {thread}</h3>

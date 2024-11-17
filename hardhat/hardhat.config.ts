@@ -28,7 +28,7 @@ const config: HardhatUserConfig = {
       }
     },
     sepolia: {
-      url: `https://sepolia.infura.io/v3/${process.env.INFURA}`,
+      url: `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY}`,
       chainId: 11155111,
       accounts: {
         mnemonic: process.env.MNEMONIC

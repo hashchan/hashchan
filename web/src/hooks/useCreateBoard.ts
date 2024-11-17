@@ -4,7 +4,7 @@ import {
   useCallback,
   useEffect
 } from 'react'
-import { useContract } from '@/hooks/useContract2'
+import { useContract } from '@/hooks/useContract'
 import { useWalletClient, useAccount } from 'wagmi'
 import { writeContract, waitForTransactionReceipt } from '@wagmi/core'
 import { config } from '@/config'

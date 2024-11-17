@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import HashChan from '@/assets/HashChan.json'
+import HashChan2 from '@/assets/HashChan2.json'
 import { useAccount   } from 'wagmi'
 
 export const useContract = () => {
@@ -9,17 +9,16 @@ export const useContract = () => {
     if (chain) {
     console.log('chain', chain.id)
       switch (chain.id) {
-        case 421614:
-          setContractAddress(HashChan.arbitrumSepoliaAddress)
-        break;
         case 84532:
-          setContractAddress(HashChan.baseSepoliaAddress)
+          setContractAddress(HashChan2.baseSepoliaAddress)
         break;
+        /*
         case 8453:
           setContractAddress(HashChan.baseAddress)
         break;
+       */
         default:
-          setContractAddress(HashChan.address)
+          setContractAddress(HashChan2.address)
       }
     }
   }, [chain])
@@ -30,7 +29,7 @@ export const useContract = () => {
 
   return {
     contractAddress: contractAddress as `0x${string}`,
-    abi: HashChan.abi
+    abi: HashChan2.abi
   }
 }
 

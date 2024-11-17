@@ -3,12 +3,13 @@ import { useForm  } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { useThread } from "@/hooks/useThread";
 import { truncateEthAddress } from '@/utils'
-
 import MarkdownEditor from '@uiw/react-markdown-editor';
 import { useW3Storage } from '@/hooks/useW3Storage'
+import { boardsMap, parseContent } from '@/utils'
 export const CreatePost = ({
   threadId, replyIds, handleClose}:
     {threadId: string, replyIds: string[], handleClose : () => void }) => {
+  const { board, thread } = useParams()
   const {  account, uploadFile } = useW3Storage()
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting  }  } = useForm();
   const { createPost, fetchLatestPosts } = useThread(threadId)
@@ -22,9 +23,14 @@ export const CreatePost = ({
     } else if (data.imageUrl) {
       img = data.imageUrl
     }
+    const {content, replyIds} = getReplyIdsInContent(data.content)
+    console.log('replyIds', replyIds)
+    console.log('content', content)
     const {receipt, error } = await createPost(
+      boardsMap[board],
       img,
-      data.content
+      content,
+      replyIds
     )
     if (receipt) {
       console.log('receipt', receipt)

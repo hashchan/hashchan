@@ -2,9 +2,9 @@
   "_format": "hh-sol-artifact-1",
   "contractName": "HashChan2",
   "sourceName": "contracts/HashChan2.sol",
-  "address": "0x7cE23ee9023A138193C33F060A0060E918246E59",
+  "address": "0xa100Ec1033095448f6D570E5e0BA30c533f0e50b",
   "baseSepoliaAddress":"0x49AAb31cDEf88C1AF1B8fd639b31082b89237c58",
-  "abi": [
+ "abi": [
     {
       "inputs": [],
       "stateMutability": "nonpayable",

@@ -1,54 +1,72 @@
-import {useState, useEffect, useCallback} from 'react'
-import { useAccount, usePublicClient, useWatchContractEvent, useBlockNumber } from 'wagmi'
+import {
+  useContext,
+  useState,
+  useEffect,
+  useCallback
+} from 'react'
+import {
+  useAccount,
+  usePublicClient,
+  useWatchContractEvent,
+  useBlockNumber
+}  from 'wagmi'
 import { writeContract  } from '@wagmi/core'
 import { useContract } from '@/hooks/useContract'
 import { parseAbiItem } from 'viem'
 import { config } from '@/config'
 import { boardsMap } from '@/utils'
-export const useThreads = ({board}: {board: string}) => {
 
+
+import { IDBContext } from '@/provider/IDBProvider'
+
+export const useThreads = ({board}: {board: string}) => {
+  const { db } = useContext(IDBContext)
+  const [isInitialized, setIsInitialized] = useState(false)
   const { address, chain } = useAccount()
   const publicClient = usePublicClient({config});
   const blockNumber = useBlockNumber();
+
   const { contractAddress, abi } = useContract()
   const [logErrors, setLogErrors] = useState([])
   //const walletClient = useWalletClient()
   const [threads, setThreads] = useState([])
-  /*
-  useWatchContractEvent({
-    address: hashChanAddress as `0x${string}`,
-    abi,
-    args: {
-    },
-    eventName: 'Thread',
-    onLogs(logs) {
-      console.log(logs)
-    }
-  })
- */
+  
   const fetchThreads = useCallback(async () => {
-    if (publicClient && address && board && chain) {
+    console.log('fetching threads')
+    if (publicClient && address && board && chain && db) {
+      let threads;
+      try {
+        threads = await db.threads.where('boardId').equals(boardsMap[board]).toArray()
+      } catch (e) {
+        console.log('e', e)
+        console.log('db error, skipping')
+      }
       try {
         const filter = await publicClient.createContractEventFilter({
           address: contractAddress,
           abi,
-          eventName: 'Thread',
+          eventName: 'NewThread',
           args: {
             board: boardsMap[board]
           },
           fromBlock: 0n,
-          toBlock: 'latest'
+          toBlock: blockNumber.data
         })
-        console.log('brave debug: filter created')
-
 
         const logs = await publicClient.getFilterLogs({
           filter,
         })
-        console.log('brave debug: logs fetched', logs)
 
         const threads = logs.map((log) => {
-          const { creator, id, imgUrl, title, content, timestamp } = log.args
+          const {
+            creator,
+            id,
+            imgUrl,
+            title,
+            content,
+            timestamp
+          } = log.args
+
           return {
             creator,
             id,
@@ -58,16 +76,13 @@ export const useThreads = ({board}: {board: string}) => {
             timestamp: Number(timestamp),
           }
         })
-        console.log('brave debug: threads parsed', threads)
-
         setThreads(threads)
-
       } catch (e) {
         console.log('log error', e)
         setLogErrors(old => [...old, e.toString()])
       }
     }
-  }, [publicClient, address, board, chain, contractAddress, abi])
+  }, [publicClient, address, board, chain, contractAddress, abi, blockNumber, db])
 
   const watchThreads = useCallback(async () => {
    if (publicClient && address && chain) {
@@ -75,7 +90,7 @@ export const useThreads = ({board}: {board: string}) => {
      const unwatch = publicClient.watchContractEvent({
        address: contractAddress,
        abi,
-       eventName: 'Thread',
+       eventName: 'NewThread',
        args: {
          board: boardsMap[board]
        },
@@ -100,11 +115,17 @@ export const useThreads = ({board}: {board: string}) => {
   }, [publicClient, address, board, chain, contractAddress, abi])
 
   useEffect(() => {
-    if (publicClient && address && board ) {
-      fetchThreads()
-      watchThreads()
-    }
-  }, [publicClient, address, board, watchThreads, fetchThreads])
+    if (!isInitialized || !address || !chain || !db ) return 
+      const init = async () => {
+        console.log('initing')
+        await fetchThreads()
+        await watchThreads()
+        setIsInitialized(true)
+      }
+
+      init()
+
+  }, [isInitialized, address, chain, db, fetchThreads, watchThreads])
   return {
     threads,
     fetchThreads,

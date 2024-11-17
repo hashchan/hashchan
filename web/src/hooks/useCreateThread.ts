@@ -1,4 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
+import {
+  useContext,
+  useState,
+  useEffect,
+  useCallback
+} from 'react'
+
+import { IDBContext } from '@/provider/IDBProvider'
 import { useContract } from '@/hooks/useContract'
 import { useWalletClient, useAccount } from 'wagmi'
 import { writeContract, waitForTransactionReceipt } from '@wagmi/core'
@@ -9,6 +16,7 @@ import { config } from '@/config'
 import { boardsMap } from '@/utils'
 
 export const useCreateThread = () => {
+  const { db } = useContext(IDBContext)
   const { address, chain } = useAccount()
   const { contractAddress, abi } = useContract()
   const walletClient = useWalletClient()
@@ -20,7 +28,8 @@ export const useCreateThread = () => {
     imageUrl: string,
     content: string
   ) => {
-    if (walletClient && address && chain) {
+    console.log('hashchan2: ', contractAddress)
+    if (walletClient && address && chain && db) {
       console.log('chain', chain)
       try {
         const tx = await writeContract(config, {
@@ -46,6 +55,18 @@ export const useCreateThread = () => {
         })
         console.log('logs', logs)
         setThreadId(logs[0].args.id)
+
+        await db.threads.add({
+          timestamp: Math.floor(Date.now() / 1000),
+          id: logs[0].args.id,
+          boardId: logs[0].args.boardId,
+          creator: logs[0].args.creator,
+          imgUrl: logs[0].args.imgUrl,
+          title: logs[0].args.title,
+          content: logs[0].args.content,
+          timestamp: logs[0].args.timestamp
+
+        })
         return  {
           hash: logs[0].args.id,
           error: null
@@ -57,8 +78,7 @@ export const useCreateThread = () => {
         }
       }
     }
-  }, [address, walletClient, chain, contractAddress, abi])
-
+  }, [address, walletClient, chain, contractAddress, abi, db])
 
   return {
     threadId,
