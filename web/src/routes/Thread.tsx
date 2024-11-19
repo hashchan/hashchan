@@ -26,7 +26,6 @@ const PostIdSpan = ({postId, handleOpenPost}:{postId:string, handleOpenPost: (po
 
 const ReplySpan = ({reply}:{reply:any}) => {
   const [hovered, setHovered] = useState(false)
-  console.log('reply', reply)
   return (
     <span
       onMouseEnter={() => setHovered(true)}

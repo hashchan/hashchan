@@ -25,7 +25,6 @@ import reactStringReplace from 'react-string-replace';
 
 const parseContentTwo = (content: string, refsObj:any) => {
   const replyIds: string[] = []
-  console.log('content', content)
   let parsed = reactStringReplace(
     content,
     /[#@](0x.{64})/gm,
@@ -49,7 +48,6 @@ const parseContentTwo = (content: string, refsObj:any) => {
 export const useThread = (threadId: string, boardId: string) => {
   const [isInitialized, setIsInitialized] = useState(false)
   const { db } = useContext(IDBContext)
-  const [lastBlock, setLastBlock] = useState(null)
   const { address, chain } = useAccount()
   const blockNumber = useBlockNumber();
   const publicClient = usePublicClient();
@@ -60,68 +58,10 @@ export const useThread = (threadId: string, boardId: string) => {
   const [logErrors, setLogErrors] = useState([])
   const { contractAddress, abi } = useContract()
 
-  const watchThread = useCallback(async () => {
-    let unwatch;
-    if (publicClient && address && threadId && chain && db && blockNumber && abi && contractAddress && boardId) {
-      try {
-        unwatch = publicClient.watchContractEvent({
-          address: contractAddress,
-          abi,
-          eventName: 'NewPost',
-          fromBlock: blockNumber.data,
-          args: {
-            threadId
-          },
-          async onLogs(logs) {
-            setLastBlock(await publicClient.getBlockNumber())
-            console.log('onlog')
-            const { creator, content, id, imgUrl, timestamp } = logs[0].args
-            setRefsObj((oldRefs) => {
-              const { replyIds } = parseContentTwo(content, oldRefs)
-              oldRefs[id] = createRef()
-
-              setLogsObj((oldLogs) => {
-                replyIds.forEach((replyId) => {
-                  oldLogs[replyId].replies.push({ref: oldRefs[id], id})
-                })
-                return oldLogs
-              })
-
-              const post = {
-                creator,
-                id,
-                imgUrl,
-                content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
-                timestamp: Number(timestamp),
-                replies: [],
-                ref: oldRefs[id]
-              }
-              setPosts(old => [...old, post])
-
-              return oldRefs
-            })
-          }
-        })
-
-      } catch (e) {
-        console.log('logErrors', e)
-        setLogErrors(old => [...old, e.toString()])
-      }
-
-      return () => {
-        unwatch()
-      }
-    }  
-  }, [publicClient, address, threadId, chain, contractAddress, abi, blockNumber, db, boardId ])
-
 
   const fetchPosts = useCallback(async () => {
     if (publicClient && address && threadId && chain && db && boardId) {
-      console.log('trying to fetch posts')
       const cachedThread = await db.threads.get(threadId)
-      console.log('cachedThread', cachedThread)
-      const cachedPosts = await db.posts.where('threadId').equals(threadId).toArray()
-      console.log('cachedPosts', cachedPosts)
 
       let thread;
       if (cachedThread) {
@@ -151,7 +91,6 @@ export const useThread = (threadId: string, boardId: string) => {
           filter: threadFilter,
         })
 
-        console.log('threadLogs', threadLogs)
 
         const { creator, content, id, imgUrl, replyIds, timestamp } = threadLogs[0].args
 
@@ -186,7 +125,7 @@ export const useThread = (threadId: string, boardId: string) => {
       }
 
       try {
-        const cachedPosts = await db.posts.where('threadId').equals(threadId).toArray()
+        const cachedPosts = await db.posts.where('threadId').equals(threadId).sortBy('timestamp')
 
         if (cachedPosts.length > 0) {
           cachedPosts.forEach((post) => {
@@ -197,13 +136,10 @@ export const useThread = (threadId: string, boardId: string) => {
               ref: localRefsObj[post.id]
             }
             post.replyIds.forEach((ri) => {
-              console.log('ri', localLogsObj[ri])
               localLogsObj[ri].replies.push({ref: localRefsObj[post.id], id: post.id})
             })
           })
         }
-        console.log('localLogsObj', localLogsObj)
-        console.log('localRefsObj', localRefsObj)
 
         const filter = await publicClient.createContractEventFilter({
           address: contractAddress,
@@ -215,13 +151,11 @@ export const useThread = (threadId: string, boardId: string) => {
             threadId: threadId
           }
         })
-        console.log('hitting api')
         const logs = await publicClient.getFilterLogs({
           filter
         })
 
         logs.forEach(async (log) => {
-          console.log('log', log)
           const { creator, id, imgUrl, content, replyIds, timestamp } = log.args
           //const { replyIds } = parseContentTwo(content, localRefsObj)
           //const { replyIds, parsed } = parseContentTwo(content, localRefsObj)
@@ -236,13 +170,8 @@ export const useThread = (threadId: string, boardId: string) => {
             content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
             ref: localRefsObj[id]
           }
-          console.log('replyids', replyIds)
-          console.log('localRefsObj', localRefsObj)
-          console.log('localLogsObj', localLogsObj)
           replyIds.forEach((replyId, i) => {
-            console.log('replyId', replyId)
             localLogsObj[replyId].replies.push({ref: localRefsObj[id], id})
-            console.log('localLogsObj', localLogsObj)
           })
           //localLogsObj[log.args.id].content = parsed
           //localLogsObj[id].content = sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] })
@@ -258,10 +187,9 @@ export const useThread = (threadId: string, boardId: string) => {
             timestamp: Number(timestamp)
 
           })
-          
+
         })
         setPosts(Object.values(localLogsObj))
-        console.log('posts', Object.values(localLogsObj))
         setLogsObj(localLogsObj)
         setRefsObj(localRefsObj)
         await db.threads.update(threadId, {
@@ -295,11 +223,6 @@ export const useThread = (threadId: string, boardId: string) => {
   ) => {
     if (publicClient && walletClient && address && chain) {
       try {
-        console.log('board', board)
-        console.log('threadId', threadId)
-        console.log('imgUrl', imgUrl)
-        console.log('content', content)
-        console.log('replyIds', replyIds)
 
         const hash = await writeContract(config, {
           address: contractAddress,
@@ -321,13 +244,13 @@ export const useThread = (threadId: string, boardId: string) => {
           logs: receipt.logs
         })
         /*
-        const id = await db.threads.add({
-          id: logs[0].args.id,
-          creator: logs[0].args.creator,
-          imgUrl: logs[0].args.imgUrl,
-          content: logs[0].args.content,
-          timestamp: logs[0].args.timestamp
-        })
+           const id = await db.threads.add({
+id: logs[0].args.id,
+creator: logs[0].args.creator,
+imgUrl: logs[0].args.imgUrl,
+content: logs[0].args.content,
+timestamp: logs[0].args.timestamp
+})
          */
 
         return {
@@ -355,29 +278,70 @@ export const useThread = (threadId: string, boardId: string) => {
 
 
   useEffect(() => {
+    let unwatch;
     if (
       isInitialized ||
       !address ||
-      !chain ||
-      !db ||
-      !publicClient ||
-      !contractAddress ||
-      !abi ||
-      !blockNumber.data ||
-      !boardId
+    !chain ||
+  !db ||
+!publicClient ||
+!contractAddress ||
+!abi ||
+!blockNumber.data ||
+!boardId
     ) return
+
+
     const init = async () => {
       await fetchPosts()
-      await watchThread()
+      console.log('setting up watch')
+      const unwatch = publicClient.watchContractEvent({
+        address: contractAddress,
+        abi,
+        eventName: 'NewPost',
+        fromBlock: blockNumber.data,
+        args: {
+          threadId
+        },
+        async onLogs(logs) {
+          console.log('logs', logs)
+          const { creator, content, id, imgUrl, timestamp } = logs[0].args
+          setRefsObj((oldRefs) => {
+            const { replyIds } = parseContentTwo(content, oldRefs)
+            oldRefs[id] = createRef()
+
+            setLogsObj((oldLogs) => {
+              replyIds.forEach((replyId) => {
+                oldLogs[replyId].replies.push({ref: oldRefs[id], id})
+              })
+              return oldLogs
+            })
+
+            const post = {
+              creator,
+              id,
+              imgUrl,
+              content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
+              timestamp: Number(timestamp),
+              replies: [],
+              ref: oldRefs[id]
+            }
+            setPosts(old => [...old, post])
+
+            return oldRefs
+          })
+        }
+      })
       setIsInitialized(true)
     }
-
     init()
+    return () => {
+      if (unwatch) unwatch()
+    }
 
   },[
     fetchPosts,
     isInitialized,
-    watchThread,
     publicClient,
     address,
     threadId,
