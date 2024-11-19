@@ -1,4 +1,4 @@
-import { useState, useEffect, ReactNode } from 'react'
+import { Fragment, useState, useEffect, ReactNode } from 'react'
 import HashchanLogo from '@/assets/logo-4.png'
 import HashchanLogoGif from '@/assets/animated-banner.gif'
 import HashchanLogoGlitchGif from '@/assets/glitched-logo.gif'
@@ -6,6 +6,8 @@ import {FaGithub, FaSquareXTwitter, FaDiscord, FaBook, FaYoutube} from 'react-ic
 import { Link } from 'react-router-dom'
 import { ConnectWallet } from './ConnectWallet'
 import { ConnectW3Storage } from './ConnectW3Storage'
+import { useBoards } from '@/hooks/useBoards'
+
 
 const HomeButton = () => {
   const [homeHover, setHomeHover] = useState(false)
@@ -40,6 +42,24 @@ const IconLink = ({href, Logo}: {href: string, Logo: ReactNode}) => {
     </a>
   )
 }
+
+const BoardLinks = () => {
+  const { boards } = useBoards()
+  return (<>{ boards && (boards.length > 0 ? (
+    <>[
+    {boards.map((board) => (
+      <Fragment key={board.id}>
+        <Link
+          to={`/boards/${board.symbol}/catalogue`}
+        >
+          {board.symbol}
+        </Link>,&nbsp;
+      </Fragment>
+    ))}
+      ]</>):
+        (<Link to="/docs/v1/instructions">Instructions</Link>)
+                        )}</>)
+}
 export const NavBar = () => {
   const pxSize = `${100 / (Math.PHI**3) }px`
   return (
@@ -55,11 +75,7 @@ export const NavBar = () => {
         style={{
           padding: `${Math.PHI - 1}vh ${Math.PHI - 1}vw`,
         }}>
-        [<Link to="/boards/pol/catalogue">pol</Link>,&nbsp;
-        <Link to="/boards/biz/catalogue">biz</Link>,&nbsp;
-        <Link to="/boards/g/catalogue">g</Link>,&nbsp;
-        <Link to="/boards/sci/catalogue">sci</Link>,&nbsp;
-        <Link to="/boards/x/catalogue">x</Link>]
+        <BoardLinks />
       </div>
       <ConnectWallet />
       <ConnectW3Storage />

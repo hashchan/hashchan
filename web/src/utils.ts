@@ -1,9 +1,12 @@
+import reactStringReplace from 'react-string-replace';
+
 export const boardsMap = {
   'pol': 0,
   'biz': 1,
   'g': 2,
   'sci': 3,
-  'x': 4
+  'x': 4,
+  'maid': 5
 }
 
 export const boardsReverseMap = {
@@ -11,7 +14,8 @@ export const boardsReverseMap = {
   1: 'biz',
   2: 'g',
   3: 'sci',
-  4: 'x'
+  4: 'x',
+  5: 'maid'
 }
 
 // Captures 0x + 4 characters, then the last 4 characters.
@@ -28,3 +32,16 @@ export const truncateEthAddress = (address: string) => {
   return `${match[1]}…${match[2]}`;
 };
 
+
+export const parseContent = (content: string)  => {
+  const replyIds: string[] = []
+
+  reactStringReplace(
+    content,
+    /[#@](0x.{64})/gm,
+    (match, i) => {
+      match = match.replace(/[#@]+/g,'')
+      replyIds.push(match)
+    })
+    return replyIds
+}

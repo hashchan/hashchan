@@ -1,5 +1,12 @@
-import {useState, useEffect, useCallback, createRef} from 'react'
-
+import {
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  createRef
+} from 'react'
+import { IDBContext } from '@/provider/IDBProvider'
+import { parseEventLogs } from 'viem'
 import {
   useAccount,
   usePublicClient,
@@ -12,13 +19,12 @@ import { writeContract,waitForTransactionReceipt  } from '@wagmi/core'
 import { useContract } from '@/hooks/useContract'
 
 import  sanitizeMarkdown  from 'sanitize-markdown'
-
+import { parseContent } from '@/utils'
 import reactStringReplace from 'react-string-replace';
 
-
+/*
 const parseContentTwo = (content: string, refsObj:any) => {
   const replyIds: string[] = []
-  console.log('content', content)
   let parsed = reactStringReplace(
     content,
     /[#@](0x.{64})/gm,
@@ -31,18 +37,18 @@ const parseContentTwo = (content: string, refsObj:any) => {
       } else {
         match = match.replace(/[@#]+/g,'')
         return `[${match}](${window.location.href}#${match})`
-
       }
     }
   )
   return {
     replyIds
   }
-
 }
+ */
 
-export const useThread = (threadId: string) => {
-  const [lastBlock, setLastBlock] = useState(null)
+export const useThread = (threadId: string, boardId: string) => {
+  const [isInitialized, setIsInitialized] = useState(false)
+  const { db } = useContext(IDBContext)
   const { address, chain } = useAccount()
   const blockNumber = useBlockNumber();
   const publicClient = usePublicClient();
@@ -53,166 +59,202 @@ export const useThread = (threadId: string) => {
   const [logErrors, setLogErrors] = useState([])
   const { contractAddress, abi } = useContract()
 
-  const watchThread = useCallback(async () => {
-    let unwatch
-    if (publicClient && address && threadId && chain) {
-      try {
-        unwatch = publicClient.watchContractEvent({
-          address: contractAddress,
-          abi,
-          eventName: 'Comment',
-          fromBlock: 0n,
-          args: {
-            threadId
-          },
-          async onLogs(logs) {
-            setLastBlock(await publicClient.getBlockNumber())
-            console.log('onlog')
-            const { creator, content, id, imgUrl, timestamp } = logs[0].args
-            setRefsObj((oldRefs) => {
-              const { replyIds } = parseContentTwo(content, oldRefs)
-              oldRefs[id] = createRef()
-
-              setLogsObj((oldLogs) => {
-                replyIds.forEach((replyId) => {
-                  oldLogs[replyId].replies.push({ref: oldRefs[id], id})
-                })
-                return oldLogs
-              })
-
-              const post = {
-                creator,
-                id,
-                imgUrl,
-                content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
-                timestamp: Number(timestamp),
-                replies: [],
-                ref: oldRefs[id]
-              }
-              setPosts(old => [...old, post])
-
-              return oldRefs
-            })
-          }
-        })
-
-      } catch (e) {
-        console.log('logErrors', e)
-        setLogErrors(old => [...old, e.toString()])
-      }
-
-      return () => {
-        unwatch()
-      }
-    }  
-  }, [publicClient, address, threadId, chain, contractAddress, abi])
-
 
   const fetchPosts = useCallback(async () => {
-    console.log('trying to fetch posts')
-    if (publicClient && address && threadId && chain) {
-      setLastBlock(await publicClient.getBlockNumber())
-      const threadFilter = await publicClient.createContractEventFilter({
-        address: contractAddress,
-        abi,
-        eventName: 'Thread',
-        args: {
-          id: threadId
-        },
-        fromBlock: 0n,
-        toBlock: blockNumber.data
-      })
+    if (publicClient && address && threadId && chain && db && boardId) {
+      const cachedThread = await db.threads.where('threadId').equals(threadId).first()
+      let thread;
+      if (cachedThread) {
+        thread = {
+          lastSynced: cachedThread.lastSynced,
+          creator: cachedThread.creator,
+          threadId: cachedThread.threadId,
+          imgUrl: cachedThread.imgUrl,
+          content: sanitizeMarkdown(cachedThread.content, { allowedTags: ['p', 'div', 'img'] }),
+          replies: [],
+          timestamp: Number(cachedThread.timestamp)
+        }
+      } else {
+        //fetching thread from event logs
+        const threadFilter = await publicClient.createContractEventFilter({
+          address: contractAddress,
+          abi,
+          eventName: 'NewThread',
+          args: {
+            id: threadId
+          },
+          fromBlock: 0n, // maybe blockheigt of deployment is better
+          toBlock: blockNumber.data
+        })
 
-      const threadLogs = await publicClient.getFilterLogs({
-        filter: threadFilter,
-      })
+        const threadLogs = await publicClient.getFilterLogs({
+          filter: threadFilter,
+        })
 
-      const { creator, id, imgUrl, content, timestamp } = threadLogs[0].args
+
+        const { creator, content, id:threadId, imgUrl, replyIds, timestamp } = threadLogs[0].args
+
+        thread = {
+          lastSynced: 0,
+          creator,
+          threadId,
+          imgUrl,
+          replyIds,
+          replies: [],
+          content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
+          timestamp: Number(timestamp)
+        }
+
+      }
+
 
       const localRefsObj = {
-        [id] : createRef(),
+        [thread.threadId] : createRef(),
       }
       const localLogsObj = {
-        [id]: {
-          creator,
-          id,
-          imgUrl,
-          content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
-          timestamp: Number(timestamp),
+        [thread.threadId]: {
+          creator: thread.creator,
+          threadId: thread.threadId,
+          imgUrl: thread.imgUrl,
+          content: thread.content,
+          timestamp: thread.timestamp,
           replies: [],
-          ref: localRefsObj[id]
+          replyIds: thread.replyIds,
+          ref: localRefsObj[thread.id]
         }
       }
 
       try {
+        const cachedPosts = await db.posts.where('threadId').equals(threadId).sortBy('timestamp')
+
+        if (cachedPosts.length > 0) {
+          cachedPosts.forEach((post) => {
+            post.replies = []
+            localRefsObj[post.postId] = createRef()
+            localLogsObj[post.postId] = {
+              ...post,
+              ref: localRefsObj[post.postId]
+            }
+            /*
+            post.replyIds.forEach((ri) => {
+              localLogsObj[ri].replies.push({ref: localRefsObj[post.postId], id: post.postId})
+            })
+             */
+          })
+        }
+
         const filter = await publicClient.createContractEventFilter({
           address: contractAddress,
           abi,
-          eventName: 'Comment',
-          fromBlock: 0n,
+          eventName: 'NewPost',
+          fromBlock: BigInt(thread.lastSynced ? thread.lastSynced : 0),
           toBlock: blockNumber.data,
           args: {
             threadId: threadId
           }
         })
-        console.log('hitting api')
         const logs = await publicClient.getFilterLogs({
           filter
         })
 
-        logs.forEach((log) => {
-          console.log('log', log)
-          const { creator, id, imgUrl, content, timestamp } = log.args
-          const { replyIds } = parseContentTwo(content, localRefsObj)
+        logs.forEach(async (log) => {
+          const { creator, id:postId, imgUrl, content, replyIds, timestamp } = log.args
+          //const { replyIds } = parseContentTwo(content, localRefsObj)
           //const { replyIds, parsed } = parseContentTwo(content, localRefsObj)
-          localRefsObj[id] = createRef()
+          localRefsObj[postId] = createRef()
 
-          localLogsObj[id] = {
+          localLogsObj[postId] = {
             creator,
-            id,
+            postId,
             imgUrl,
             timestamp: Number(timestamp),
             replies: [],
-            ref: localRefsObj[id]
+            content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
+            ref: localRefsObj[postId]
           }
-          console.log('replyids', replyIds)
           replyIds.forEach((replyId, i) => {
-            localLogsObj[replyId].replies.push({ref: localRefsObj[id], id})
+            localLogsObj[replyId].replies.push({ref: localRefsObj[postId], id:postId})
           })
           //localLogsObj[log.args.id].content = parsed
-          localLogsObj[id].content = sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] })
+          //localLogsObj[id].content = sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] })
+          //
+          console.log('replyIds', replyIds)
+          await db.posts.add({
+            boardId: boardId,
+            threadId: threadId,
+            postId: postId,
+            creator: creator,
+            imgUrl: imgUrl,
+            replyIds: replyIds,
+            content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
+            timestamp: Number(timestamp)
+
+          })
+
         })
         setPosts(Object.values(localLogsObj))
-        console.log('posts', Object.values(localLogsObj))
         setLogsObj(localLogsObj)
         setRefsObj(localRefsObj)
+        await db.threads.update(threadId, {
+          lastSynced: blockNumber.data
+        })
       } catch (e) {
+        console.error(e)
         console.log('logErrors', e.text)
         setLogErrors(old => [...old, e.toString()])
       }
 
     }
-  }, [publicClient, address, threadId, chain, contractAddress, abi, blockNumber.data])
+  }, [
+    publicClient,
+    address,
+    threadId,
+    chain,
+    contractAddress,
+    abi,
+    blockNumber.data,
+    db,
+    boardId
+  ])
 
 
   const createPost = useCallback(async (
+    board: string,
     imgUrl: string,
-    content: string
+    content: string,
+    replyIds: string[]
   ) => {
     if (publicClient && walletClient && address && chain) {
       try {
+
         const hash = await writeContract(config, {
           address: contractAddress,
           abi,
-          functionName: 'createComment',
+          functionName: 'createPost',
           args: [
+            Number(board),
             threadId,
+            replyIds,
             imgUrl,
             content 
           ]
         })
 
         const receipt = await waitForTransactionReceipt(config, {hash})
+
+        const logs = parseEventLogs({
+          abi,
+          logs: receipt.logs
+        })
+        /*
+           const id = await db.threads.add({
+id: logs[0].args.id,
+creator: logs[0].args.creator,
+imgUrl: logs[0].args.imgUrl,
+content: logs[0].args.content,
+timestamp: logs[0].args.timestamp
+})
+         */
 
         return {
           receipt: receipt,
@@ -227,13 +269,92 @@ export const useThread = (threadId: string) => {
       }
 
     } 
-  }, [publicClient, walletClient, address, threadId, chain, contractAddress, abi])
+  }, [
+    publicClient,
+    walletClient,
+    address,
+    threadId,
+    chain,
+    contractAddress,
+    abi
+  ])
 
 
   useEffect(() => {
-    fetchPosts()
-    watchThread()
-  },[])
+    let unwatch;
+    if (
+      isInitialized ||
+      !address ||
+      !chain ||
+      !db ||
+      !publicClient ||
+      !contractAddress ||
+      !abi ||
+      !blockNumber.data ||
+      !boardId
+    ) return
+
+
+    const init = async () => {
+      await fetchPosts()
+      console.log('setting up watch')
+      const unwatch = publicClient.watchContractEvent({
+        address: contractAddress,
+        abi,
+        eventName: 'NewPost',
+        fromBlock: blockNumber.data,
+        args: {
+          threadId
+        },
+        async onLogs(logs) {
+          console.log('logs', logs)
+          const { creator, content, id:postId, imgUrl, timestamp } = logs[0].args
+          setRefsObj((oldRefs) => {
+            const replyIds  = parseContent(content)
+            oldRefs[postId] = createRef()
+
+            setLogsObj((oldLogs) => {
+              replyIds.forEach((replyId) => {
+                oldLogs[replyId].replies.push({ref: oldRefs[postId], id:postId})
+              })
+              return oldLogs
+            })
+
+            const post = {
+              creator,
+              postId,
+              imgUrl,
+              content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
+              timestamp: Number(timestamp),
+              replies: [],
+              ref: oldRefs[postId]
+            }
+            setPosts(old => [...old, post])
+
+            return oldRefs
+          })
+        }
+      })
+      setIsInitialized(true)
+    }
+    init()
+    return () => {
+      if (unwatch) unwatch()
+    }
+
+  },[
+    fetchPosts,
+    isInitialized,
+    publicClient,
+    address,
+    threadId,
+    chain,
+    contractAddress,
+    abi,
+    blockNumber.data,
+    db,
+    boardId
+  ])
 
   return {
     posts: posts,

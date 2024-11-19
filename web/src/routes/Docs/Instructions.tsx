@@ -9,7 +9,7 @@ export const Instructions = () => {
       style={{
         flexDirection: 'column',
         margin: '0 auto',
-        width: `${100/ (Math.PHI)}vw`,
+        width: `${(100/ (Math.PHI) + (100/(Math.PHI**3)))}vw`,
         justifyContent: 'center',
         alignItems: 'center',
       }}

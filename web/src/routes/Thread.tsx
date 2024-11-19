@@ -67,7 +67,6 @@ const TipCreator = ({creator}: {creator: `0x${string}`}) => {
   const [rpcError, setRpcError] = useState(null)
 
   const onSubmit = async (data) => {
-    console.log(data)
     const response = await createTip(
       creator,
       data.amount
@@ -149,16 +148,17 @@ const Post = forwardRef(({
         }}>
         <img 
           onClick={() => setExpanded(!expanded)}
-        style={{
-          float: 'left',
-          justifyContent: 'center',
-          objectFit: 'contain',
-          paddingRight: `${1/ Math.PHI}vw`,
-          minHeight: `${100*(Math.PHI - 1)}px`,
-          maxWidth: expanded ? '95vw' : `${100*(Math.PHI + 1)}px`,
-          maxHeight: expanded ? '95vh' : `${1000/(Math.PHI**3)}px`,
-        }}
-      src={imgUrl}/>
+          style={{
+            float: 'left',
+            justifyContent: 'center',
+            objectFit: 'contain',
+            paddingRight: `${1/ Math.PHI}vw`,
+            minHeight: `${100*(Math.PHI - 1)}px`,
+            maxWidth: expanded ? '95vw' : `${100*(Math.PHI + 1)}px`,
+            maxHeight: expanded ? '95vh' : `${1000/(Math.PHI**3)}px`,
+          }}
+          src={imgUrl}
+        />
         <MarkdownEditor.Markdown style={{display: 'flex', flexWrap: 'wrap', width: window.innerWidth - 618 + 'px'}} source={content} /> 
       </div>
     </div>
@@ -171,16 +171,16 @@ export const Thread = () => {
   const [toggleReply, setToggleReply] = useState(false)
   const { board, thread } = useParams()
 
-  const { posts, logErrors } = useThread(thread)
+  const { posts, logErrors } = useThread(thread, board)
 
   const handleOpenPost = (threadId:string) => {
     setMakeReply(old => [...old, threadId])
     setToggleReply(true)
-    console.log('hi')
   }
   const handleClose = () => {
     setToggleReply(!toggleReply)
   }
+
   return (
     <>
       <h3 style={{wordWrap: 'break-word'}}>Thread {thread}</h3>
@@ -189,7 +189,7 @@ export const Thread = () => {
           <Post
             key={i}
             creator={post?.creator}
-            postId={post?.id}
+            postId={i === 0 ? post?.threadId:post?.postId}
             imgUrl={post?.imgUrl}
             content={post?.content}
             timestamp={post?.timestamp}
