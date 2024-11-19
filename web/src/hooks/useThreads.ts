@@ -12,7 +12,7 @@ import {
 }  from 'wagmi'
 import { writeContract  } from '@wagmi/core'
 import { useContract } from '@/hooks/useContract'
-import { parseAbiItem } from 'viem'
+import { parseAbiItem, parseEther } from 'viem'
 import { config } from '@/config'
 import { boardsMap } from '@/utils'
 
@@ -57,9 +57,9 @@ export const useThreads = ({board}: {board: string}) => {
       // needs to fetch board by unique ID
       console.log('board', board)
       console.log('boardsMap[board]', boardsMap[board])
-      let boardCache = await db.boards.where('symbol').equals(board).first()
+      let boardCache = await db.boards.where(['symbol', 'chainId']).equals([board, chain.id]).first()
       console.log('boardCache', boardCache)
-      const threads = await db.threads.where('boardId').equals(boardsMap[board]).toArray()
+      const threads = await db.threads.where(['boardId', 'chainId']).equals([boardsMap[board], chain.id]).toArray()
       console.log('threads', threads)
       try {
         const filter = await publicClient.createContractEventFilter({
@@ -67,7 +67,7 @@ export const useThreads = ({board}: {board: string}) => {
           abi,
           eventName: 'NewThread',
           args: {
-            board: boardCache.id
+            'board': `0x${BigInt(boardCache.id).toString(16)}`
           },
           fromBlock: BigInt(boardCache.lastSynced ? boardCache.lastSynced : 0),
           toBlock: blockNumber.data
@@ -76,6 +76,8 @@ export const useThreads = ({board}: {board: string}) => {
         const logs = await publicClient.getFilterLogs({
           filter,
         })
+
+        console.log('filterlogs', logs)
 
 
         logs.forEach(async (log) => {
@@ -96,6 +98,7 @@ export const useThreads = ({board}: {board: string}) => {
             imgUrl,
             title,
             content,
+            chainId: chain.id,
             timestamp: Number(timestamp)
           })
           await db.threads.add(threads[threads.length - 1])

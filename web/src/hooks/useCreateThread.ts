@@ -76,6 +76,11 @@ export const useCreateThread = () => {
           error: e
         }
       }
+    } else {
+      return {
+        hash: null,
+        error: 'initialization error'
+      }
     }
   }, [address, walletClient, chain, contractAddress, abi, db])
 

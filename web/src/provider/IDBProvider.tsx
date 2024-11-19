@@ -23,6 +23,7 @@ interface Thread {
   title: string;
   content: string;
   timestamp: number;
+  chainId: number;
 }
 
 interface Board {
@@ -59,8 +60,8 @@ export const IDBProvider = ({ children }) => {
     const db = new Dexie('hashchandb') as HashchanDB
     db.version(1).stores({
       boardsSync: 'chainId',
-      boards: 'id, chainId, name, symbol',
-      threads: 'id, boardId, timestamp',
+      boards: 'id, [symbol+chainId], name',
+      threads: 'id, [boardId+chainId], timestamp',
       posts: 'id, threadId, timestamp'
     })
     setDb(db)

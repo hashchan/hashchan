@@ -53,6 +53,7 @@ export const useBoards = () => {
          const { id, name, symbol } = log.args
          const board = {
            id: Number(id),
+           chainId: chain.id,
            name,
            symbol
          }
@@ -80,6 +81,10 @@ export const useBoards = () => {
     contractAddress,
     abi
   ])
+
+  useEffect(() => {
+    setIsInitialized(false)
+  }, [chain])
 
   useEffect(() => {
     if (isInitialized || !chain || !address || !db || !blockNumber.data) return

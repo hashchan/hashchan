@@ -7,7 +7,7 @@ export const Intro = () => {
       className="flex-wrap-center"
       style={{
         margin: '0 auto',
-        width: `${100/(Math.PHI)}vw`,
+        width: `${(100/(Math.PHI))+(100/(Math.PHI**3))}vw`,
       }}
     >
       <h3>About Hashchan</h3>

@@ -31,7 +31,14 @@ export const CreateThread = ({board}: {board: string}) => {
         upload,
         data.content
       )
-    } 
+    } else {
+      response = await createThread(
+        board,
+        data.title,
+        '',
+        data.content
+      )
+    }
     console.log('response', response)
     if (response.hash) {
       navigate(`/boards/${board}/thread/${response.hash}`)

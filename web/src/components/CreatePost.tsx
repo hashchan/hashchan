@@ -12,8 +12,7 @@ export const CreatePost = ({
   const { board, thread } = useParams()
   const {  account, uploadFile } = useW3Storage()
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting  }  } = useForm();
-  const { createPost, fetchLatestPosts } = useThread(threadId)
-  const navigate = useNavigate();
+  const { createPost  } = useThread(thread, board)
   const [rpcError, setRpcError] = useState(null)
   const onSubmit = async (data) => {
     console.log(data)
