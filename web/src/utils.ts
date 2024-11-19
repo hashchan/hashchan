@@ -33,16 +33,15 @@ export const truncateEthAddress = (address: string) => {
 };
 
 
-export const parseContent = (content: string) => {
+export const parseContent = (content: string)  => {
   const replyIds: string[] = []
 
-  content = reactStringReplace(
+  reactStringReplace(
     content,
     /[#@](0x.{64})/gm,
     (match, i) => {
       match = match.replace(/[#@]+/g,'')
       replyIds.push(match)
-      return `@${i}`
     })
-    return {content, replyIds}
+    return replyIds
 }

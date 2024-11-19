@@ -3,6 +3,7 @@ import HashChan2 from '@/assets/HashChan2.json'
 import { useAccount   } from 'wagmi'
 
 export const useContract = () => {
+  const [isInitialized, setIsInitialized] = useState(false)
   const { chain } = useAccount()
   const [contractAddress, setContractAddress] = useState(null)
   const fetchContract = useCallback(async () => {
@@ -24,8 +25,13 @@ export const useContract = () => {
   }, [chain])
 
   useEffect(() => {
-    if (chain) fetchContract()
-  }, [fetchContract, chain])
+    if (isInitialized || !chain) return
+      const init = async () => {
+        await fetchContract()
+        setIsInitialized(true)
+      }
+      init()
+  }, [fetchContract, chain, isInitialized])
 
   return {
     contractAddress: contractAddress as `0x${string}`,

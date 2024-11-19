@@ -23,13 +23,14 @@ export const CreatePost = ({
     } else if (data.imageUrl) {
       img = data.imageUrl
     }
-    const {content, replyIds} = getReplyIdsInContent(data.content)
+    const replyIds = parseContent(data.content)
     console.log('replyIds', replyIds)
-    console.log('content', content)
+    console.log('board', board)
+    console.log('boardsMap[board]', boardsMap[board])
     const {receipt, error } = await createPost(
       boardsMap[board],
       img,
-      content,
+      data.content,
       replyIds
     )
     if (receipt) {

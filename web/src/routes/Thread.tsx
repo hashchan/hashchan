@@ -26,6 +26,7 @@ const PostIdSpan = ({postId, handleOpenPost}:{postId:string, handleOpenPost: (po
 
 const ReplySpan = ({reply}:{reply:any}) => {
   const [hovered, setHovered] = useState(false)
+  console.log('reply', reply)
   return (
     <span
       onMouseEnter={() => setHovered(true)}
@@ -172,7 +173,7 @@ export const Thread = () => {
   const [toggleReply, setToggleReply] = useState(false)
   const { board, thread } = useParams()
 
-  const { posts, logErrors } = useThread(thread)
+  const { posts, logErrors } = useThread(thread, board)
 
   const handleOpenPost = (threadId:string) => {
     setMakeReply(old => [...old, threadId])

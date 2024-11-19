@@ -1,7 +1,6 @@
 import { createContext, useEffect, useState } from 'react';
 import Dexie, { type EntityTable } from 'dexie';
-import { useAccount, usePublicClient, useBlockNumber } from 'wagmi';
-import { useContract } from '@/hooks/useContract2'
+
 
 interface Post {
   boardId: number;
@@ -9,8 +8,7 @@ interface Post {
   id: string;
   creator: `0x${string}`;
   imgUrl: string;
-  replyingTos: string[];
-  replyedBy: string[];
+  replyIds: string[];
   content: string;
   timestamp: number
 
@@ -29,6 +27,7 @@ interface Thread {
 
 interface Board {
   lastSynced: number;
+  chainId: number;
   id: number;
   name: string;
   symbol: string;
@@ -60,7 +59,7 @@ export const IDBProvider = ({ children }) => {
     const db = new Dexie('hashchandb') as HashchanDB
     db.version(1).stores({
       boardsSync: 'chainId',
-      boards: 'id, name, symbol',
+      boards: 'id, chainId, name, symbol',
       threads: 'id, boardId, timestamp',
       posts: 'id, threadId, timestamp'
     })

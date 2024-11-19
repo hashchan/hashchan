@@ -16,7 +16,7 @@ import { parseAbiItem } from 'viem'
 import { config } from '@/config'
 import { boardsMap } from '@/utils'
 
-
+import { useBoards } from './useBoards'
 import { IDBContext } from '@/provider/IDBProvider'
 
 export const useThreads = ({board}: {board: string}) => {
@@ -33,24 +33,43 @@ export const useThreads = ({board}: {board: string}) => {
   
   const fetchThreads = useCallback(async () => {
     console.log('fetching threads')
-    if (publicClient && address && board && chain && db) {
-      let threads;
-      try {
-        threads = await db.threads.where('boardId').equals(boardsMap[board]).toArray()
-        console.log('cached-threads', threads)
-      } catch (e) {
-        console.log('e', e)
-        console.log('db error, skipping')
-      }
+    console.log(
+      Boolean(publicClient),
+      Boolean(address),
+      Boolean(board),
+      Boolean(chain), 
+      Boolean(db),
+      Boolean(blockNumber),
+      Boolean(abi),
+      Boolean(contractAddress),
+    )
+    if (
+      publicClient &&
+      address &&
+      board &&
+      chain &&
+      db &&
+      blockNumber &&
+      abi &&
+      contractAddress &&
+      board
+    ) {
+      // needs to fetch board by unique ID
+      console.log('board', board)
+      console.log('boardsMap[board]', boardsMap[board])
+      let boardCache = await db.boards.where('symbol').equals(board).first()
+      console.log('boardCache', boardCache)
+      const threads = await db.threads.where('boardId').equals(boardsMap[board]).toArray()
+      console.log('threads', threads)
       try {
         const filter = await publicClient.createContractEventFilter({
           address: contractAddress,
           abi,
           eventName: 'NewThread',
           args: {
-            board: boardsMap[board]
+            board: boardCache.id
           },
-          fromBlock: 0n,
+          fromBlock: BigInt(boardCache.lastSynced ? boardCache.lastSynced : 0),
           toBlock: blockNumber.data
         })
 
@@ -58,8 +77,10 @@ export const useThreads = ({board}: {board: string}) => {
           filter,
         })
 
-        const threads = logs.map((log) => {
+
+        logs.forEach(async (log) => {
           const {
+            board:boardId,
             creator,
             id,
             imgUrl,
@@ -67,23 +88,37 @@ export const useThreads = ({board}: {board: string}) => {
             content,
             timestamp
           } = log.args
-
-          return {
-            creator,
+          threads.push({
+            lastSynced: 0,
+            boardId: Number(boardId),
             id,
+            creator,
             imgUrl,
             title,
             content,
-            timestamp: Number(timestamp),
-          }
+            timestamp: Number(timestamp)
+          })
+          await db.threads.add(threads[threads.length - 1])
         })
+        
+        await db.boards.update(boardCache.id, {lastSynced: blockNumber.data})
         setThreads(threads)
+
       } catch (e) {
         console.log('log error', e)
         setLogErrors(old => [...old, e.toString()])
       }
     }
-  }, [publicClient, address, board, chain, contractAddress, abi, blockNumber, db])
+  }, [
+    publicClient,
+    address,
+    board,
+    chain,
+    contractAddress,
+    abi,
+    blockNumber,
+    db
+  ])
 
   const watchThreads = useCallback(async () => {
    if (publicClient && address && chain) {
@@ -116,17 +151,35 @@ export const useThreads = ({board}: {board: string}) => {
   }, [publicClient, address, board, chain, contractAddress, abi])
 
   useEffect(() => {
-    if (isInitialized || !address || !chain || !db ) return 
-      const init = async () => {
-        console.log('initing')
-        await fetchThreads()
-        await watchThreads()
-        setIsInitialized(true)
-      }
+    setIsInitialized(false)
+  },[board])
 
-      init()
 
-  }, [isInitialized, address, chain, db, fetchThreads, watchThreads])
+  useEffect(() => {
+    if (isInitialized || !address || !chain || !db || !blockNumber || !abi || !contractAddress || !board ) return 
+
+    const init = async () => {
+      await fetchThreads()
+      await watchThreads()
+      setIsInitialized(true)
+    }
+
+    init()
+
+  }, [
+    isInitialized,
+    address,
+    chain,
+    db,
+    fetchThreads,
+    watchThreads,
+    blockNumber,
+    abi,
+    contractAddress,
+    board,
+  ])
+
+
   return {
     threads,
     fetchThreads,

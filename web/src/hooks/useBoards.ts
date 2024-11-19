@@ -26,21 +26,17 @@ export const useBoards = () => {
     if (address && chain && publicClient && db) {
       let boards;
       let lastBlock = await db.boardsSync.get(chain.id)
-      console.log('lastBlock', lastBlock)
       if (typeof lastBlock === 'undefined') {
         await db.boardsSync.add({chainId: chain.id, lastSynced: 0})
         lastBlock = { chainId: chain.id, lastSynced: 0 }
       }
       try {
         boards = await db.boards.toArray()
-        console.log('cached-boards', boards)
       } catch (e) {
         console.log('e', e)
         console.log('db error, skipping')
       }
       try {
-        console.log('lastBlock', lastBlock)
-        console.log('blockNumber.data', blockNumber.data)
 
        const boardsFilter = await publicClient.createContractEventFilter({
          address: contractAddress,
@@ -53,9 +49,7 @@ export const useBoards = () => {
        const boardLogs = await publicClient.getFilterLogs({
          filter: boardsFilter
        })
-       console.log('boardLogs', boardLogs)
        boardLogs.forEach(async (log) => {
-         console.log('log', log)
          const { id, name, symbol } = log.args
          const board = {
            id: Number(id),
@@ -63,7 +57,7 @@ export const useBoards = () => {
            symbol
          }
          db.boards.add({
-           lastSynced: Number(blockNumber.data),
+           lastSynced: 0,
            ...board
          })
          boards.push(board)
@@ -73,7 +67,8 @@ export const useBoards = () => {
        await db.boardsSync.update(chain.id, {'lastSynced': Number(blockNumber.data)})
       } catch (e) {
         console.log('e', e)
-        setLogErrors(old => [...old, e.toString()] )
+        setLogErrors(old => [...old, e.toString()])
+
       }
     }
   }, [
@@ -89,7 +84,6 @@ export const useBoards = () => {
   useEffect(() => {
     if (isInitialized || !chain || !address || !db || !blockNumber.data) return
       const init = async () => {
-        console.log('initing')
         await fetchBoards()
         setIsInitialized(true)
       }
