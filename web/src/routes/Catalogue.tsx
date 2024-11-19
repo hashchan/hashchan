@@ -60,8 +60,8 @@ const List = ({threads}: {threads: any}) => {
         gap: '10px',
       }}>
       { threads.length > 0 ? (
-        threads.map(({id, title, imgUrl, content}, i) => {
-          return <ListItem key={id + i} threadId={id} title={title} imgUrl={imgUrl} content={content} />
+        threads.map(({threadId, title, imgUrl, content}, i) => {
+          return <ListItem key={threadId + i} threadId={threadId} title={title} imgUrl={imgUrl} content={content} />
         })
       ): (
         <p>Nothing here yet, be the first to post</p>

@@ -67,7 +67,6 @@ const TipCreator = ({creator}: {creator: `0x${string}`}) => {
   const [rpcError, setRpcError] = useState(null)
 
   const onSubmit = async (data) => {
-    console.log(data)
     const response = await createTip(
       creator,
       data.amount
@@ -177,7 +176,6 @@ export const Thread = () => {
   const handleOpenPost = (threadId:string) => {
     setMakeReply(old => [...old, threadId])
     setToggleReply(true)
-    console.log('hi')
   }
   const handleClose = () => {
     setToggleReply(!toggleReply)
@@ -191,7 +189,7 @@ export const Thread = () => {
           <Post
             key={i}
             creator={post?.creator}
-            postId={post?.id}
+            postId={i === 0 ? post?.threadId:post?.postId}
             imgUrl={post?.imgUrl}
             content={post?.content}
             timestamp={post?.timestamp}

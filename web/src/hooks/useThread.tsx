@@ -19,10 +19,10 @@ import { writeContract,waitForTransactionReceipt  } from '@wagmi/core'
 import { useContract } from '@/hooks/useContract'
 
 import  sanitizeMarkdown  from 'sanitize-markdown'
-
+import { parseContent } from '@/utils'
 import reactStringReplace from 'react-string-replace';
 
-
+/*
 const parseContentTwo = (content: string, refsObj:any) => {
   const replyIds: string[] = []
   let parsed = reactStringReplace(
@@ -44,6 +44,7 @@ const parseContentTwo = (content: string, refsObj:any) => {
     replyIds
   }
 }
+ */
 
 export const useThread = (threadId: string, boardId: string) => {
   const [isInitialized, setIsInitialized] = useState(false)
@@ -61,14 +62,13 @@ export const useThread = (threadId: string, boardId: string) => {
 
   const fetchPosts = useCallback(async () => {
     if (publicClient && address && threadId && chain && db && boardId) {
-      const cachedThread = await db.threads.get(threadId)
-
+      const cachedThread = await db.threads.where('threadId').equals(threadId).first()
       let thread;
       if (cachedThread) {
         thread = {
           lastSynced: cachedThread.lastSynced,
           creator: cachedThread.creator,
-          id: cachedThread.id,
+          threadId: cachedThread.threadId,
           imgUrl: cachedThread.imgUrl,
           content: sanitizeMarkdown(cachedThread.content, { allowedTags: ['p', 'div', 'img'] }),
           replies: [],
@@ -92,12 +92,12 @@ export const useThread = (threadId: string, boardId: string) => {
         })
 
 
-        const { creator, content, id, imgUrl, replyIds, timestamp } = threadLogs[0].args
+        const { creator, content, id:threadId, imgUrl, replyIds, timestamp } = threadLogs[0].args
 
         thread = {
           lastSynced: 0,
           creator,
-          id,
+          threadId,
           imgUrl,
           replyIds,
           replies: [],
@@ -109,12 +109,12 @@ export const useThread = (threadId: string, boardId: string) => {
 
 
       const localRefsObj = {
-        [thread.id] : createRef(),
+        [thread.threadId] : createRef(),
       }
       const localLogsObj = {
-        [thread.id]: {
+        [thread.threadId]: {
           creator: thread.creator,
-          id: thread.id,
+          threadId: thread.threadId,
           imgUrl: thread.imgUrl,
           content: thread.content,
           timestamp: thread.timestamp,
@@ -130,14 +130,16 @@ export const useThread = (threadId: string, boardId: string) => {
         if (cachedPosts.length > 0) {
           cachedPosts.forEach((post) => {
             post.replies = []
-            localRefsObj[post.id] = createRef()
-            localLogsObj[post.id] = {
+            localRefsObj[post.postId] = createRef()
+            localLogsObj[post.postId] = {
               ...post,
-              ref: localRefsObj[post.id]
+              ref: localRefsObj[post.postId]
             }
+            /*
             post.replyIds.forEach((ri) => {
-              localLogsObj[ri].replies.push({ref: localRefsObj[post.id], id: post.id})
+              localLogsObj[ri].replies.push({ref: localRefsObj[post.postId], id: post.postId})
             })
+             */
           })
         }
 
@@ -156,30 +158,31 @@ export const useThread = (threadId: string, boardId: string) => {
         })
 
         logs.forEach(async (log) => {
-          const { creator, id, imgUrl, content, replyIds, timestamp } = log.args
+          const { creator, id:postId, imgUrl, content, replyIds, timestamp } = log.args
           //const { replyIds } = parseContentTwo(content, localRefsObj)
           //const { replyIds, parsed } = parseContentTwo(content, localRefsObj)
-          localRefsObj[id] = createRef()
+          localRefsObj[postId] = createRef()
 
-          localLogsObj[id] = {
+          localLogsObj[postId] = {
             creator,
-            id,
+            postId,
             imgUrl,
             timestamp: Number(timestamp),
             replies: [],
             content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
-            ref: localRefsObj[id]
+            ref: localRefsObj[postId]
           }
           replyIds.forEach((replyId, i) => {
-            localLogsObj[replyId].replies.push({ref: localRefsObj[id], id})
+            localLogsObj[replyId].replies.push({ref: localRefsObj[postId], id:postId})
           })
           //localLogsObj[log.args.id].content = parsed
           //localLogsObj[id].content = sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] })
           //
+          console.log('replyIds', replyIds)
           await db.posts.add({
             boardId: boardId,
             threadId: threadId,
-            id: id,
+            postId: postId,
             creator: creator,
             imgUrl: imgUrl,
             replyIds: replyIds,
@@ -282,13 +285,13 @@ timestamp: logs[0].args.timestamp
     if (
       isInitialized ||
       !address ||
-    !chain ||
-  !db ||
-!publicClient ||
-!contractAddress ||
-!abi ||
-!blockNumber.data ||
-!boardId
+      !chain ||
+      !db ||
+      !publicClient ||
+      !contractAddress ||
+      !abi ||
+      !blockNumber.data ||
+      !boardId
     ) return
 
 
@@ -305,26 +308,26 @@ timestamp: logs[0].args.timestamp
         },
         async onLogs(logs) {
           console.log('logs', logs)
-          const { creator, content, id, imgUrl, timestamp } = logs[0].args
+          const { creator, content, id:postId, imgUrl, timestamp } = logs[0].args
           setRefsObj((oldRefs) => {
-            const { replyIds } = parseContentTwo(content, oldRefs)
-            oldRefs[id] = createRef()
+            const replyIds  = parseContent(content)
+            oldRefs[postId] = createRef()
 
             setLogsObj((oldLogs) => {
               replyIds.forEach((replyId) => {
-                oldLogs[replyId].replies.push({ref: oldRefs[id], id})
+                oldLogs[replyId].replies.push({ref: oldRefs[postId], id:postId})
               })
               return oldLogs
             })
 
             const post = {
               creator,
-              id,
+              postId,
               imgUrl,
               content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
               timestamp: Number(timestamp),
               replies: [],
-              ref: oldRefs[id]
+              ref: oldRefs[postId]
             }
             setPosts(old => [...old, post])
 

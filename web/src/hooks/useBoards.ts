@@ -23,21 +23,30 @@ export const useBoards = () => {
   const [logErrors, setLogErrors] = useState([])
 
   const fetchBoards = useCallback(async () => {
+    console.log('fetching boards')
+    console.log(
+      Boolean(address),
+      Boolean(chain),
+      Boolean(publicClient),
+      Boolean(db),
+    )
     if (address && chain && publicClient && db) {
-      let boards;
-      let lastBlock = await db.boardsSync.get(chain.id)
+      let boards = []
+      let lastBlock = await db.boardsSync.where('chainId').equals(chain.id).first()
+      console.log('lastBlock', lastBlock)
       if (typeof lastBlock === 'undefined') {
         await db.boardsSync.add({chainId: chain.id, lastSynced: 0})
         lastBlock = { chainId: chain.id, lastSynced: 0 }
       }
       try {
-        boards = await db.boards.toArray()
+        boards = await db.boards.where('chainId').equals(chain.id).toArray()
+        console.log('boards', boards)
       } catch (e) {
         console.log('e', e)
         console.log('db error, skipping')
       }
       try {
-
+        console.log("contract Address", contractAddress)
        const boardsFilter = await publicClient.createContractEventFilter({
          address: contractAddress,
          abi,
@@ -50,9 +59,10 @@ export const useBoards = () => {
          filter: boardsFilter
        })
        boardLogs.forEach(async (log) => {
+         console.log('log', log)
          const { id, name, symbol } = log.args
          const board = {
-           id: Number(id),
+           boardId: Number(id),
            chainId: chain.id,
            name,
            symbol
@@ -84,7 +94,7 @@ export const useBoards = () => {
 
   useEffect(() => {
     setIsInitialized(false)
-  }, [chain])
+  }, [contractAddress])
 
   useEffect(() => {
     if (isInitialized || !chain || !address || !db || !blockNumber.data) return

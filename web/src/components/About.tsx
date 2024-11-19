@@ -40,55 +40,39 @@ export const About = () => {
         <h3>Supported Chains</h3>
         <p>
           <img src={Classic} className="emoji" />
-          <a target="_blank" href="https://etc.blockscout.com/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Classic</a>
+          <a target="_blank" href="https://etc.blockscout.com/address/0xca0296EFC305ba8f2A3035e2846d389A8617c4cf"> Classic</a>
         </p>
         <p>
           <img src={EthereumEmoji} className="emoji" />
-          <a target="_blank" href="https://etherscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Mainnet</a>
+          <a target="_blank" href="https://etherscan.io/address/0xC525AF851Fa283190d6e13d0f164c06Ab51C266A"> Mainnet</a>
         </p>
         <p>
           <img src={Optimism} className="emoji" />
-          <a target="_blank" href="https://optimistic.etherscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Optimism</a>
-        </p>
-        <p>
-          <img src={Base} className="emoji" />
-          <a target="_blank" href="https://basescan.org/address/0x848F3ceF2F761Faa11b8B179c4b02a186c1D2B2c"> Base</a>
+          <a target="_blank" href="https://optimistic.etherscan.io/address/0x77a510184D399C75a91FE9D522aB9e60C2bD08ef"> Optimism</a>
         </p>
         <p>
           <img src={Fantom} className="emoji" />
-          <a target="_blank" href="https://ftmscan.com/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Fantom</a>
+          <a target="_blank" href="https://ftmscan.com/address/0xca0296EFC305ba8f2A3035e2846d389A8617c4cf"> Fantom</a>
+        </p>
+        <p>
+          <img src={Base} className="emoji" />
+          <a target="_blank" href="https://basescan.org/address/0x51edDE7B206F30eD3e4AaD8914fA585011f628Ef"> Base</a>
         </p>
         <p>
           <img src={ArbitrumOne} className="emoji" />
-          <a target="_blank" href="https://arbiscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Arbitrum One</a>
+          <a target="_blank" href="https://arbiscan.io/address/0xca0296EFC305ba8f2A3035e2846d389A8617c4cf"> Arbitrum One</a>
         </p>
         <p>
           <img src={ArbitrumNova} className="emoji" />
-          <a target="_blank" href="https://nova.arbiscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Arbitrum Nova</a>
+          <a target="_blank" href="https://nova.arbiscan.io/address/0x77a510184D399C75a91FE9D522aB9e60C2bD08ef"> Arbitrum Nova</a>
         </p>
         <p>
           <img src={Flow} className="emoji" />
-          <a target="_blank" href="https://evm.flowscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Flow</a>
+          <a target="_blank" href="https://evm.flowscan.io/address/0x49b98EAB13247E786BEd0bb5780728db8d24b5e0"> Flow</a>
         </p>
         <p>
           <img src={Sepolia} className="emoji" />
-          <a target="_blank" href="https://sepolia.arbiscan.io/address/0x75Accb3c871167F66226F97092A717b2253010c9"> Arbitrum Sepolia Testnet</a>
-        </p>
-        <p>
-          <img src={Sepolia} className="emoji" />
-          <a target="_blank" href="https://sepolia.etherscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Sepolia Testnet</a>
-        </p>
-        <p>
-          <img src={OptimismSepolia} className="emoji" />
-          <a target="_blank" href="https://optimism-sepolia.blockscout.com/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Optimism Sepolia Testnet</a>
-        </p>
-        <p>
-          <img src={Sepolia} className="emoji" />
-          <a target="_blank" href="https://sepolia.basescan.org/address/0x0f379a480aC2AC95A5EF8a54094C3d3021332B73"> Base Sepolia Testnet</a>
-        </p>
-        <p>
-          <img src={Sepolia} className="emoji" />
-          <a target="_blank" href="https://evm-testnet.flowscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Flow Testnet</a>
+          <a target="_blank" href="https://sepolia.etherscan.io/address/0xEEe8276AEA42f61399Abe7235c015a6cAb1372AC"> Sepolia Testnet</a>
         </p>
       </div>
       <div>

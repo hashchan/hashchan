@@ -28,9 +28,7 @@ export const useCreateThread = () => {
     imageUrl: string,
     content: string
   ) => {
-    console.log('hashchan2: ', contractAddress)
     if (walletClient && address && chain && db) {
-      console.log('chain', chain)
       try {
         const tx = await writeContract(config, {
           address: contractAddress,
@@ -57,7 +55,7 @@ export const useCreateThread = () => {
         setThreadId(logs[0].args.id)
 
         await db.threads.add({
-          id: logs[0].args.id,
+          threadId: logs[0].args.id,
           boardId: logs[0].args.boardId,
           creator: logs[0].args.creator,
           imgUrl: logs[0].args.imgUrl,

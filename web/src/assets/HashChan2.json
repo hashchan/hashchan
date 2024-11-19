@@ -2,8 +2,15 @@
   "_format": "hh-sol-artifact-1",
   "contractName": "HashChan2",
   "sourceName": "contracts/HashChan2.sol",
-  "address": "0xEEe8276AEA42f61399Abe7235c015a6cAb1372AC",
-  "baseSepoliaAddress":"0x49AAb31cDEf88C1AF1B8fd639b31082b89237c58",
+  "addressETC": "0xca0296EFC305ba8f2A3035e2846d389A8617c4cf",
+  "addressMainnet":"0xC525AF851Fa283190d6e13d0f164c06Ab51C266A",
+  "addressOptimism": "0x77a510184D399C75a91FE9D522aB9e60C2bD08ef",
+  "addressFantom": "0xca0296EFC305ba8f2A3035e2846d389A8617c4cf",
+  "addressBase": "0x51edDE7B206F30eD3e4AaD8914fA585011f628Ef",
+  "addressArbitrum": "0xca0296EFC305ba8f2A3035e2846d389A8617c4cf",
+  "addressNova": "0x77a510184D399C75a91FE9D522aB9e60C2bD08ef",
+  "addressFlow": "0x49b98EAB13247E786BEd0bb5780728db8d24b5e0",
+  "addressSepolia": "0xEEe8276AEA42f61399Abe7235c015a6cAb1372AC",
  "abi": [
     {
       "inputs": [],

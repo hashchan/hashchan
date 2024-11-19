@@ -45,7 +45,7 @@ const IconLink = ({href, Logo}: {href: string, Logo: ReactNode}) => {
 
 const BoardLinks = () => {
   const { boards } = useBoards()
-  return (<>{ boards.length > 0 ? (
+  return (<>{ boards && (boards.length > 0 ? (
     <>[
     {boards.map((board) => (
       <Fragment key={board.id}>
@@ -58,7 +58,7 @@ const BoardLinks = () => {
     ))}
       ]</>):
         (<Link to="/docs/v1/instructions">Instructions</Link>)
-  }</>)
+                        )}</>)
 }
 export const NavBar = () => {
   const pxSize = `${100 / (Math.PHI**3) }px`

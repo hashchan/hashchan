@@ -21,7 +21,7 @@ const config: HardhatUserConfig = {
       }
     },
     mainnet: {
-      url: `https://mainnet.infura.io/v3/${process.env.INFURA}`,
+      url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
       chainId: 1,
       accounts: {
         mnemonic: process.env.MNEMONIC
@@ -43,7 +43,7 @@ const config: HardhatUserConfig = {
       }
     },
     optimism: {
-      url: `https://optimism-mainnet.infura.io/v3/${process.env.INFURA}`,
+      url: `https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
       chainId: 10,
       accounts: {
         mnemonic: process.env.MNEMONIC

@@ -55,19 +55,15 @@ export const useThreads = ({board}: {board: string}) => {
       board
     ) {
       // needs to fetch board by unique ID
-      console.log('board', board)
-      console.log('boardsMap[board]', boardsMap[board])
-      let boardCache = await db.boards.where(['symbol', 'chainId']).equals([board, chain.id]).first()
-      console.log('boardCache', boardCache)
+      const boardCache = await db.boards.where(['symbol', 'chainId']).equals([board, chain.id]).first()
       const threads = await db.threads.where(['boardId', 'chainId']).equals([boardsMap[board], chain.id]).toArray()
-      console.log('threads', threads)
       try {
         const filter = await publicClient.createContractEventFilter({
           address: contractAddress,
           abi,
           eventName: 'NewThread',
           args: {
-            'board': `0x${BigInt(boardCache.id).toString(16)}`
+            'board': `0x${BigInt(boardCache.boardId).toString(16)}`
           },
           fromBlock: BigInt(boardCache.lastSynced ? boardCache.lastSynced : 0),
           toBlock: blockNumber.data
@@ -77,14 +73,13 @@ export const useThreads = ({board}: {board: string}) => {
           filter,
         })
 
-        console.log('filterlogs', logs)
 
 
         logs.forEach(async (log) => {
           const {
             board:boardId,
             creator,
-            id,
+            id:threadId,
             imgUrl,
             title,
             content,
@@ -93,7 +88,7 @@ export const useThreads = ({board}: {board: string}) => {
           threads.push({
             lastSynced: 0,
             boardId: Number(boardId),
-            id,
+            threadId,
             creator,
             imgUrl,
             title,
@@ -134,11 +129,10 @@ export const useThreads = ({board}: {board: string}) => {
          board: boardsMap[board]
        },
        onLogs(logs) {
-         console.log('watchthreads', logs)
          const thread = {
            title: logs[0].args.title,
            creator: logs[0].args.creator,
-           id: logs[0].args.id,
+           threadId: logs[0].args.id,
            imgUrl: logs[0].args.imgUrl,
            content: logs[0].args.content
          }
