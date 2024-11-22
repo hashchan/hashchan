@@ -16,20 +16,23 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '23'
-          # Removed the cache option since there's no lock file
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
       
       - name: Install dependencies
-        run: npm install
+        working-directory: ./web
+        run: npm ci
       
       - name: Build
+        working-directory: ./web
         run: npm run build
       
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/**
+          files: web/dist/**
           tag_name: v${{ github.run_number }}
           name: Release v${{ github.run_number }}
           draft: false
