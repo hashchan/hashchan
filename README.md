@@ -30,6 +30,14 @@ An imageboard inside ethereum event logs
 | Sepolia | [0xEEe8276AEA42f61399Abe7235c015a6cAb1372AC](https://sepolia.etherscan.io/address/0xEEe8276AEA42f61399Abe7235c015a6cAb1372AC)
 
 
+## Running Locally
+while the website is served at hashchan.org , the site is designed to run locally on your machine.  This makes it dns record (minus ones rpc connection) and cloud serverfree.  Afterally they are security black holes.  to run locally.
+1. install an http-server, I like, https://github.com/nvm-sh/nvm,  https://www.npmjs.com/package/http-server.
+2. extract the zip file from the releases tag.
+3. run `http-server` while in the dist directory.
+
+Alternatively one can just clone this repo, npm install and npm run dev.
+
 
 ### Old Deployments (hashchan v1)
 |Chain| Address |
