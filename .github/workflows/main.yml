@@ -4,7 +4,11 @@ on:
   push:
     branches:
       - default
-
+      
+permissions:
+  contents: write
+  discussions: write
+  
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
