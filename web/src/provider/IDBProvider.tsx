@@ -62,8 +62,8 @@ export const IDBProvider = ({ children }) => {
     db.version(1).stores({
       boardsSync: 'chainId',
       boards: '++id, boardId, [symbol+chainId], chainId, name',
-      threads: '++id, threadId, [boardId+chainId], timestamp',
-      posts: '++id, postId, threadId, timestamp'
+      threads: '++id, &threadId, [boardId+chainId], timestamp',
+      posts: '++id, &postId, threadId, timestamp'
     })
     setDb(db)
     return () => db.close()

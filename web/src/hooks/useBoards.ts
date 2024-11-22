@@ -33,7 +33,7 @@ export const useBoards = () => {
     if (address && chain && publicClient && db) {
       let boards = []
       let lastBlock = await db.boardsSync.where('chainId').equals(chain.id).first()
-      console.log('lastBlock', lastBlock)
+      
       if (typeof lastBlock === 'undefined') {
         await db.boardsSync.add({chainId: chain.id, lastSynced: 0})
         lastBlock = { chainId: chain.id, lastSynced: 0 }
