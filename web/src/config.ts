@@ -21,9 +21,6 @@ import { custom } from 'viem'
 import { unstable_connector, fallback } from '@wagmi/core'
 import { injected, walletConnect } from 'wagmi/connectors'
 
-console.log(import.meta.env.VITE_WALLETCONNECT_PROJECT_ID)
-
-
 const metadata = {
     name: 'HashChan',
     description: 'imageboard inside ethereum eventlogs',
@@ -31,7 +28,9 @@ const metadata = {
     icons: ['https://avatars.githubusercontent.com/u/37784886'],
     explore: 'https://hashchan.network',    
 }
-
+// if import.met.env.VITE_WALLETCONNECT_PROJECT_ID is not set
+const connectors = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID ?
+  [walletConnect({ projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID, metadata })] : []
 export const config = createConfig({
   chains: [
     classic,
@@ -49,12 +48,7 @@ export const config = createConfig({
     flowMainnet,
     flowTestnet
   ],
-  connectors: [
-    walletConnect({
-      projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID,
-      metadata
-    }),
-  ],
+  connectors,
   transports: {
     [classic.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
     [mainnet.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
