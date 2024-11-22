@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - default
-      
+
 permissions:
   contents: write
   discussions: write
-  
+
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
@@ -32,13 +32,17 @@ jobs:
         working-directory: ./web
         run: npm run build
       
+      - name: Zip dist folder
+        working-directory: ./web
+        run: zip -r dist.zip dist/
+      
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: web/dist/**
-          tag_name: v${{ github.run_number }}
-          name: Release v${{ github.run_number }}
+          files: web/dist.zip
+          tag_name: v0.0.${{ github.run_number }}
+          name: Release v0.0.${{ github.run_number }}
           draft: false
           prerelease: false
         env:
