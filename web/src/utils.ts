@@ -45,3 +45,13 @@ export const parseContent = (content: string)  => {
     })
     return replyIds
 }
+
+
+export const supportedExtensions = [
+  'jpg',
+  'jpeg',
+  'png',
+  'gif',
+  'webm',
+  'mp4',
+]

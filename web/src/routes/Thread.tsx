@@ -1,13 +1,14 @@
-import { useState,useEffect, forwardRef  } from 'react'
+import { useState,useEffect, forwardRef, useCallback  } from 'react'
 import { useParams, useLocation  } from 'react-router-dom'
 
 import { useThread } from '@/hooks/useThread'
 import { CreatePost } from '@/components/CreatePost'
-import {truncateEthAddress} from '@/utils'
+import {truncateEthAddress, supportedExtensions} from '@/utils'
 import { useTip } from '@/hooks/useTip'
 import { useForm  } from "react-hook-form";
 
 import MarkdownEditor from '@uiw/react-markdown-editor';
+
 const PostIdSpan = ({postId, handleOpenPost}:{postId:string, handleOpenPost: (postId:string) => void}) => {
   const [hovered, setHovered] = useState(false)
   return (
@@ -20,7 +21,7 @@ const PostIdSpan = ({postId, handleOpenPost}:{postId:string, handleOpenPost: (po
       onClick={() => handleOpenPost(postId)}
     >(id: {postId && truncateEthAddress(postId)})
     </span>
-    
+
   )
 }
 
@@ -35,9 +36,9 @@ const ReplySpan = ({reply}:{reply:any}) => {
         reply.ref.current.scrollIntoView({behavior: 'smooth', block: 'start'})
       }}
       style={{
-      paddingLeft: `${1/ Math.PHI}vw`,
-      color: hovered ? '#20c20E': '#DF3DF1',
-      textDecoration: 'underline'
+        paddingLeft: `${1/ Math.PHI}vw`,
+        color: hovered ? '#20c20E': '#DF3DF1',
+        textDecoration: 'underline'
       }}>
       {truncateEthAddress(reply.id)}
     </span>
@@ -90,9 +91,9 @@ const TipCreator = ({creator}: {creator: `0x${string}`}) => {
         <form
           onMouseLeave={() => setHovered(false)}
           style={{
-          backgroundColor:"#090909",
-          position: 'absolute',
-          padding: `${1/ Math.PHI}vh ${1/ Math.PHI}vw`,
+            backgroundColor:"#090909",
+            position: 'absolute',
+            padding: `${1/ Math.PHI}vh ${1/ Math.PHI}vw`,
           }}
           onSubmit={handleSubmit(onSubmit)}
         ><label htmlFor="amount">Tip: </label>
@@ -108,6 +109,64 @@ const TipCreator = ({creator}: {creator: `0x${string}`}) => {
     </span>
   )
 }
+
+const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
+  const [expanded, setExpanded] = useState(false)
+  const [isVideo, setIsVideo] = useState(false)
+  const [videoError, setVideoError] = useState(false)
+  const [imgError, setImgError] = useState(false)
+
+  const handleImageError = () => {
+    setImgError(true)
+    setIsVideo(true)
+  }
+  const handleVideoError = () => {
+    setIsVideo(false);
+    setVideoError(true);
+  };
+
+  if (videoError && imgError) {
+    return (<></>)
+  }
+
+  if (isVideo || imgError) {
+    return (
+      <video
+        src={imgUrl}
+        style={{
+          float: 'left',
+          justifyContent: 'center',
+          objectFit: 'contain',
+          paddingRight: `${1/ Math.PHI}vw`,
+          minHeight: `${100*(Math.PHI - 1)}px`,
+          maxWidth: `${100*(Math.PHI + 1)}px`,
+          maxHeight: `${1000/(Math.PHI**3)}px`,
+        }}
+        preload="metadata"
+        controls
+        playsInline
+        onError={handleVideoError}
+      />
+    )
+  }
+  return (
+      <img 
+        onClick={() => setExpanded(!expanded)}
+        style={{
+          float: 'left',
+          justifyContent: 'center',
+          objectFit: 'contain',
+          paddingRight: `${1/ Math.PHI}vw`,
+          minHeight: `${100*(Math.PHI - 1)}px`,
+          maxWidth: expanded ? '95vw' : `${100*(Math.PHI + 1)}px`,
+          maxHeight: expanded ? '95vh' : `${1000/(Math.PHI**3)}px`,
+        }}
+        src={imgUrl}
+        onError={handleImageError}
+      />
+    )
+}
+
 const Post = forwardRef(({
   creator, postId, imgUrl, content, timestamp, replies, handleOpenPost
 }:{
@@ -127,14 +186,13 @@ const Post = forwardRef(({
     }
 
   }, [location, postId,ref])
-  const [expanded, setExpanded] = useState(false)
-    return (
+  return (
     <div
       ref={ref}
-    style={{
-      display: 'flex',
-      flexWrap: 'wrap',
-      padding: `${1/ Math.PHI}vh 0vw`,
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        padding: `${1/ Math.PHI}vh 0vw`,
       }}> 
       <div
       >
@@ -146,19 +204,7 @@ const Post = forwardRef(({
       <a style={{paddingLeft: `${1/ Math.PHI}vw`}} target="_blank" href={imgUrl}>{ imgUrl && imgUrl.substring(0,33)}...</a>
       <div className="flex-wrap-center" style={{
         }}>
-        <img 
-          onClick={() => setExpanded(!expanded)}
-          style={{
-            float: 'left',
-            justifyContent: 'center',
-            objectFit: 'contain',
-            paddingRight: `${1/ Math.PHI}vw`,
-            minHeight: `${100*(Math.PHI - 1)}px`,
-            maxWidth: expanded ? '95vw' : `${100*(Math.PHI + 1)}px`,
-            maxHeight: expanded ? '95vh' : `${1000/(Math.PHI**3)}px`,
-          }}
-          src={imgUrl}
-        />
+        <ImageDiv imgUrl={imgUrl} />
         <MarkdownEditor.Markdown style={{display: 'flex', flexWrap: 'wrap', width: window.innerWidth - 618 + 'px'}} source={content} /> 
       </div>
     </div>
@@ -207,7 +253,7 @@ export const Thread = () => {
           left: '7.3vw',
           }}>
           <CreatePost threadId={thread} replyIds={makeReply} handleClose={handleClose} />
-          </div>
+        </div>
       )
       }
       {

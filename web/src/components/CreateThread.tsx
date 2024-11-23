@@ -49,7 +49,7 @@ export const CreateThread = ({board}: {board: string}) => {
     //go to /boards/:board/thread/:thread using react-router-dom
   }
 
-  useEffect(() => {}, [threadId])
+  //useEffect(() => {}, [threadId])
 
   return (
     <form 
@@ -63,12 +63,12 @@ export const CreateThread = ({board}: {board: string}) => {
       <label htmlFor="title">Title</label>
       <div>
         <input style={{width:'61.8vw'}} defaultValue="" {...register("title", { required: true })} />
-      {errors.title && <span>This field is required</span>}
+        {errors.title && <span>This field is required</span>}
       </div>
       <label htmlFor="imageUrl">Image Url</label>
       <div>
-      {account?.model?.id && <input type="file" {...register("w3Image", { required: false })} />}
-      <input style={{width:'61.8vw'}} defaultValue="" {...register("imageUrl", { required: false })} />
+        {account?.model?.id && <input type="file" {...register("w3Image", { required: false })} />}
+        <input style={{width:'61.8vw'}} defaultValue="" {...register("imageUrl", { required: false })} />
       </div>
       <label htmlFor="content">Content</label>
       <div>
@@ -77,7 +77,7 @@ export const CreateThread = ({board}: {board: string}) => {
           height= '23.6vh'
           width="61.8vw"
           onChange={(value, viewUpdate) => {
-             setValue('content', value)
+            setValue('content', value)
           }} 
         />
         {errors.content && <span>This field is required</span>}
@@ -88,9 +88,13 @@ export const CreateThread = ({board}: {board: string}) => {
           type="submit">
           {isSubmitting ? (<span>Submitting...</span>): (<span>Make Post</span>)}
           </button>
-        {rpcError && <p>{rpcError}</p>}
-      </div>
-    </form>
+          {rpcError && (<p style={{
+            wordBreak: 'break-all',
+            whiteSpace: 'pre-wrap',
+            overflowWrap: 'break-word'
+          }}>{rpcError}</p>)}
+          </div>
+          </form>
 
   );
 }

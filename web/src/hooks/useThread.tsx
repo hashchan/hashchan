@@ -65,6 +65,7 @@ export const useThread = (threadId: string, boardId: string) => {
       const cachedThread = await db.threads.where('threadId').equals(threadId).first()
       let thread;
       if (cachedThread) {
+        console.log('cached thread', cachedThread)
         thread = {
           lastSynced: cachedThread.lastSynced,
           creator: cachedThread.creator,
@@ -142,7 +143,8 @@ export const useThread = (threadId: string, boardId: string) => {
              */
           })
         }
-
+        console.log('last synced', thread.lastSynced)
+        console.log('to block', blockNumber.data)
         const filter = await publicClient.createContractEventFilter({
           address: contractAddress,
           abi,
@@ -178,26 +180,29 @@ export const useThread = (threadId: string, boardId: string) => {
           //localLogsObj[log.args.id].content = parsed
           //localLogsObj[id].content = sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] })
           //
-          console.log('replyIds', replyIds)
-          await db.posts.add({
-            boardId: boardId,
-            threadId: threadId,
-            postId: postId,
-            creator: creator,
-            imgUrl: imgUrl,
-            replyIds: replyIds,
-            content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
-            timestamp: Number(timestamp)
-
-          })
+          const isCached = await db.posts.where('postId').equals(postId).first()
+          if (!isCached) {
+            await db.posts.add({
+              boardId: boardId,
+              threadId: threadId,
+              postId: postId,
+              creator: creator,
+              imgUrl: imgUrl,
+              replyIds: replyIds,
+              content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
+              timestamp: Number(timestamp)
+            })
+          }
 
         })
         setPosts(Object.values(localLogsObj))
         setLogsObj(localLogsObj)
         setRefsObj(localRefsObj)
-        await db.threads.update(threadId, {
-          lastSynced: blockNumber.data
+        console.log('trying to update last synced')
+        const update = await db.threads.where('threadId').equals(threadId).modify({
+          lastSynced: Number(blockNumber.data)
         })
+        console.log('update', update)
       } catch (e) {
         console.error(e)
         console.log('logErrors', e.text)

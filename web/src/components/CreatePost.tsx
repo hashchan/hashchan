@@ -88,7 +88,11 @@ export const CreatePost = ({
           type="submit">
           {isSubmitting ? (<span>Submitting...</span>): (<span>Make Post</span>)}
           </button>
-        {rpcError && <p>{rpcError}</p>}
+          {rpcError && (<p style={{
+            wordBreak: 'break-all',
+            whiteSpace: 'pre-wrap',
+            overflowWrap: 'break-word'
+          }}>{rpcError}</p>)}
       </div>
     </form>
   );
