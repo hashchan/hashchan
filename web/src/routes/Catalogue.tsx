@@ -49,7 +49,6 @@ const ListItem = ({
 
 
 const List = ({threads}: {threads: any}) => {
-  console.log('threads', threads)
   return (
     <div
       style={{
@@ -74,7 +73,6 @@ const List = ({threads}: {threads: any}) => {
 export const Catalogue = () => {
   const { board } = useParams()
   const { address }  = useAccount()
-  console.log('board', board)
   const { threads, logErrors } = useThreads({board})
   return (
     <>

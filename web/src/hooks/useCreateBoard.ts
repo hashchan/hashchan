@@ -8,10 +8,10 @@ import { useContract } from '@/hooks/useContract'
 import { useWalletClient, useAccount } from 'wagmi'
 import { writeContract, waitForTransactionReceipt } from '@wagmi/core'
 import { config } from '@/config'
-import { IDBContext } from '@/contexts/IDBContext'
+import { IDBContext } from '@/provider/IDBProvider'
 import { parseEventLogs } from 'viem'
 
-export useCreateBoard = () => {
+export const useCreateBoard = () => {
   const { db } = useContext(IDBContext)
   const { address, chain } =  useAccount()
   const { contractAddress, abi } = useContract()
@@ -24,8 +24,8 @@ export useCreateBoard = () => {
   ) => {
     if (walletClient && address && chain) {
       try {
-        const tx = await writeContract(config, {
-          address: contractAddress,
+        const hash = await writeContract(config, {
+          address: contractAddress as `0x${string}`,
           abi,
           functionName: 'createBoard',
           args: [
@@ -33,9 +33,8 @@ export useCreateBoard = () => {
             symbol
           ]
         })
-        const('tx', tx)
         const receipt = await waitForTransactionReceipt(config, {
-          hash: tx
+          hash
         })
         console.log('receipt', receipt)
         const logs = parseEventLogs({
@@ -66,6 +65,11 @@ export useCreateBoard = () => {
       }
     }  
   }, [address, chain, contractAddress, walletClient, abi])
+
+
+  return {
+    createBoard
+  }
 }
 
 

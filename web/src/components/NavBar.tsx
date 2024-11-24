@@ -6,8 +6,7 @@ import {FaGithub, FaSquareXTwitter, FaDiscord, FaBook, FaYoutube} from 'react-ic
 import { Link } from 'react-router-dom'
 import { ConnectWallet } from './ConnectWallet'
 import { ConnectW3Storage } from './ConnectW3Storage'
-import { useBoards } from '@/hooks/useBoards'
-
+import { BoardsList } from '@/components/BoardsList'
 
 const HomeButton = () => {
   const [homeHover, setHomeHover] = useState(false)
@@ -22,11 +21,11 @@ const HomeButton = () => {
   }
 
   return (
-      <Link className="button" to="/">
-        <img 
-          onMouseEnter={() => handleHomeHover(true)}
-          onMouseLeave={() => handleHomeHover(false)}
-          src={logo}/></Link>
+    <Link className="button" to="/">
+      <img 
+        onMouseEnter={() => handleHomeHover(true)}
+        onMouseLeave={() => handleHomeHover(false)}
+        src={logo}/></Link>
   )
 }
 
@@ -43,23 +42,6 @@ const IconLink = ({href, Logo}: {href: string, Logo: ReactNode}) => {
   )
 }
 
-const BoardLinks = () => {
-  const { boards } = useBoards()
-  return (<>{ boards && (boards.length > 0 ? (
-    <>[
-    {boards.map((board) => (
-      <Fragment key={board.id}>
-        <Link
-          to={`/boards/${board.symbol}/catalogue`}
-        >
-          {board.symbol}
-        </Link>,&nbsp;
-      </Fragment>
-    ))}
-      ]</>):
-        (<Link to="/docs/v1/instructions">Instructions</Link>)
-                        )}</>)
-}
 export const NavBar = () => {
   const pxSize = `${100 / (Math.PHI**3) }px`
   return (
@@ -75,14 +57,14 @@ export const NavBar = () => {
         style={{
           padding: `${Math.PHI - 1}vh ${Math.PHI - 1}vw`,
         }}>
-        <BoardLinks />
+        <BoardsList />
       </div>
       <ConnectWallet />
       <ConnectW3Storage />
       <div
         className="flex-wrap-center"
         style={{
-         justifyContent: 'space-between', 
+          justifyContent: 'space-between', 
         }}
       >
         <Link

@@ -15,21 +15,33 @@ import { parseEventLogs } from 'viem'
 export const useBoards = () => {
   const [isInitialized, setIsInitialized] = useState(false)
   const { db } = useContext(IDBContext)
+  
   const { address, chain } =  useAccount()
   const blockNumber = useBlockNumber();
   const { contractAddress, abi } = useContract()
   const publicClient = usePublicClient()
+  
   const [boards, setBoards] = useState([])
+  const [favouriteBoards, setFavouriteBoards] = useState([])
   const [logErrors, setLogErrors] = useState([])
 
+
+  const fetchFavouriteBoards = useCallback(async () => {
+   if (address && chain && publicClient && db) {
+     let boards = []
+     try {
+       boards = await db.boards.where('favourite').equals(1).toArray()
+     } catch (e) {
+       console.log('e', e)
+       console.log('db error, skipping')
+     }
+     setFavouriteBoards(boards)
+     return boards
+   }
+  }, [address, chain, publicClient, db])
+  
+
   const fetchBoards = useCallback(async () => {
-    console.log('fetching boards')
-    console.log(
-      Boolean(address),
-      Boolean(chain),
-      Boolean(publicClient),
-      Boolean(db),
-    )
     if (address && chain && publicClient && db) {
       let boards = []
       let lastBlock = await db.boardsSync.where('chainId').equals(chain.id).first()
@@ -40,13 +52,11 @@ export const useBoards = () => {
       }
       try {
         boards = await db.boards.where('chainId').equals(chain.id).toArray()
-        console.log('boards', boards)
       } catch (e) {
         console.log('e', e)
         console.log('db error, skipping')
       }
       try {
-        console.log("contract Address", contractAddress)
        const boardsFilter = await publicClient.createContractEventFilter({
          address: contractAddress,
          abi,
@@ -64,10 +74,11 @@ export const useBoards = () => {
          const board = {
            boardId: Number(id),
            chainId: chain.id,
+           favourite: 0,
            name,
            symbol
          }
-         db.boards.add({
+         await db.boards.add({
            lastSynced: 0,
            ...board
          })
@@ -91,6 +102,20 @@ export const useBoards = () => {
     contractAddress,
     abi
   ])
+  
+  const toggleFavourite = useCallback(async (board) => {
+    console.log('toggling favourite', board)
+    if (address && chain && publicClient && db) {
+      try {
+        await db.boards.where('[symbol+chainId]').equals([board.symbol, board.chainId]).modify({favourite: board.favourite === 1 ? 0 : 1})
+      } catch (e) {
+        console.log('e', e)
+        console.log('db error, skipping')
+      }
+      fetchFavouriteBoards()
+      fetchBoards()
+    } 
+  }, [address, chain, publicClient, db, fetchFavouriteBoards, fetchBoards])
 
   useEffect(() => {
     setIsInitialized(false)
@@ -100,6 +125,7 @@ export const useBoards = () => {
     if (isInitialized || !chain || !address || !db || !blockNumber.data) return
       const init = async () => {
         await fetchBoards()
+        await fetchFavouriteBoards()
         setIsInitialized(true)
       }
 
@@ -110,13 +136,17 @@ export const useBoards = () => {
     address,
     db,
     fetchBoards,
+    fetchFavouriteBoards,
     blockNumber.data
   ])
 
   return {
     boards,
+    toggleFavourite,
+    favouriteBoards,
     logErrors,
-    fetchBoards
+    fetchBoards,
+    fetchFavouriteBoards
   }
 
 }
