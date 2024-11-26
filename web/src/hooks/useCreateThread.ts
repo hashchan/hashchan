@@ -11,31 +11,31 @@ import { useWalletClient, useAccount } from 'wagmi'
 import { writeContract, waitForTransactionReceipt } from '@wagmi/core'
 
 import { parseEventLogs } from 'viem'
-
+import { useBoard } from '@/hooks/useBoard'
 import { config } from '@/config'
-import { boardsMap } from '@/utils'
 
 export const useCreateThread = () => {
   const { db } = useContext(IDBContext)
+  const { board } = useBoard()
   const { address, chain } = useAccount()
   const { contractAddress, abi } = useContract()
   const walletClient = useWalletClient()
   const [threadId, setThreadId] = useState(null)
 
   const createThread = useCallback(async (
-    board: string,
+    boardSymbol: string,
     title: string,
     imageUrl: string,
     content: string
   ) => {
-    if (walletClient && address && chain && db) {
+    if (walletClient && address && chain && db && board && contractAddress) {
       try {
         const tx = await writeContract(config, {
           address: contractAddress,
           abi,
           functionName: 'createThread',
           args: [
-            boardsMap[board],
+            board.boardId,
             title,
             imageUrl,
             content
@@ -80,7 +80,15 @@ export const useCreateThread = () => {
         error: 'initialization error'
       }
     }
-  }, [address, walletClient, chain, contractAddress, abi, db])
+  }, [
+    address,
+    walletClient,
+    chain,
+    contractAddress,
+    abi,
+    db,
+    board
+  ])
 
   return {
     threadId,

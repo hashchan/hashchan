@@ -7,19 +7,16 @@ import {
 import {
   useAccount,
   usePublicClient,
-  useWatchContractEvent,
   useBlockNumber
 }  from 'wagmi'
-import { writeContract  } from '@wagmi/core'
 import { useContract } from '@/hooks/useContract'
-import { parseAbiItem, parseEther } from 'viem'
 import { config } from '@/config'
-import { boardsMap } from '@/utils'
-
-import { useBoards } from './useBoards'
 import { IDBContext } from '@/provider/IDBProvider'
-
-export const useThreads = ({board}: {board: string}) => {
+import { useBoard } from '@/hooks/useBoard'
+import { useParams } from 'react-router-dom'
+export const useThreads = () => {
+  const { board } = useBoard()
+  const { boardId, chainId } = useParams()
   const { db } = useContext(IDBContext)
   const [isInitialized, setIsInitialized] = useState(false)
   const { address, chain } = useAccount()
@@ -32,11 +29,11 @@ export const useThreads = ({board}: {board: string}) => {
   const [threads, setThreads] = useState([])
   
   const fetchThreads = useCallback(async () => {
-    console.log('fetching threads')
+    console.log('chainId', chainId, 'boardId', boardId )
+    console.log('fetching threads function')
     console.log(
       Boolean(publicClient),
       Boolean(address),
-      Boolean(board),
       Boolean(chain), 
       Boolean(db),
       Boolean(blockNumber),
@@ -46,60 +43,69 @@ export const useThreads = ({board}: {board: string}) => {
     if (
       publicClient &&
       address &&
-      board &&
       chain &&
       db &&
       blockNumber &&
       abi &&
       contractAddress &&
+      boardId &&
+      chainId &&
       board
     ) {
+      console.log('fetching threads', board)
       // needs to fetch board by unique ID
-      const boardCache = await db.boards.where(['symbol', 'chainId']).equals([board, chain.id]).first()
-      const threads = await db.threads.where(['boardId', 'chainId']).equals([boardsMap[board], chain.id]).toArray()
+      const threads = await db.threads
+      .where(['boardId+chainId'])
+      .equals([Number(boardId), Number(chainId)]).toArray()
+      console.log('board', board)
       try {
-        const filter = await publicClient.createContractEventFilter({
-          address: contractAddress,
-          abi,
-          eventName: 'NewThread',
-          args: {
-            'board': `0x${BigInt(boardCache.boardId).toString(16)}`
-          },
-          fromBlock: BigInt(boardCache.lastSynced ? boardCache.lastSynced : 0),
-          toBlock: blockNumber.data
-        })
-
-        const logs = await publicClient.getFilterLogs({
-          filter,
-        })
-
-
-
-        logs.forEach(async (log) => {
-          const {
-            board:boardId,
-            creator,
-            id:threadId,
-            imgUrl,
-            title,
-            content,
-            timestamp
-          } = log.args
-          threads.push({
-            lastSynced: 0,
-            boardId: Number(boardId),
-            threadId,
-            creator,
-            imgUrl,
-            title,
-            content,
-            chainId: chain.id,
-            timestamp: Number(timestamp)
+        console.log("headishigher: ", (blockNumber.data > board.lastSynced))
+        console.log('head:', blockNumber.data, 'tail:', board.lastSynced)
+        if (blockNumber.data > board.lastSynced) {
+          const filter = await publicClient.createContractEventFilter({
+            address: contractAddress,
+            abi,
+            eventName: 'NewThread',
+            args: {
+              'board': `0x${BigInt(board.boardId).toString(16)}`
+            },
+            fromBlock: BigInt(board.lastSynced ? board.lastSynced : 0),
+            toBlock: blockNumber.data
           })
-          await db.threads.add(threads[threads.length - 1])
-        })
-        
-        await db.boards.update(boardCache.id, {lastSynced: blockNumber.data})
+
+          const logs = await publicClient.getFilterLogs({
+            filter,
+          })
+
+
+
+          logs.forEach(async (log) => {
+            const {
+              board:boardId,
+              creator,
+              id:threadId,
+              imgUrl,
+              title,
+              content,
+              timestamp
+            } = log.args
+            threads.push({
+              lastSynced: 0,
+              boardId: Number(boardId),
+              threadId,
+              creator,
+              imgUrl,
+              title,
+              content,
+              chainId: chain.id,
+              timestamp: Number(timestamp)
+            })
+            await db.threads.add(threads[threads.length - 1])
+          })
+
+        }
+
+        await db.boards.where('[boardId+chainId]').equals([board.boardId, board.chainId]).modify({lastSynced: blockNumber.data})
         setThreads(threads)
 
       } catch (e) {
@@ -115,18 +121,21 @@ export const useThreads = ({board}: {board: string}) => {
     contractAddress,
     abi,
     blockNumber,
-    db
+    db,
+    boardId,
+    chainId
   ])
 
   const watchThreads = useCallback(async () => {
-   if (publicClient && address && chain) {
+   if (publicClient && address && chain && board && blockNumber && abi && contractAddress) {
      try {
      const unwatch = publicClient.watchContractEvent({
        address: contractAddress,
        abi,
        eventName: 'NewThread',
+       fromBlock: blockNumber.data,
        args: {
-         board: boardsMap[board]
+         board: board.boardId
        },
        onLogs(logs) {
          const thread = {
@@ -145,15 +154,34 @@ export const useThreads = ({board}: {board: string}) => {
        setLogErrors(old => [...old, e.toString()])
      }
    }
-  }, [publicClient, address, board, chain, contractAddress, abi])
+  }, [
+    publicClient,
+    address,
+    board,
+    chain,
+    contractAddress,
+    abi,
+    blockNumber,
+  ])
 
   useEffect(() => {
     setIsInitialized(false)
-  },[board])
+  },[boardId])
 
 
   useEffect(() => {
-    if (isInitialized || !address || !chain || !db || !blockNumber || !abi || !contractAddress || !board ) return 
+    if (
+      isInitialized ||
+      !address ||
+      !chain ||
+      !db ||
+      !blockNumber ||
+      !abi ||
+      !contractAddress ||
+      !boardId ||
+      !chainId ||
+      !board
+   ) return 
 
     const init = async () => {
       await fetchThreads()
@@ -168,12 +196,14 @@ export const useThreads = ({board}: {board: string}) => {
     address,
     chain,
     db,
+    board,
     fetchThreads,
     watchThreads,
     blockNumber,
     abi,
     contractAddress,
-    board,
+    boardId,
+    chainId
   ])
 
 

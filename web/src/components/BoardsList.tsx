@@ -4,13 +4,18 @@ import { useBoards } from '@/hooks/useBoards'
 import { useCreateBoard } from '@/hooks/useCreateBoard'
 import { useAccount } from 'wagmi'
 import { FaRegCheckCircle, FaCheckCircle } from 'react-icons/fa'
+import { CreateBoard } from '@/components/CreateBoard'
 
 export const BoardsList = () => {
   const { address } =  useAccount()
   const { boards, favouriteBoards, toggleFavourite } = useBoards()
   const { createBoard } = useCreateBoard()
   const [expandBoardList, setExpandBoardList] = useState(false)
+  const [openCreateBoard, setOpenCreateBoard] = useState(false)
 
+  const handleClose = () => {
+    setOpenCreateBoard(old => !old)
+  }
   if (address) {
     return (
       <>[
@@ -18,7 +23,7 @@ export const BoardsList = () => {
           return (
             <Fragment key={i}>
               <Link
-                to={`/boards/${board.symbol}/catalogue`}
+                to={`/chains/${board.chainId}/boards/${board.boardId}/catalogue`}
               >
                 {board.symbol}
               </Link>,&nbsp;
@@ -51,6 +56,7 @@ export const BoardsList = () => {
                       borderBottom: '1px solid #20C20E',
                       display: 'flex',
                       justifyContent: 'space-between',
+                      alignItems: 'center',
                     }}>
                     <Link
                       to={`/boards/${board.symbol}/catalogue`}
@@ -59,6 +65,7 @@ export const BoardsList = () => {
                     >
                       {board.symbol}
                     </Link>
+                    <p>{board.description}</p>
                     <button
                       style={{
                         border: 'none',
@@ -68,20 +75,24 @@ export const BoardsList = () => {
                     </button>
                   </div>
                 )
-              })}{/*
+              })}
               <button
-                onClick={() => createBoard('My Board', 'MB')}
+                style={{
+                  border: 'none',
+                }}
+                onClick={() => setOpenCreateBoard(old => !old)}
               >+</button>
-              */}
             </div>
           </div>
+        )}
+        {openCreateBoard && (
+          <CreateBoard
+            handleClose={handleClose}
+          />
         )}
       </>
     )
   }
 
-  return (
-    <>{}
-    </>
-  )
+  return (<Link to="/docs/v1/instructions">Instructions</Link>)
 }

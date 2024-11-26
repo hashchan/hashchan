@@ -1,5 +1,6 @@
 import reactStringReplace from 'react-string-replace';
 
+/*
 export const boardsMap = {
   'pol': 0,
   'biz': 1,
@@ -17,6 +18,7 @@ export const boardsReverseMap = {
   4: 'x',
   5: 'maid'
 }
+*/
 
 // Captures 0x + 4 characters, then the last 4 characters.
 const truncateRegex = /^(0x[a-zA-Z0-9]{7})[a-zA-Z0-9]+([a-zA-Z0-9]{7})$/;

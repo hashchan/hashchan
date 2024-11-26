@@ -39,6 +39,7 @@ import { Docs } from "@/routes/Docs/Docs";
 import { Intro } from "@/routes/Docs/Intro";
 import { Instructions } from "@/routes/Docs/Instructions";
 
+import { Chain } from "@/routes/Chain";
 import { Board } from "@/routes/Board";
 import { Catalogue } from "@/routes/Catalogue";
 import { Thread } from "@/routes/Thread";
@@ -56,9 +57,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                   <Route path="intro" element={<Intro />} />
                   <Route path="instructions" element={<Instructions />} />
                 </Route>
-                <Route path="boards/:board" element={<Board />}>
-                  <Route path="catalogue" element={<Catalogue />} />
-                  <Route path="thread/:thread" element={<Thread />} />
+                <Route path="chains/:chainId" element={<Chain />}>
+                  <Route path="boards/:boardId" element={<Board />}>
+                    <Route path="catalogue" element={<Catalogue />} />
+                    <Route path="thread/:threadId" element={<Thread />} />
+                  </Route>
                 </Route>
               </Route>
               <Route path="*" element={<NotFound />} />

@@ -4,12 +4,14 @@ import { useParams, Outlet } from 'react-router-dom'
 import { CreateThread } from '@/components/CreateThread'
 import { CreatePost } from '@/components/CreatePost'
 import { useAccount } from 'wagmi'
+
+import { useBoard } from '@/hooks/useBoard'
+
 export const Board = () => {
   const { address, chain } = useAccount()
-  const { board, thread } = useParams()
+  const { board } = useBoard()
+  const { chainId, boardId, threadId } = useParams()
   const [openMakeContent, setOpenMakeContent] = useState(false)
-  console.log('address', address)
-  console.log('chain', chain)
   const handleClose = () => {
     setOpenMakeContent(!openMakeContent)
   }
@@ -21,11 +23,13 @@ export const Board = () => {
         marginTop: '0',
         justifyContent: 'space-between'
         }}>
-        <h2><Link to={`/boards/${board}`}>/{board}/</Link></h2>
+        { board && (
+          <h2><Link to={`/chains/${chainId}/boards/${boardId}`}>/{board.symbol}/</Link></h2>
+        )}
         { address ? (<> { chain ? (
           <button  onClick={() => {
             setOpenMakeContent(!openMakeContent)
-          }}>{thread ? "Make Post" : "Make Thread"}</button>
+          }}>{threadId ? "Make Post" : "Make Thread"}</button>
         ):(
           <p>Please connect to a supported chain</p>
         ) 
@@ -35,18 +39,18 @@ export const Board = () => {
         )
         }
       </div>
-      <p>[<Link to={`/boards/${board}/catalogue`}>Catalogue</Link>]</p>
+      <p>[<Link to={`/chains/${chainId}/boards/${boardId}/catalogue`}>Catalogue</Link>]</p>
       
       {openMakeContent && (<>
-        { thread ? (
+        { threadId ? (
           <div style={{
             width: '85.4vw',
             margin: '0 auto',
           }}>
-          <CreatePost threadId={thread} replyIds={[]} handleClose={handleClose} />
+          <CreatePost threadId={threadId} replyIds={[]} handleClose={handleClose} />
           </div>
         ): (
-        <CreateThread board={board} replyIds={[]} handleClose={handleClose}/>
+        <CreateThread board={board}  handleClose={handleClose}/>
         )
         }
         </>)

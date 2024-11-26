@@ -8,8 +8,10 @@ export const useContract = () => {
   const [contractAddress, setContractAddress] = useState(null)
   const fetchContract = useCallback(async () => {
     if (chain) {
-    console.log('chain', chain.id)
       switch (chain.id) {
+        case 1337:
+          setContractAddress(HashChan2.addressLocalhost)
+        break;
         case 61:
           setContractAddress(HashChan2.addressETC)
         break;

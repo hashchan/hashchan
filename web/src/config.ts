@@ -69,6 +69,8 @@ export const config = createConfig({
 
 export const chainIdMap = (chainId: number) => {
   switch (chainId) {
+    case 1337:
+      return 'Localhost'
     case 84532:
       return 'Base Sepolia'
     case 8453:

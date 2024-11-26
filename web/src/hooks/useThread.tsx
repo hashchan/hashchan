@@ -17,36 +17,12 @@ import {
 import { config } from '@/config'
 import { writeContract,waitForTransactionReceipt  } from '@wagmi/core'
 import { useContract } from '@/hooks/useContract'
-
+import { useParams } from 'react-router-dom'
 import  sanitizeMarkdown  from 'sanitize-markdown'
 import { parseContent } from '@/utils'
-import reactStringReplace from 'react-string-replace';
 
-/*
-const parseContentTwo = (content: string, refsObj:any) => {
-  const replyIds: string[] = []
-  let parsed = reactStringReplace(
-    content,
-    /[#@](0x.{64})/gm,
-    (match, i) => {
-      replyIds.push(match)
-      if (refsObj) {
-        const ref = refsObj[match]
-        match = match.replace(/[#@]+/g,'')
-        return `[${match}](${window.location.href}#${match})`
-      } else {
-        match = match.replace(/[@#]+/g,'')
-        return `[${match}](${window.location.href}#${match})`
-      }
-    }
-  )
-  return {
-    replyIds
-  }
-}
- */
-
-export const useThread = (threadId: string, boardId: string) => {
+export const useThread = () => {
+  const {chainId:chainIdParam, boardId:boardIdParam, threadId:threadIdParam} = useParams()
   const [isInitialized, setIsInitialized] = useState(false)
   const { db } = useContext(IDBContext)
   const { address, chain } = useAccount()
@@ -61,8 +37,8 @@ export const useThread = (threadId: string, boardId: string) => {
 
 
   const fetchPosts = useCallback(async () => {
-    if (publicClient && address && threadId && chain && db && boardId) {
-      const cachedThread = await db.threads.where('threadId').equals(threadId).first()
+    if (publicClient && address && threadIdParam && chain && db && boardIdParam && blockNumber.data) {
+      const cachedThread = await db.threads.where('threadId').equals(threadIdParam).first()
       let thread;
       if (cachedThread) {
         console.log('cached thread', cachedThread)
@@ -75,6 +51,7 @@ export const useThread = (threadId: string, boardId: string) => {
           replies: [],
           timestamp: Number(cachedThread.timestamp)
         }
+        console.log('thread', thread)
       } else {
         //fetching thread from event logs
         const threadFilter = await publicClient.createContractEventFilter({
@@ -82,7 +59,7 @@ export const useThread = (threadId: string, boardId: string) => {
           abi,
           eventName: 'NewThread',
           args: {
-            id: threadId
+            id: threadIdParam
           },
           fromBlock: 0n, // maybe blockheigt of deployment is better
           toBlock: blockNumber.data
@@ -126,7 +103,9 @@ export const useThread = (threadId: string, boardId: string) => {
       }
 
       try {
-        const cachedPosts = await db.posts.where('threadId').equals(threadId).sortBy('timestamp')
+        const cachedPosts = await db.posts.where('threadId').equals(threadIdParam).sortBy('timestamp')
+
+        console.log('cached posts', cachedPosts)
 
         if (cachedPosts.length > 0) {
           cachedPosts.forEach((post) => {
@@ -136,11 +115,9 @@ export const useThread = (threadId: string, boardId: string) => {
               ...post,
               ref: localRefsObj[post.postId]
             }
-            /*
             post.replyIds.forEach((ri) => {
               localLogsObj[ri].replies.push({ref: localRefsObj[post.postId], id: post.postId})
             })
-             */
           })
         }
         console.log('last synced', thread.lastSynced)
@@ -149,10 +126,10 @@ export const useThread = (threadId: string, boardId: string) => {
           address: contractAddress,
           abi,
           eventName: 'NewPost',
-          fromBlock: BigInt(thread.lastSynced ? thread.lastSynced : 0),
+          fromBlock: BigInt(thread.lastSynced ? thread.lastSynced - 1 : 0),
           toBlock: blockNumber.data,
           args: {
-            threadId: threadId
+            threadId: threadIdParam
           }
         })
         const logs = await publicClient.getFilterLogs({
@@ -183,8 +160,8 @@ export const useThread = (threadId: string, boardId: string) => {
           const isCached = await db.posts.where('postId').equals(postId).first()
           if (!isCached) {
             await db.posts.add({
-              boardId: boardId,
-              threadId: threadId,
+              boardId: boardIdParam,
+              threadId: threadIdParam,
               postId: postId,
               creator: creator,
               imgUrl: imgUrl,
@@ -199,7 +176,7 @@ export const useThread = (threadId: string, boardId: string) => {
         setLogsObj(localLogsObj)
         setRefsObj(localRefsObj)
         console.log('trying to update last synced')
-        const update = await db.threads.where('threadId').equals(threadId).modify({
+        const update = await db.threads.where('threadId').equals(threadIdParam).modify({
           lastSynced: Number(blockNumber.data)
         })
         console.log('update', update)
@@ -213,32 +190,31 @@ export const useThread = (threadId: string, boardId: string) => {
   }, [
     publicClient,
     address,
-    threadId,
+    threadIdParam,
+    boardIdParam,
     chain,
     contractAddress,
     abi,
     blockNumber.data,
     db,
-    boardId
   ])
 
 
   const createPost = useCallback(async (
-    board: string,
     imgUrl: string,
     content: string,
     replyIds: string[]
   ) => {
-    if (publicClient && walletClient && address && chain) {
+    if (boardIdParam && threadIdParam && publicClient && walletClient && address && chain) {
       try {
 
         const hash = await writeContract(config, {
-          address: contractAddress,
+          address: contractAddress as `0x${string}`,
           abi,
           functionName: 'createPost',
           args: [
-            Number(board),
-            threadId,
+            boardIdParam,
+            threadIdParam,
             replyIds,
             imgUrl,
             content 
@@ -251,15 +227,7 @@ export const useThread = (threadId: string, boardId: string) => {
           abi,
           logs: receipt.logs
         })
-        /*
-           const id = await db.threads.add({
-id: logs[0].args.id,
-creator: logs[0].args.creator,
-imgUrl: logs[0].args.imgUrl,
-content: logs[0].args.content,
-timestamp: logs[0].args.timestamp
-})
-         */
+        console.log('logs', logs)
 
         return {
           receipt: receipt,
@@ -278,15 +246,15 @@ timestamp: logs[0].args.timestamp
     publicClient,
     walletClient,
     address,
-    threadId,
+    threadIdParam,
     chain,
     contractAddress,
-    abi
+    abi,
+    boardIdParam,
   ])
 
 
   useEffect(() => {
-    let unwatch;
     if (
       isInitialized ||
       !address ||
@@ -296,20 +264,22 @@ timestamp: logs[0].args.timestamp
       !contractAddress ||
       !abi ||
       !blockNumber.data ||
-      !boardId
+      !boardIdParam ||
+      !threadIdParam
     ) return
 
 
     const init = async () => {
       await fetchPosts()
       console.log('setting up watch')
+      console.log('blockNumber.data', blockNumber.data)
       const unwatch = publicClient.watchContractEvent({
         address: contractAddress,
         abi,
         eventName: 'NewPost',
-        fromBlock: blockNumber.data,
+        fromBlock: blockNumber.data - 2n,
         args: {
-          threadId
+          threadId: threadIdParam
         },
         async onLogs(logs) {
           console.log('logs', logs)
@@ -334,7 +304,9 @@ timestamp: logs[0].args.timestamp
               replies: [],
               ref: oldRefs[postId]
             }
+            console.log('hi inside watch')
             setPosts(old => [...old, post])
+            db.posts.add(post)
 
             return oldRefs
           })
@@ -343,22 +315,19 @@ timestamp: logs[0].args.timestamp
       setIsInitialized(true)
     }
     init()
-    return () => {
-      if (unwatch) unwatch()
-    }
 
   },[
     fetchPosts,
     isInitialized,
     publicClient,
     address,
-    threadId,
+    threadIdParam,
     chain,
     contractAddress,
     abi,
     blockNumber.data,
     db,
-    boardId
+    boardIdParam
   ])
 
   return {

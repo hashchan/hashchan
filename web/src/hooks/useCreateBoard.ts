@@ -45,26 +45,35 @@ export const useCreateBoard = () => {
         setBoardId(logs[0].args.id)
 
         await db.boards.add({
-          id: logs[0].args.id,
+          lastSynced: Number(receipt.blockNumber),
+          chainId: Number(chain.id),
+          boardId: Number(logs[0].args.id),
           name,
           symbol,
-          lastSynced: receipt.blockNumber
+          favourite: 0
         })
 
 
 
         return  {
-          hash: logs[0].args.id,
+          receipt: receipt,
           error: null
         }
       } catch (e) {
         return {
-          hash: null,
+          receipt: null,
           error: e
         }
       }
     }  
-  }, [address, chain, contractAddress, walletClient, abi])
+  }, [
+    address,
+    chain,
+    contractAddress,
+    walletClient,
+    abi,
+    db
+  ])
 
 
   return {

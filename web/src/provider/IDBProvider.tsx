@@ -62,7 +62,7 @@ export const IDBProvider = ({ children }) => {
     const db = new Dexie('hashchandb') as HashchanDB
     db.version(1).stores({
       boardsSync: 'chainId',
-      boards: '++id, boardId, [symbol+chainId], chainId, favourite',
+      boards: '++id, boardId, &[boardId+chainId], chainId, [chainId+favourite]',
       threads: '++id, &threadId, [boardId+chainId], timestamp',
       posts: '++id, &postId, threadId, timestamp'
     })

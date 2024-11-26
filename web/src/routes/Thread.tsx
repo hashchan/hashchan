@@ -215,9 +215,9 @@ const Post = forwardRef(({
 export const Thread = () => {
   const [makeReply, setMakeReply] = useState([])
   const [toggleReply, setToggleReply] = useState(false)
-  const { board, thread } = useParams()
+  const {threadId } = useParams()
 
-  const { posts, logErrors } = useThread(thread, board)
+  const { posts, logErrors } = useThread()
 
   const handleOpenPost = (threadId:string) => {
     setMakeReply(old => [...old, threadId])
@@ -229,7 +229,7 @@ export const Thread = () => {
 
   return (
     <>
-      <h3 style={{wordWrap: 'break-word'}}>Thread {thread}</h3>
+      <h3 style={{wordWrap: 'break-word'}}>Thread {threadId}</h3>
       {posts && posts.map((post, i) => {
         return (
           <Post
@@ -246,14 +246,7 @@ export const Thread = () => {
         )
       })
       }{ toggleReply && (
-        <div style={{
-          position: 'fixed',
-          inset: 'unset',
-          top: '38.2vh',
-          left: '7.3vw',
-          }}>
-          <CreatePost threadId={thread} replyIds={makeReply} handleClose={handleClose} />
-        </div>
+          <CreatePost threadId={threadId} replyIds={makeReply} handleClose={handleClose} />
       )
       }
       {

@@ -23,7 +23,9 @@ export const About = () => {
     <div
       className="flex-wrap-center"
       style={{
+          height: '80vh',
           justifyContent: 'space-between',
+          alignItems: 'center',
           padding: '0 5vw',
       }}>
       <div >

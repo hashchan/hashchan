@@ -12,7 +12,7 @@ const ListItem = ({
   content: string
 
 }) => {
-  const { board } = useParams()
+  const { chainId, boardId } = useParams()
   const navigate  = useNavigate()
   return (
     <div
@@ -25,7 +25,7 @@ const ListItem = ({
         borderRadius: '16px',
         border: '1px solid #20C20E',
       }}
-      onClick={() => navigate(`/boards/${board}/thread/${threadId}`)}
+      onClick={() => navigate(`/chains/${chainId}/boards/${boardId}/thread/${threadId}`)}
     >
       <p style={{ textAlign: 'center', width: '100%'}}>{title.substring(0, 45)}</p>
       <p style={{ textAlign: 'center', width: '100%'}}>{truncateEthAddress(threadId)}</p>
@@ -71,9 +71,8 @@ const List = ({threads}: {threads: any}) => {
 }
 
 export const Catalogue = () => {
-  const { board } = useParams()
   const { address }  = useAccount()
-  const { threads, logErrors } = useThreads({board})
+  const { threads, logErrors } = useThreads()
   return (
     <>
       <h3>Catalogue</h3>

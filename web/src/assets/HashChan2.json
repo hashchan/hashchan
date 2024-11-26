@@ -2,6 +2,7 @@
   "_format": "hh-sol-artifact-1",
   "contractName": "HashChan2",
   "sourceName": "contracts/HashChan2.sol",
+  "addressLocalhost":"0x7cE23ee9023A138193C33F060A0060E918246E59",
   "addressETC": "0xca0296EFC305ba8f2A3035e2846d389A8617c4cf",
   "addressMainnet":"0xC525AF851Fa283190d6e13d0f164c06Ab51C266A",
   "addressOptimism": "0x77a510184D399C75a91FE9D522aB9e60C2bD08ef",
