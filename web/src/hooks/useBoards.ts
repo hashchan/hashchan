@@ -127,7 +127,7 @@ export const useBoards = () => {
 
   useEffect(() => {
     setIsInitialized(false)
-  }, [contractAddress, chain.id])
+  }, [contractAddress, chain?.id])
 
   useEffect(() => {
     if (isInitialized || !chain || !address || !db || !blockNumber.data) return
