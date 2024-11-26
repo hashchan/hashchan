@@ -14,36 +14,40 @@ const ListItem = ({
 }) => {
   const { chainId, boardId } = useParams()
   const navigate  = useNavigate()
+  const Title = (
+    <p
+      style={{
+        fontSize: '14px',
+      }}
+    ><b>{title}</b>{content}</p>)
   return (
     <div
-      className="flex-wrap-center"
       style={{
+        display: 'flex',
         flexDirection: 'column',
-        backgroundColor: "rgba(0,0,0,0.618)",
+        justifyContent: 'flex-start',
         width: "233px",
         height: "377px",
-        borderRadius: '16px',
-        border: '1px solid #20C20E',
       }}
       onClick={() => navigate(`/chains/${chainId}/boards/${boardId}/thread/${threadId}`)}
     >
-      <p style={{ textAlign: 'center', width: '100%'}}>{title.substring(0, 45)}</p>
-      <p style={{ textAlign: 'center', width: '100%'}}>{truncateEthAddress(threadId)}</p>
       <img
         style={{
           objectFit: 'contain',
-          height: '161px',
-          width: '61px',
+          width: '100%',
         }}
         src={imgUrl}
       />
-      <p
-        style={{
-          width: '90%',
-          textAlign: 'center',
-          overflow: 'hidden',
-        }}
-      >{content.substring(0, 30)}</p>
+      <p style={{
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        textAlign: 'center',
+        display: '-webkit-box',
+        WebkitLineClamp: '3',
+        WebkitBoxOrient: 'vertical',
+        width: '100%',
+        height: '100%',
+      }}>{Title}</p>
     </div>)
 }
 

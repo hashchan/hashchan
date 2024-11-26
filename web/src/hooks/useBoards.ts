@@ -27,7 +27,6 @@ export const useBoards = () => {
 
 
   const fetchFavouriteBoards = useCallback(async () => {
-    console.log('chain')
     if (address && chain && publicClient && db) {
       let boards = []
       try {
@@ -45,13 +44,6 @@ export const useBoards = () => {
 
 
   const fetchBoards = useCallback(async (cacheOnly: boolean) => {
-    console.log(
-      Boolean(address),
-      Boolean(chain),
-      Boolean(publicClient),
-      Boolean(db),
-      Boolean(contractAddress)
-    )
     if (address && chain && publicClient && db && contractAddress) {
       let boards = []
       let lastBlock = await db.boardsSync.where('chainId').equals(chain.id).first()
@@ -68,9 +60,6 @@ export const useBoards = () => {
       }
       try {
         if (!cacheOnly) {
-          console.log('fetching boards')
-          console.log('lastBlock', lastBlock)
-          console.log('blockNumber', blockNumber.data)
           const boardsFilter = await publicClient.createContractEventFilter({
             address: contractAddress,
             abi,
@@ -83,7 +72,6 @@ export const useBoards = () => {
             filter: boardsFilter
           })
           boardLogs.forEach(async (log) => {
-            console.log('log', log)
             const { id, name, symbol } = log.args
             const board = {
               boardId: Number(id),
@@ -93,7 +81,6 @@ export const useBoards = () => {
               symbol
             }
             const exist = await db.boards.where('[boardId+chainId]').equals([board.boardId, board.chainId]).first()
-            console.log('exist', exist)
             if (!exist) {
               await db.boards.add({
                 lastSynced: 0,
@@ -125,7 +112,6 @@ export const useBoards = () => {
   ])
 
   const toggleFavourite = useCallback(async (board) => {
-    console.log('toggling favourite', board)
     if (address && chain && publicClient && db) {
       try {
         await db.boards.where('[boardId+chainId]').equals([board.boardId, board.chainId]).modify({favourite: board.favourite === 1 ? 0 : 1})
@@ -138,18 +124,12 @@ export const useBoards = () => {
     } 
   }, [address, chain, publicClient, db, fetchFavouriteBoards, fetchBoards])
 
-  useEffect(() => {
-    setIsInitialized(false)
-  }, [contractAddress])
 
   useEffect(() => {
-    console.log(
-      Boolean(isInitialized),
-      Boolean(chain),
-      Boolean(address),
-      Boolean(db),
-      Boolean(blockNumber.data)
-    )
+    setIsInitialized(false)
+  }, [contractAddress, chain.id])
+
+  useEffect(() => {
     if (isInitialized || !chain || !address || !db || !blockNumber.data) return
       const init = async () => {
         await fetchBoards(false)

@@ -29,17 +29,6 @@ export const useThreads = () => {
   const [threads, setThreads] = useState([])
   
   const fetchThreads = useCallback(async () => {
-    console.log('chainId', chainId, 'boardId', boardId )
-    console.log('fetching threads function')
-    console.log(
-      Boolean(publicClient),
-      Boolean(address),
-      Boolean(chain), 
-      Boolean(db),
-      Boolean(blockNumber),
-      Boolean(abi),
-      Boolean(contractAddress),
-    )
     if (
       publicClient &&
       address &&
@@ -52,15 +41,11 @@ export const useThreads = () => {
       chainId &&
       board
     ) {
-      console.log('fetching threads', board)
       // needs to fetch board by unique ID
       const threads = await db.threads
       .where(['boardId+chainId'])
       .equals([Number(boardId), Number(chainId)]).toArray()
-      console.log('board', board)
       try {
-        console.log("headishigher: ", (blockNumber.data > board.lastSynced))
-        console.log('head:', blockNumber.data, 'tail:', board.lastSynced)
         if (blockNumber.data > board.lastSynced) {
           const filter = await publicClient.createContractEventFilter({
             address: contractAddress,
