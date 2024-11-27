@@ -38,7 +38,7 @@ const ListItem = ({
         }}
         src={imgUrl}
       />
-      <p style={{
+      <div style={{
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         textAlign: 'center',
@@ -47,7 +47,7 @@ const ListItem = ({
         WebkitBoxOrient: 'vertical',
         width: '100%',
         height: '100%',
-      }}>{Title}</p>
+      }}>{Title}</div>
     </div>)
 }
 
