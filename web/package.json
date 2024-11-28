@@ -13,6 +13,8 @@
     "@coinbase/onchainkit": "^0.35.4",
     "@tanstack/react-query": "^5.51.15",
     "@uiw/react-markdown-editor": "^6.1.2",
+    "@uniswap/sdk-core": "^6.0.0",
+    "@uniswap/v3-sdk": "^3.19.0",
     "@web3-storage/w3up-client": "^16.4.0",
     "@web3modal/wagmi": "^5.0.11",
     "dexie": "^4.0.9",

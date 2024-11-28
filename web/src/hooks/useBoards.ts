@@ -60,6 +60,7 @@ export const useBoards = () => {
       }
       try {
         if (!cacheOnly) {
+          console.log("useBoards", lastBlock.lastSynced, blockNumber.data)
           const boardsFilter = await publicClient.createContractEventFilter({
             address: contractAddress,
             abi,

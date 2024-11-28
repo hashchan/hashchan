@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Connector, useConnect  } from 'wagmi'
+import { Link } from 'react-router-dom'
 import { useAccount, useDisconnect, useEnsAvatar, useEnsName  } from 'wagmi'
-import { chainIdMap } from '@/config'
 import {truncateEthAddress} from '@/utils'
 const Account = () => {
-  const { address, chainId } = useAccount()
+  const { address, chain } = useAccount()
   const { disconnect } = useDisconnect()
   const { data: ensName } = useEnsName({ address })
   const { data: ensAvatar } = useEnsAvatar({ name: ensName! })
@@ -13,8 +13,8 @@ const Account = () => {
     <div >
       {ensAvatar && <img alt="ENS Avatar" src={ensAvatar} />}
       <div>
-        {address && <>
-          <span>{chainId && chainIdMap(chainId)}</span>
+        {(address && chain )&& <>
+          <Link to={`/chains/${chain?.id}`}>{chain?.id && chain.name}</Link>
           <span style={{padding: '0px 1.25vw'}}>
 
             {ensName ? `${ensName} (${truncateEthAddress(address)})` : truncateEthAddress(address)}
