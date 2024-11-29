@@ -7,6 +7,7 @@ import {  Outlet } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { useNavigate, useLocation  } from 'react-router-dom'
 import { useEstimateGas } from '@/hooks/useEstimateGas'
+import { formatNumberWithSubscriptZeros as fmtZero  } from '@haqq/format-number-with-subscript-zeros';
 
 export const Chain = () => {
   const { chain } = useAccount()
@@ -36,10 +37,10 @@ export const Chain = () => {
 
   return (
     <>{location.pathname == `/chains/${chain.id}` ? ( 
-      <div>{ chain.id == 1 && (<>
+      <div>{ (chain?.id) && (<>
         <h3>{chain.name}</h3>
-        <p>Est Cost to create Post: $ {createPostEstimate}</p>
-        <p>Est Cost to create Thread: $ {createThreadEstimate}</p>
+        <p>{createPostEstimate && (<>Est Cost to create Post: ~${fmtZero(createPostEstimate.toFixed(20))}</>)}</p>
+        <p>{createThreadEstimate && (<>Est Cost to create Thread: ~${fmtZero(createThreadEstimate.toFixed(20))}</>)}</p>
       </>)
       }
       </div>

@@ -3,7 +3,11 @@ import { Connector, useConnect  } from 'wagmi'
 import { Link } from 'react-router-dom'
 import { useAccount, useDisconnect, useEnsAvatar, useEnsName  } from 'wagmi'
 import {truncateEthAddress} from '@/utils'
+import { useEstimateGas } from '@/hooks/useEstimateGas'
+import { formatNumberWithSubscriptZeros as fmtZero  } from '@haqq/format-number-with-subscript-zeros';
+
 const Account = () => {
+  const { createPostEstimate } = useEstimateGas()   
   const { address, chain } = useAccount()
   const { disconnect } = useDisconnect()
   const { data: ensName } = useEnsName({ address })
@@ -14,6 +18,7 @@ const Account = () => {
       {ensAvatar && <img alt="ENS Avatar" src={ensAvatar} />}
       <div>
         {(address && chain )&& <>
+          <span style={{paddingRight: '1.25vw'}}>~${createPostEstimate && (<>{fmtZero(createPostEstimate.toFixed(20))}/Post</>)}</span>
           <Link to={`/chains/${chain?.id}`}>{chain?.id && chain.name}</Link>
           <span style={{padding: '0px 1.25vw'}}>
 

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@coinbase/onchainkit": "^0.35.4",
+    "@haqq/format-number-with-subscript-zeros": "^1.0.1",
     "@tanstack/react-query": "^5.51.15",
     "@uiw/react-markdown-editor": "^6.1.2",
     "@uniswap/sdk-core": "^6.0.0",
