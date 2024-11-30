@@ -12,6 +12,9 @@ export const useContract = () => {
         case 1337:
           setContractAddress(HashChan2.addressLocalhost)
         break;
+        case 43114:
+          setContractAddress(HashChan2.addressAvalanche)
+        break;
         case 61:
           setContractAddress(HashChan2.addressETC)
         break;
@@ -35,6 +38,9 @@ export const useContract = () => {
         break;
         case 747:
           setContractAddress(HashChan2.addressFlow)
+        break;
+        case 137:
+          setContractAddress(HashChan2.addressPolygon)
         break;
         case 11155111:
           setContractAddress(HashChan2.addressSepolia)

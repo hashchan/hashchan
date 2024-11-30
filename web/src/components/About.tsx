@@ -10,6 +10,8 @@ import Fantom from '../assets/emoji/fantom.png'
 import Base from '../assets/emoji/base.png'
 import Sepolia from '../assets/emoji/sepolia.png'
 import OptimismSepolia from '../assets/emoji/optimism-sepolia.png'
+import Avalanche from '../assets/emoji/avalanche.png'
+import Polygon from '../assets/emoji/polygon.png'
 import Computer from '../assets/emoji/computer.gif'
 import Plug from '../assets/emoji/outlet_plug.png'
 import Archive from '../assets/emoji/archive.png'
@@ -51,6 +53,14 @@ export const About = () => {
         <p>
           <img src={Optimism} className="emoji" />
           <a target="_blank" href="https://optimistic.etherscan.io/address/0x77a510184D399C75a91FE9D522aB9e60C2bD08ef"> Optimism</a>
+        </p>
+        <p>
+          <img src={Polygon} className="emoji" />
+          <a target="_blank" href="https://polygonscan.com/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Polygon</a>
+        </p>
+        <p>
+          <img src={Avalanche} className="emoji" />
+          <a target="_blank" href="https://subnets.avax.network/c-chain/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Avalanche</a>
         </p>
         <p>
           <img src={Fantom} className="emoji" />

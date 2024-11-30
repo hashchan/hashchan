@@ -59,7 +59,7 @@ export const BoardsList = () => {
                       alignItems: 'center',
                     }}>
                     <Link
-                      to={`/boards/${board.symbol}/catalogue`}
+                      to={`/chains/${board.chainId}/boards/${board.boardId}/catalogue`}
                       style={{
                       }}
                     >

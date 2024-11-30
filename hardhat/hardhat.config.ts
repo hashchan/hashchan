@@ -27,6 +27,20 @@ const config: HardhatUserConfig = {
         mnemonic: process.env.MNEMONIC
       }
     },
+    polygon: {
+      url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
+      chainId: 137,
+      accounts: {
+        mnemonic: process.env.MNEMONIC
+      }
+    },
+    avalanche: {
+      url: `https://avax-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
+      chainId: 43114,
+      accounts: {
+        mnemonic: process.env.MNEMONIC
+      }
+    },
     sepolia: {
       url: `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY}`,
       chainId: 11155111,
@@ -125,6 +139,7 @@ const config: HardhatUserConfig = {
       'arbitrum-sepolia': process.env.ARBISCAN || '',
       'arbitrum-one': process.env.ARBISCAN || '',
       'arbitrum-nova': process.env.ARBINOVASCAN || '',
+      polygon: process.env.POLYGONSCAN || '',
       flow: 'nokey',
       'flow-testnet': 'nokey'
     },

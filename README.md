@@ -26,6 +26,8 @@ An imageboard inside ethereum event logs
 | Arbitrum One | [0xca0296EFC305ba8f2A3035e2846d389A8617c4cf](https://arbiscan.io/address/0xca0296EFC305ba8f2A3035e2846d389A8617c4cf)
 | Arbitrum Nova | [0x77a510184D399C75a91FE9D522aB9e60C2bD08ef](https://nova.arbiscan.io/address/0x77a510184D399C75a91FE9D522aB9e60C2bD08ef)
 |  Flow EVM | [0x49b98EAB13247E786BEd0bb5780728db8d24b5e0](https://evm.flowscan.io/address/0x49b98EAB13247E786BEd0bb5780728db8d24b5e0)
+| Avalanche | [0x7cE23ee9023A138193C33F060A0060E918246E59](https://subnets.avax.network/c-chain/address/0x7cE23ee9023A138193C33F060A0060E918246E59)
+| Polygon | [0x7cE23ee9023A138193C33F060A0060E918246E59](https://polygonscan.com/address/0x7cE23ee9023A138193C33F060A0060E918246E59)
 | Testchains | Address |
 | Sepolia | [0xEEe8276AEA42f61399Abe7235c015a6cAb1372AC](https://sepolia.etherscan.io/address/0xEEe8276AEA42f61399Abe7235c015a6cAb1372AC)
 

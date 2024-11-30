@@ -39,7 +39,13 @@ export const useEstimateGas = () => {
       pool
     ) {
       const gasPrice = await publicClient.getGasPrice()
-      const ethPrice = parseFloat(pool.token1Price.toSignificant(6))
+      let ethPrice;
+      console.log(pool)
+      if (pool.wethIsToken0) {
+        ethPrice = parseFloat(pool.pool.token0Price.toSignificant(6))
+      } else {
+        ethPrice = parseFloat(pool.pool.token1Price.toSignificant(6))
+      }
 
       const estimate = await publicClient.estimateContractGas({
         address: contractAddress as `0x${string}`,
@@ -73,7 +79,12 @@ export const useEstimateGas = () => {
       pool
     ) {
       const gasPrice = await publicClient.getGasPrice()
-      const ethPrice = parseFloat(pool.token1Price.toSignificant(6))
+      let ethPrice;
+      if (pool.wethIsToken0) {
+        ethPrice = parseFloat(pool.pool.token0Price.toSignificant(6))
+      } else {
+        ethPrice = parseFloat(pool.pool.token1Price.toSignificant(6))
+      }
       const estimate = await publicClient.estimateContractGas({
         address: contractAddress as `0x${string}`,
         abi,

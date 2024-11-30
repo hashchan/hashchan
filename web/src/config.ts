@@ -15,6 +15,8 @@ import {
   arbitrumNova,
   flowMainnet,
   flowTestnet,
+  polygon,
+  avalanche
 } from 'wagmi/chains'
 
 import { custom } from 'viem'
@@ -46,7 +48,9 @@ export const config = createConfig({
     arbitrum,
     arbitrumNova,
     flowMainnet,
-    flowTestnet
+    flowTestnet,
+    avalanche,
+    polygon
   ],
   connectors,
   transports: {
@@ -64,6 +68,8 @@ export const config = createConfig({
     [arbitrumNova.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
     [flowMainnet.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
     [flowTestnet.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+    [polygon.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+    [avalanche.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
   },
 })
 
