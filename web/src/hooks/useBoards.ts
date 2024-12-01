@@ -6,19 +6,16 @@ import {
 } from 'react'
 import { useContract } from '@/hooks/useContract'
 import { usePublicClient, useAccount, useBlockNumber } from 'wagmi'
-import { writeContract, waitForTransactionReceipt } from '@wagmi/core'
-import { config } from '@/config'
-import { IDBContext } from '@/provider/IDBProvider'
-import { parseEventLogs } from 'viem'
+import { LogsContext } from '@/provider/LogsProvider/LogsProvider'
 
 
 export const useBoards = () => {
   const [isInitialized, setIsInitialized] = useState(false)
-  const { db } = useContext(IDBContext)
+  const { db, fetchLogs } = useContext(LogsContext)
 
   const { address, chain } =  useAccount()
   const blockNumber = useBlockNumber();
-  const { contractAddress, abi } = useContract()
+  const { contractAddress, abi, firstBlock } = useContract()
   const publicClient = usePublicClient()
 
   const [boards, setBoards] = useState([])
@@ -44,13 +41,16 @@ export const useBoards = () => {
 
 
   const fetchBoards = useCallback(async (cacheOnly: boolean) => {
-    if (address && chain && publicClient && db && contractAddress) {
+    if (address && chain && publicClient && db && contractAddress && abi && firstBlock) {
       let boards = []
       let lastBlock = await db.boardsSync.where('chainId').equals(chain.id).first()
 
       if (typeof lastBlock === 'undefined') {
-        await db.boardsSync.add({chainId: chain.id, lastSynced: 0})
-        lastBlock = { chainId: chain.id, lastSynced: 0 }
+        lastBlock = {
+          chainId: chain.id,
+          lastSynced: firstBlock
+        }
+        await db.boardsSync.add(lastBlock)
       }
       try {
         boards = await db.boards.where('chainId').equals(chain.id).toArray()
@@ -60,18 +60,30 @@ export const useBoards = () => {
       }
       try {
         if (!cacheOnly) {
+          const logs = await fetchLogs({
+            chainId: chain.id,
+            address: contractAddress,
+            fromBlock: BigInt(lastBlock.lastSynced ? lastBlock.lastSynced : firstBlock),
+            toBlock: blockNumber.data,
+            eventName: 'NewBoard',
+            abi,
+            client: publicClient
+          })
+          console.log(logs)
+          /*
           console.log("useBoards", lastBlock.lastSynced, blockNumber.data)
           const boardsFilter = await publicClient.createContractEventFilter({
             address: contractAddress,
             abi,
             eventName: 'NewBoard',
-            fromBlock: BigInt(lastBlock.lastSynced ? lastBlock.lastSynced : 0),
+            fromBlock: BigInt(lastBlock.lastSynced ? lastBlock.lastSynced : firstBlock),
             toBlock: blockNumber.data
           })
 
           const boardLogs = await publicClient.getFilterLogs({
             filter: boardsFilter
           })
+         */
           boardLogs.forEach(async (log) => {
             const { id, name, symbol } = log.args
             const board = {
@@ -84,7 +96,7 @@ export const useBoards = () => {
             const exist = await db.boards.where('[boardId+chainId]').equals([board.boardId, board.chainId]).first()
             if (!exist) {
               await db.boards.add({
-                lastSynced: 0,
+                lastSynced: firstBlock,
                 ...board
               })
               boards.push(board)
@@ -109,7 +121,8 @@ export const useBoards = () => {
     db,
     blockNumber.data,
     contractAddress,
-    abi
+    abi,
+    firstBlock
   ])
 
   const toggleFavourite = useCallback(async (board) => {

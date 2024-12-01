@@ -5,7 +5,7 @@ import {
   useCallback
 } from 'react'
 
-import { IDBContext } from '@/provider/IDBProvider'
+import { LogsProvider } from '@/provider/LogsProvider/LogsProvider'
 import { useContract } from '@/hooks/useContract'
 import { useWalletClient, useAccount } from 'wagmi'
 import { writeContract, waitForTransactionReceipt } from '@wagmi/core'
@@ -15,7 +15,7 @@ import { useBoard } from '@/hooks/useBoard'
 import { config } from '@/config'
 
 export const useCreateThread = () => {
-  const { db } = useContext(IDBContext)
+  const { db } = useContext(LogsProvider)
   const { board } = useBoard()
   const { address, chain } = useAccount()
   const { contractAddress, abi } = useContract()

@@ -5,7 +5,7 @@ import {
   useCallback,
   createRef
 } from 'react'
-import { IDBContext } from '@/provider/IDBProvider'
+import { LogsContext } from '@/provider/LogsProvider/LogsProvider'
 import { parseEventLogs } from 'viem'
 import {
   useAccount,
@@ -24,7 +24,7 @@ import { parseContent } from '@/utils'
 export const useThread = () => {
   const {chainId:chainIdParam, boardId:boardIdParam, threadId:threadIdParam} = useParams()
   const [isInitialized, setIsInitialized] = useState(false)
-  const { db } = useContext(IDBContext)
+  const { db, fetchLogs } = useContext(LogsContext)
   const { address, chain } = useAccount()
   const blockNumber = useBlockNumber();
   const publicClient = usePublicClient();
@@ -33,11 +33,22 @@ export const useThread = () => {
   const [logsObj, setLogsObj] = useState(null)
   const [posts, setPosts] = useState([])
   const [logErrors, setLogErrors] = useState([])
-  const { contractAddress, abi } = useContract()
+  const { contractAddress, abi, firstBlock } = useContract()
 
 
   const fetchPosts = useCallback(async () => {
-    if (publicClient && address && threadIdParam && chain && db && boardIdParam && blockNumber.data) {
+    if (
+        publicClient &&
+        address &&
+        threadIdParam &&
+        chain &&
+        db &&
+        boardIdParam &&
+        blockNumber.data &&
+        contractAddress &&
+        abi &&
+        firstBlock
+    ) {
       const cachedThread = await db.threads.where('threadId').equals(threadIdParam).first()
       let thread;
       if (cachedThread) {
@@ -61,7 +72,7 @@ export const useThread = () => {
           args: {
             id: threadIdParam
           },
-          fromBlock: 0n, // maybe blockheigt of deployment is better
+          fromBlock: BigInt(firstBlock),
           toBlock: blockNumber.data
         })
 
@@ -126,7 +137,7 @@ export const useThread = () => {
           address: contractAddress,
           abi,
           eventName: 'NewPost',
-          fromBlock: BigInt(thread.lastSynced ? thread.lastSynced - 1 : 0),
+          fromBlock: BigInt(thread.lastSynced ? thread.lastSynced - 1 : firstBlock),
           toBlock: blockNumber.data,
           args: {
             threadId: threadIdParam
@@ -197,6 +208,7 @@ export const useThread = () => {
     abi,
     blockNumber.data,
     db,
+    firstBlock
   ])
 
 

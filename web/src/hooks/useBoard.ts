@@ -14,7 +14,7 @@ import {
   usePublicClient,
   useBlockNumber
 } from 'wagmi';
-import { IDBContext } from '@/provider/IDBProvider';
+import { LogsContext } from '@/provider/LogsProvider/LogsProvider';
 import { useParams } from 'react-router-dom';
 export const useBoard = () => {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -25,7 +25,7 @@ export const useBoard = () => {
 
   const [board, setBoard] = useState(null);
   const { chain} = useAccount()
-  const {db} = useContext(IDBContext)
+  const {db} = useContext(LogsContext)
 
   const fetchBoard = useCallback(async () => {
     console.log('fetching board')

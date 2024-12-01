@@ -11,7 +11,7 @@ import {
 }  from 'wagmi'
 import { useContract } from '@/hooks/useContract'
 import { config } from '@/config'
-import { IDBContext } from '@/provider/IDBProvider'
+import { LogsProvider } from '@/provider/LogsProvider/LogsProvider'
 import { useBoard } from '@/hooks/useBoard'
 import { useParams } from 'react-router-dom'
 export const useThreads = () => {
@@ -22,8 +22,7 @@ export const useThreads = () => {
   const { address, chain } = useAccount()
   const publicClient = usePublicClient({config});
   const blockNumber = useBlockNumber();
-
-  const { contractAddress, abi } = useContract()
+  const { contractAddress, abi, firstBlock } = useContract()
   const [logErrors, setLogErrors] = useState([])
   //const walletClient = useWalletClient()
   const [threads, setThreads] = useState([])
@@ -37,10 +36,14 @@ export const useThreads = () => {
       blockNumber &&
       abi &&
       contractAddress &&
+      firstBlock &&
       boardId &&
       chainId &&
       board
     ) {
+      console.log('fetching threads')
+      console.log('firstBlock', firstBlock)
+      console.log('contractAddress', contractAddress)
       // needs to fetch board by unique ID
       const threads = await db.threads
       .where(['boardId+chainId'])
@@ -54,7 +57,7 @@ export const useThreads = () => {
             args: {
               'board': `0x${BigInt(board.boardId).toString(16)}`
             },
-            fromBlock: BigInt(board.lastSynced ? board.lastSynced : 0),
+            fromBlock: BigInt(board.lastSynced ? board.lastSynced : firstBlock),
             toBlock: blockNumber.data
           })
 
@@ -65,6 +68,7 @@ export const useThreads = () => {
 
 
           logs.forEach(async (log) => {
+            console.log('log', log)
             const {
               board:boardId,
               creator,
@@ -104,6 +108,7 @@ export const useThreads = () => {
     board,
     chain,
     contractAddress,
+    firstBlock,
     abi,
     blockNumber,
     db,
@@ -163,6 +168,7 @@ export const useThreads = () => {
       !blockNumber ||
       !abi ||
       !contractAddress ||
+      !firstBlock ||
       !boardId ||
       !chainId ||
       !board
@@ -187,6 +193,7 @@ export const useThreads = () => {
     blockNumber,
     abi,
     contractAddress,
+    firstBlock,
     boardId,
     chainId
   ])

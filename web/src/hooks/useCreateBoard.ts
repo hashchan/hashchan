@@ -8,11 +8,11 @@ import { useContract } from '@/hooks/useContract'
 import { useWalletClient, useAccount } from 'wagmi'
 import { writeContract, waitForTransactionReceipt } from '@wagmi/core'
 import { config } from '@/config'
-import { IDBContext } from '@/provider/IDBProvider'
+import { LogsContext } from '@/provider/LogsProvider/LogsProvider'
 import { parseEventLogs } from 'viem'
 
 export const useCreateBoard = () => {
-  const { db } = useContext(IDBContext)
+  const { db, fetchLogs } = useContext(LogsContext)
   const { address, chain } =  useAccount()
   const { contractAddress, abi } = useContract()
   const walletClient = useWalletClient()

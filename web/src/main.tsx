@@ -28,7 +28,7 @@ import { QueryClient, QueryClientProvider  } from '@tanstack/react-query'
 import { WagmiProvider  } from 'wagmi'
 import { config	} from './config'
 
-import { IDBProvider } from '@/provider/IDBProvider'
+import { LogsProvider } from '@/provider/LogsProvider/LogsProvider'
 import { W3UpProvider } from '@/provider/W3UpProvider'
 
 import {NavBar} from '@/components/NavBar'
@@ -48,7 +48,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <WagmiProvider config={config}>
     <QueryClientProvider client={new QueryClient()}>
       <W3UpProvider>
-        <IDBProvider>
+        <LogsProvider>
           <BrowserRouter>
             <NavBar />
             <Routes>
@@ -67,7 +67,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-        </IDBProvider>
+        </LogsProvider>
       </W3UpProvider>
     </QueryClientProvider>
   </WagmiProvider>
