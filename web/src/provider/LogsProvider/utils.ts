@@ -12,7 +12,7 @@ export const CHAIN_CONFIGS = {
   // Ethereum
   1: {
     rpcType: 'archive' as const,
-    maxBlockRange: Infinity,
+    maxBlockRange: 0,
     // Could be contract deployment block
     oldestKnownBlock: 0, 
   },
@@ -31,6 +31,23 @@ export const CHAIN_CONFIGS = {
 } as const;
 
 
+export const RPC_CONSTRAINTS = {
+  public: {
+    maxBlockRange: 100000,    // e.g., Base's public RPC limit
+    maxHistoricalDays: 30     // Arbitrary example, adjust as needed
+
+  },
+  dedicated: {
+    maxBlockRange: 500000,    // Higher limit for dedicated nodes
+    maxHistoricalDays: 90     // More historical data available
+
+  },
+  archive: {
+    maxBlockRange: 0,   // zero for unlimited
+    maxHistoricalDays: 0 // zero for unlimited
+  }
+
+} as const;
 export const mergeRanges = (ranges: BlockRange[]): BlockRange[] => {
   if (ranges.length <= 1) return ranges;
 

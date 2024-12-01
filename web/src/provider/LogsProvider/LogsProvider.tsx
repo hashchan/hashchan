@@ -33,7 +33,7 @@ export const LogsProvider = ({ children }) => {
               ranges: [],
 							oldestAccessibleBlock: config.oldestKnownBlock,
 							maxBlockRange: config.maxBlockRange,
-							lastUpdated: Date.now()
+							lastSyncedBlock: 0
 						});
 					}
 				})

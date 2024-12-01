@@ -59,55 +59,54 @@ export const useBoards = () => {
         console.log('db error, skipping')
       }
       try {
-        if (!cacheOnly) {
-          const logs = await fetchLogs({
-            chainId: chain.id,
-            address: contractAddress,
-            fromBlock: BigInt(lastBlock.lastSynced ? lastBlock.lastSynced : firstBlock),
-            toBlock: blockNumber.data,
-            eventName: 'NewBoard',
-            abi,
-            client: publicClient
-          })
-          console.log(logs)
-          /*
-          console.log("useBoards", lastBlock.lastSynced, blockNumber.data)
-          const boardsFilter = await publicClient.createContractEventFilter({
-            address: contractAddress,
-            abi,
-            eventName: 'NewBoard',
-            fromBlock: BigInt(lastBlock.lastSynced ? lastBlock.lastSynced : firstBlock),
-            toBlock: blockNumber.data
-          })
+        if (!cacheOnly && blockNumber.data) {
+          const currentBlock = Number(blockNumber.data);
+          const lastSyncedBlock = lastBlock.lastSynced || firstBlock;
+          const blockDifference = currentBlock - lastSyncedBlock;
 
-          const boardLogs = await publicClient.getFilterLogs({
-            filter: boardsFilter
-          })
-         */
-          boardLogs.forEach(async (log) => {
-            const { id, name, symbol } = log.args
-            const board = {
-              boardId: Number(id),
-              chainId: chain.id,
-              favourite: 0,
-              name,
-              symbol
-            }
-            const exist = await db.boards.where('[boardId+chainId]').equals([board.boardId, board.chainId]).first()
-            if (!exist) {
-              await db.boards.add({
-                lastSynced: firstBlock,
-                ...board
-              })
-              boards.push(board)
-            }
-          })
+          console.log(`Current block: ${currentBlock}, Last synced: ${lastSyncedBlock}, Difference: ${blockDifference}`);
           
+          if (blockDifference > 0) {
+            console.log('fetching logs:boards')
+            const logs = await fetchLogs({
+              chainId: chain.id,
+              address: contractAddress,
+              fromBlock: BigInt(lastSyncedBlock),
+              toBlock: blockNumber.data,
+              eventName: 'NewBoard',
+              abi,
+              client: publicClient
+            })
+            console.log(logs)
+
+            // Process the logs returned from fetchLogs
+            for (const log of logs) {
+              const { id, name, symbol } = log.args
+              const board = {
+                boardId: Number(id),
+                chainId: chain.id,
+                favourite: 0,
+                name,
+                symbol
+              }
+              const exist = await db.boards.where('[boardId+chainId]').equals([board.boardId, board.chainId]).first()
+              if (!exist) {
+                await db.boards.add({
+                  lastSynced: firstBlock,
+                  ...board
+                })
+                boards.push(board)
+              }
+            }
+          } else {
+            console.log('No new blocks to sync');
+          }
         }
 
         setBoards(boards)
-        await db.boardsSync.where('chainId').equals(chain.id).modify({lastSynced: Number(blockNumber.data)})
-
+        if (blockNumber.data) {
+          await db.boardsSync.where('chainId').equals(chain.id).modify({lastSynced: Number(blockNumber.data)})
+        }
       } catch (e) {
         console.log('e', e)
         setLogErrors(old => [...old, e.toString()])

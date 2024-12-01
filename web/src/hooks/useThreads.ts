@@ -11,13 +11,13 @@ import {
 }  from 'wagmi'
 import { useContract } from '@/hooks/useContract'
 import { config } from '@/config'
-import { LogsProvider } from '@/provider/LogsProvider/LogsProvider'
+import { LogsContext } from '@/provider/LogsProvider/LogsProvider'
 import { useBoard } from '@/hooks/useBoard'
 import { useParams } from 'react-router-dom'
 export const useThreads = () => {
   const { board } = useBoard()
   const { boardId, chainId } = useParams()
-  const { db } = useContext(IDBContext)
+  const { db } = useContext(LogsContext)
   const [isInitialized, setIsInitialized] = useState(false)
   const { address, chain } = useAccount()
   const publicClient = usePublicClient({config});

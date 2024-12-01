@@ -2,23 +2,6 @@ import {type Dexie, type EntityTable } from 'dexie';
 
 export type RPCType = 'public' | 'dedicated' | 'archive';
 
-export const RPC_CONSTRAINTS = {
-  public: {
-    maxBlockRange: 100000,    // e.g., Base's public RPC limit
-    maxHistoricalDays: 30     // Arbitrary example, adjust as needed
-
-  },
-  dedicated: {
-    maxBlockRange: 500000,    // Higher limit for dedicated nodes
-    maxHistoricalDays: 90     // More historical data available
-
-  },
-  archive: {
-    maxBlockRange: Infinity,   // Much higher limit for archive nodes
-    maxHistoricalDays: Infinity // No historical limitation
-  }
-
-} as const;
 
 
 export interface ChainSync {
@@ -27,7 +10,7 @@ export interface ChainSync {
   ranges: BlockRange[];
   oldestAccessibleBlock: number;
   maxBlockRange: number;
-  lastUpdated: number;
+  lastSyncedBlock: number;
 
 }
 
