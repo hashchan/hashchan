@@ -65,11 +65,11 @@ export const IDBProvider = ({ children }) => {
 
   useEffect(() => {
     const db = new Dexie('hashchan') as HashchanDB;
-    db.version(1).stores({
+    db.version(2).stores({
       boardsSync: 'chainId',
-      boards: 'boardId, chainId, name, symbol, favourite',
-      threads: 'threadId, boardId, chainId',
-      posts: 'postId, threadId, boardId',
+      boards: '++id, boardId, &[boardId+chainId], chainId, [chainId+favourite]',
+      threads: '++id, &threadId, [boardId+chainId], timestamp',
+      posts: '++id, &postId, threadId, timestamp',
       settings: '++id'
     });
 

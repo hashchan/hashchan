@@ -48,6 +48,7 @@ import {
 
 
     const fetchBoards = useCallback(async (cacheOnly: boolean) => {
+      console.log('fetching boards')
       if (address && chain && publicClient && db && contractAddress) {
         let boards = []
         let boardsSync = await db.boardsSync.where('chainId').equals(chain.id).first()
@@ -63,6 +64,7 @@ import {
         }
           try {
             boards = await db.boards.where('chainId').equals(chain.id).toArray()
+            console.log('boards', boards)
           } catch (e) {
             console.log('e', e)
             console.log('db error, skipping')
@@ -81,6 +83,7 @@ import {
 
               for (let i = boardsSync.boardIterator; i < boardIterator; i++) {
                 const [boardName, boardSymbol] = await hashchan.read.boards([i])
+
                 const exist = await db.boards.where('[boardId+chainId]').equals([i, chain.id]).first()
                 console.log('exist', Boolean(exist) )
                 if (!exist) {
@@ -148,7 +151,6 @@ import {
           !blockNumber.data
         ) return
           const init = async () => {
-            console.log('fetching boards')
             await fetchBoards(false)
             await fetchFavouriteBoards()
             setIsInitialized(true)
