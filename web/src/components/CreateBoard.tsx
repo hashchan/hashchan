@@ -36,10 +36,10 @@ export const CreateBoard = ({
         }}
         onSubmit={handleSubmit(onSubmit)}>
           <label htmlFor="name">Board Name</label>
-          <input style={{width:'61.8vw'}} defaultValue="" {...register("name", { required: true })} />
+          <input style={{width:'38.2vw'}} defaultValue="" {...register("name", { required: true })} />
           {errors.name && <span>This field is required</span>}
           <label htmlFor="content">Symbol </label>
-          <input style={{width:'61.8vw'}} defaultValue="" {...register("symbol", { required: true })} />
+          <input style={{width:'38.2vw'}} defaultValue="" {...register("symbol", { required: true })} />
           {errors.symbol && <span>This field is required</span>}
         <div>
           <button

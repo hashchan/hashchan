@@ -206,7 +206,14 @@ const Post = forwardRef(({
       <div className="flex-wrap-center" style={{
         }}>
         <ImageDiv imgUrl={imgUrl} />
-        <MarkdownEditor.Markdown style={{display: 'flex', flexWrap: 'wrap', width: window.innerWidth - 618 + 'px'}} source={content} /> 
+        <MarkdownEditor.Markdown
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            width: `${(100/ Math.PHI)+(100/ (Math.PHI**4))}vw`
+          }}
+          source={content}
+        /> 
       </div>
     </div>
   )
@@ -230,6 +237,11 @@ export const Thread = () => {
 
   return (
     <>
+    { toggleReply && (
+          <CreatePost threadId={threadId} replyIds={makeReply} handleClose={handleClose} />
+      )
+      }
+
       {isReducedMode && <ReducedModeWarning />}
       <h3 style={{wordWrap: 'break-word'}}>Thread {threadId}</h3>
       {posts && posts.map((post, i) => {
@@ -247,11 +259,7 @@ export const Thread = () => {
           />
         )
       })
-      }{ toggleReply && (
-          <CreatePost threadId={threadId} replyIds={makeReply} handleClose={handleClose} />
-      )
-      }
-      {
+      }      {
         logErrors.length > 0  && logErrors.map((error, i) => {
           return (
             <div

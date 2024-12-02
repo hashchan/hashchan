@@ -98,3 +98,57 @@ input {
   font-weight: 500;
   font-family: inherit;
 }
+
+/* Custom Scrollbar Styling */
+/* For Webkit browsers (Chrome, Safari, etc.) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #090909;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #20C20E;
+  border-radius: 5px;
+  border: 2px solid #090909;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #27e811;
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #20C20E #090909;
+}
+
+/* Ensure consistent scrollbar styling in the Modal */
+.modal-container {
+  scrollbar-width: thin;
+  scrollbar-color: #20C20E #090909;
+}
+
+.modal-container::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.modal-container::-webkit-scrollbar-track {
+  background: #090909;
+  border-radius: 5px;
+}
+
+.modal-container::-webkit-scrollbar-thumb {
+  background: #20C20E;
+  border-radius: 5px;
+  border: 2px solid #090909;
+}
+
+.modal-container::-webkit-scrollbar-thumb:hover {
+  background: #27e811;
+}

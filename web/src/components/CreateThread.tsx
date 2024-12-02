@@ -62,28 +62,27 @@ export const CreateThread = ({
   return (
     <Modal handleClose={handleClose}>
       <form 
-        className="flex-wrap-center"
         style={{
-          display: 'flex',
-          flexDirection: 'column',
+          width: '100%',
+          height: '100%',
         }}
         onSubmit={handleSubmit(onSubmit)}>
         <label htmlFor="title">Title</label>
-        <div>
-          <input style={{width:'61.8vw'}} defaultValue="" {...register("title", { required: true })} />
+        <div style={{width:`${(100/Math.PHI)+(100/Math.PHI**3)}%`}}>
+          <input style={{width:'100%'}} defaultValue="" {...register("title", { required: true })} />
           {errors.title && <span>This field is required</span>}
         </div>
         <label htmlFor="imageUrl">Image Url</label>
-        <div>
+        <div style={{width:`${(100/Math.PHI)+(100/Math.PHI**3)}%`}}>
           {account?.model?.id && <input type="file" {...register("w3Image", { required: false })} />}
-          <input style={{width:'61.8vw'}} defaultValue="" {...register("imageUrl", { required: false })} />
+          <input style={{width:'100%'}} defaultValue="" {...register("imageUrl", { required: false })} />
         </div>
         <label htmlFor="content">Content</label>
-        <div>
+        <div style={{width:`${(100/Math.PHI)+(100/Math.PHI**3)}%`}}>
           <MarkdownEditor
             {...register("content", { required: true  })}
-            height= '23.6vh'
-            width="61.8vw"
+            width="100%"
+            height="100%"
             onChange={(value, viewUpdate) => {
               setValue('content', value)
             }} 

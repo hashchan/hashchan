@@ -47,26 +47,28 @@ export const CreatePost = ({
     return (
       <Modal handleClose={handleClose}>
         <form
-          className="flex-wrap-center"
           style={{
-            display: 'flex',
-            flexDirection: 'column',
+            width: '100%',
+            height: '100%',
           }}
           onSubmit={handleSubmit(onSubmit)}>
           <label htmlFor="imageUrl">Image Url</label>
           {account?.model?.id && <input type="file" {...register("w3Image", { required: false })} />}
-          <div>
+          <div style={{width: '100%'}}>
             <input style={{
-              width:`${100/(Math.PHI)}vw`
+              width:`${100/(Math.PHI)+(100/(Math.PHI**3))}%`
               }}
               defaultValue="" {...register("imageUrl", { required: false })} />
           </div>
           <label htmlFor="content">Content</label>
-          <div>
+          <div style={{width: '100%', height: '100%'}}>
             <MarkdownEditor
               {...register("content", { required: true  })}
-              height={`${100/(Math.PHI**3)}vh`}
-              width={`${100/(Math.PHI)}vw`}
+              style={{
+              width: '100%',
+              height: '100%',
+              }}
+
               value={
                 replyIds.length > 0 ? ( replyIds.map((replyId) => {
                 return `[${truncateEthAddress(replyId)}](#${replyId}) \n`}).toString()) : ''
