@@ -1,6 +1,11 @@
 import { createContext, useEffect, useState } from 'react';
 import Dexie, { type EntityTable } from 'dexie';
 
+interface Settings {
+  id?: number;
+  tosAccepted: boolean;
+  tosTimestamp: number;
+}
 
 interface Post {
   id: number;
@@ -12,7 +17,6 @@ interface Post {
   replyIds: string[];
   content: string;
   timestamp: number
-
 }
 
 interface Thread {
@@ -44,38 +48,47 @@ interface BoardsSync {
   lastSynced: number;
 }
 
-
 type HashchanDB = Dexie & {
   boardsSync: EntityTable<BoardsSync,'chainId'>,
   boards: EntityTable<Board,'boardId'>,
   threads: EntityTable<Thread,'threadId'>,
-  posts: EntityTable<Post,'postId'>
+  posts: EntityTable<Post,'postId'>,
+  settings: EntityTable<Settings,'id'>
 }
 
 export const IDBContext = createContext({
-  db:null
+  db: null as HashchanDB | null
 })
 
 export const IDBProvider = ({ children }) => {
-  const [db, setDb] = useState<HashchanDB>(null)
+  const [db, setDb] = useState<HashchanDB | null>(null)
 
   useEffect(() => {
-    const db = new Dexie('hashchandb') as HashchanDB
+    const db = new Dexie('hashchan') as HashchanDB;
     db.version(1).stores({
       boardsSync: 'chainId',
-      boards: '++id, boardId, &[boardId+chainId], chainId, [chainId+favourite]',
-      threads: '++id, &threadId, [boardId+chainId], timestamp',
-      posts: '++id, &postId, threadId, timestamp'
-    })
-    setDb(db)
+      boards: 'boardId, chainId, name, symbol, favourite',
+      threads: 'threadId, boardId, chainId',
+      posts: 'postId, threadId, boardId',
+      settings: '++id'
+    });
+
+    (async () => {
+      // Initialize settings if they don't exist
+      const settings = await db.settings.toArray();
+      if (settings.length === 0) {
+        await db.settings.add({
+          tosAccepted: false,
+          tosTimestamp: 0
+        });
+      }
+      setDb(db);
+    })();
     return () => db.close()
   }, [])
 
   return (
-    <IDBContext.Provider value={{
-      db: db
-      }}
-    >
+    <IDBContext.Provider value={{db}}>
       {children}
     </IDBContext.Provider>
   )

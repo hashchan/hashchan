@@ -20,6 +20,8 @@ import Tips from '../assets/emoji/tips.png'
 import ArbitrumOne from '@/assets/emoji/arbitrum-one.png'
 import ArbitrumNova from '@/assets/emoji/arbitrum-nova.png'
 import Flow from '@/assets/emoji/flow.png'
+
+
 export const About = () => {
   return (
     <div
