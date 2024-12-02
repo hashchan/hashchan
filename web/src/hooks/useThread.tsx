@@ -20,6 +20,7 @@ import { useContract } from '@/hooks/useContract'
 import { useParams } from 'react-router-dom'
 import  sanitizeMarkdown  from 'sanitize-markdown'
 import { parseContent } from '@/utils'
+import { tryRecurseBlockFilter } from '@/utils'
 
 export const useThread = () => {
   const {chainId:chainIdParam, boardId:boardIdParam, threadId:threadIdParam} = useParams()
@@ -34,6 +35,8 @@ export const useThread = () => {
   const [posts, setPosts] = useState([])
   const [logErrors, setLogErrors] = useState([])
   const { contractAddress, abi } = useContract()
+
+  const [isReducedMode, setIsReducedMode] = useState(false)
 
 
   const fetchPosts = useCallback(async () => {
@@ -54,7 +57,7 @@ export const useThread = () => {
         console.log('thread', thread)
       } else {
         //fetching thread from event logs
-        const threadFilter = await publicClient.createContractEventFilter({
+        const filterArgs = {
           address: contractAddress,
           abi,
           eventName: 'NewThread',
@@ -63,10 +66,12 @@ export const useThread = () => {
           },
           fromBlock: 0n, // maybe blockheigt of deployment is better
           toBlock: blockNumber.data
-        })
+        }
+        const {filter:threadFilter, isReduced:isThreadReduced} = await tryRecurseBlockFilter(publicClient, filterArgs)
+        setIsReducedMode(isThreadReduced)
 
         const threadLogs = await publicClient.getFilterLogs({
-          filter: threadFilter,
+          filter: threadFilter
         })
 
 
@@ -122,16 +127,18 @@ export const useThread = () => {
         }
         console.log('last synced', thread.lastSynced)
         console.log('to block', blockNumber.data)
-        const filter = await publicClient.createContractEventFilter({
+        const postFilterArgs = {
           address: contractAddress,
           abi,
           eventName: 'NewPost',
-          fromBlock: BigInt(thread.lastSynced ? thread.lastSynced - 1 : 0),
-          toBlock: blockNumber.data,
           args: {
             threadId: threadIdParam
-          }
-        })
+          },
+          fromBlock: BigInt(thread.lastSynced ? thread.lastSynced - 1 : 0),
+          toBlock: blockNumber.data
+        }
+        const {filter, isReduced} = await tryRecurseBlockFilter(publicClient, postFilterArgs)
+        setIsReducedMode(isReduced)
         const logs = await publicClient.getFilterLogs({
           filter
         })
@@ -334,7 +341,8 @@ export const useThread = () => {
     posts: posts,
     fetchPosts: fetchPosts,
     createPost: createPost,
-    logErrors: logErrors
+    logErrors: logErrors,
+    isReducedMode: isReducedMode,
   }
 
 }

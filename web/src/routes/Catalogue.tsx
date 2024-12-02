@@ -2,6 +2,7 @@ import { useParams } from 'react-router-dom'
 import { useThreads } from '@/hooks/useThreads'
 import { useNavigate } from 'react-router-dom'
 import { truncateEthAddress } from '@/utils'
+import { ReducedModeWarning } from '@/components/ReducedModeWarning'
 import { useAccount } from 'wagmi'
 const ListItem = ({
   threadId, title, imgUrl, content
@@ -74,12 +75,15 @@ const List = ({threads}: {threads: any}) => {
   )
 }
 
+
+
 export const Catalogue = () => {
   const { address }  = useAccount()
-  const { threads, logErrors } = useThreads()
+  const { threads, logErrors, isReducedMode } = useThreads()
   return (
     <>
-      <h3>Catalogue</h3>
+      <span><h3 style={{display: "inline"}}>Catalogue</h3>
+      {isReducedMode && <ReducedModeWarning />}</span>
       { address  ?  (
         <List threads={threads} />
       ) : (

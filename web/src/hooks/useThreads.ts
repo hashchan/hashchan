@@ -14,6 +14,9 @@ import { config } from '@/config'
 import { IDBContext } from '@/provider/IDBProvider'
 import { useBoard } from '@/hooks/useBoard'
 import { useParams } from 'react-router-dom'
+import { tryRecurseBlockFilter } from '@/utils'
+
+
 export const useThreads = () => {
   const { board } = useBoard()
   const { boardId, chainId } = useParams()
@@ -27,7 +30,10 @@ export const useThreads = () => {
   const [logErrors, setLogErrors] = useState([])
   //const walletClient = useWalletClient()
   const [threads, setThreads] = useState([])
-  
+  const [isReducedMode, setIsReducedMode] = useState(false)
+
+
+
   const fetchThreads = useCallback(async () => {
     if (
       publicClient &&
@@ -45,9 +51,11 @@ export const useThreads = () => {
       const threads = await db.threads
       .where(['boardId+chainId'])
       .equals([Number(boardId), Number(chainId)]).toArray()
-      try {
+        console.log('blockNumber', blockNumber.data)
+        console.log('board.lastSynced', board.lastSynced)
         if (blockNumber.data > board.lastSynced) {
-          const filter = await publicClient.createContractEventFilter({
+          
+          const startingFilterArgs = {
             address: contractAddress,
             abi,
             eventName: 'NewThread',
@@ -56,47 +64,53 @@ export const useThreads = () => {
             },
             fromBlock: BigInt(board.lastSynced ? board.lastSynced : 0),
             toBlock: blockNumber.data
-          })
+          }
 
-          const logs = await publicClient.getFilterLogs({
-            filter,
-          })
+          const {filter, isReduced} = await tryRecurseBlockFilter(publicClient, startingFilterArgs)
+          setIsReducedMode(isReduced)
+          console.log()
+          console.log('filter', filter)
 
-
-
-          logs.forEach(async (log) => {
-            const {
-              board:boardId,
-              creator,
-              id:threadId,
-              imgUrl,
-              title,
-              content,
-              timestamp
-            } = log.args
-            threads.push({
-              lastSynced: 0,
-              boardId: Number(boardId),
-              threadId,
-              creator,
-              imgUrl,
-              title,
-              content,
-              chainId: chain.id,
-              timestamp: Number(timestamp)
+          try {
+            const logs = await publicClient.getFilterLogs({
+              filter,
             })
-            await db.threads.add(threads[threads.length - 1])
+            console.log('logs', logs) 
+            logs.forEach(async (log) => {
+              const {
+                board:boardId,
+                creator,
+                id:threadId,
+                imgUrl,
+                title,
+                content,
+                timestamp
+              } = log.args
+              threads.push({
+                lastSynced: 0,
+                boardId: Number(boardId),
+                threadId,
+                creator,
+                imgUrl,
+                title,
+                content,
+                chainId: chain.id,
+                timestamp: Number(timestamp)
+              })
+              await db.threads.add(threads[threads.length - 1])
           })
+          } catch (e) {
+            console.log('log error', e)
+            setLogErrors(old => [...old, e.toString()])
+          }
+
+
+
 
         }
 
         await db.boards.where('[boardId+chainId]').equals([board.boardId, board.chainId]).modify({lastSynced: blockNumber.data})
         setThreads(threads)
-
-      } catch (e) {
-        console.log('log error', e)
-        setLogErrors(old => [...old, e.toString()])
-      }
     }
   }, [
     publicClient,
@@ -118,11 +132,12 @@ export const useThreads = () => {
        address: contractAddress,
        abi,
        eventName: 'NewThread',
-       fromBlock: blockNumber.data,
+       //fromBlock: blockNumber.data,
        args: {
          board: board.boardId
        },
        onLogs(logs) {
+         console.log("watch Threads:", logs)
          const thread = {
            title: logs[0].args.title,
            creator: logs[0].args.creator,
@@ -195,7 +210,8 @@ export const useThreads = () => {
   return {
     threads,
     fetchThreads,
-    logErrors
+    logErrors,
+    isReducedMode
   }
 
 }

@@ -40,6 +40,7 @@ interface Board {
 
 interface BoardsSync {
   chainId: number;
+  boardIterator: number;
   lastSynced: number;
 }
 

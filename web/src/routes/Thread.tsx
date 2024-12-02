@@ -8,6 +8,7 @@ import { useTip } from '@/hooks/useTip'
 import { useForm  } from "react-hook-form";
 
 import MarkdownEditor from '@uiw/react-markdown-editor';
+import { ReducedModeWarning } from '@/components/ReducedModeWarning'
 
 const PostIdSpan = ({postId, handleOpenPost}:{postId:string, handleOpenPost: (postId:string) => void}) => {
   const [hovered, setHovered] = useState(false)
@@ -217,7 +218,7 @@ export const Thread = () => {
   const [toggleReply, setToggleReply] = useState(false)
   const {threadId } = useParams()
 
-  const { posts, logErrors } = useThread()
+  const { posts, isReducedMode, logErrors } = useThread()
 
   const handleOpenPost = (threadId:string) => {
     setMakeReply(old => [...old, threadId])
@@ -229,6 +230,7 @@ export const Thread = () => {
 
   return (
     <>
+      {isReducedMode && <ReducedModeWarning />}
       <h3 style={{wordWrap: 'break-word'}}>Thread {threadId}</h3>
       {posts && posts.map((post, i) => {
         return (
