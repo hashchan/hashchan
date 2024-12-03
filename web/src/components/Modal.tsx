@@ -84,15 +84,16 @@ export const Modal = ({
         className="modal-container"
         style={{
           position: 'fixed',
-          backgroundColor: '#000',
-          border: '1px solid #20C20E',
-          borderRadius: '4px',
-          padding: '1rem',
+          backgroundColor: '#090909',
+          border: '1px solid #20C20E20',
+          padding: `${1/Math.PHI**2}rem`,
           width: `${widthInVw}vw`,
           height: dimensions.height,
           display: 'flex',
           flexDirection: 'column',
-          zIndex: 1000,
+          zIndex: 1618,
+          top: `${100/(Math.PHI**3)}%`,
+          left: `${100/(Math.PHI**3)}%`,
         }}
       >
         <div
@@ -102,13 +103,11 @@ export const Modal = ({
             display: 'flex',
             justifyContent: 'flex-end',
             cursor: 'move',
-            paddingBottom: '0.5rem',
-            background: 'rgba(32, 194, 14, 0.1)',
-            margin: '-1rem -1rem 0.5rem -1rem',
-            padding: '0.5rem 1rem',
-            borderTopLeftRadius: '4px',
-            borderTopRightRadius: '4px',
-            borderBottom: '1px solid rgba(32, 194, 14, 0.2)',
+            paddingBottom: `${1/(Math.PHI**2)}rem`,
+            background: '#20C20E20',
+            margin: `-${1/(Math.PHI**2)}rem -${1/(Math.PHI**2)}rem ${1/(Math.PHI)}rem -${1/(Math.PHI**2)}rem`,
+            padding: `${1/(Math.PHI**2)}rem ${1/(Math.PHI**2)}rem`,
+            borderBottom: '1px solid #20C20E20',
           }}
         >
           <button
@@ -116,9 +115,8 @@ export const Modal = ({
               color: '#ff0000',
               background: 'none',
               border: 'none',
-              fontSize: '1.2rem',
+              fontSize: `${(Math.PHI)}rem`,
               cursor: 'pointer',
-              padding: '0.2rem 0.5rem',
             }}
             onClick={handleClose}
           >
@@ -151,4 +149,4 @@ export const Modal = ({
       </div>
     </Draggable>
   );
-};
+}

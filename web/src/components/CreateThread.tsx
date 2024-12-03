@@ -63,19 +63,37 @@ export const CreateThread = ({
     <Modal handleClose={handleClose}>
       <form 
         style={{
-          width: '100%',
-          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
         }}
         onSubmit={handleSubmit(onSubmit)}>
         <label htmlFor="title">Title</label>
-        <div style={{width:`${(100/Math.PHI)+(100/Math.PHI**3)}%`}}>
-          <input style={{width:'100%'}} defaultValue="" {...register("title", { required: true })} />
+        <div style={{
+          width:`${(100/Math.PHI)+(100/Math.PHI**3)}%`
+          }}>
+          <input style={{
+            paddingLeft: 0,
+            paddingRight: 0,
+            margin: '4px 0',
+            width:'100%'
+          }}
+          defaultValue="" {...register("title", { required: true })} />
           {errors.title && <span>This field is required</span>}
         </div>
         <label htmlFor="imageUrl">Image Url</label>
-        <div style={{width:`${(100/Math.PHI)+(100/Math.PHI**3)}%`}}>
+        <div style={{
+          width:`${(100/Math.PHI)+(100/Math.PHI**3)}%`
+          }}>
           {account?.model?.id && <input type="file" {...register("w3Image", { required: false })} />}
-          <input style={{width:'100%'}} defaultValue="" {...register("imageUrl", { required: false })} />
+          <input style={{
+            paddingLeft: 0,
+            paddingRight: 0,
+            margin: '4px 0',
+            width:'100%'
+          }}
+          defaultValue="" {...register("imageUrl", { required: false })} />
         </div>
         <label htmlFor="content">Content</label>
         <div style={{width:`${(100/Math.PHI)+(100/Math.PHI**3)}%`}}>

@@ -32,15 +32,41 @@ export const CreateBoard = ({
       <form
         className="flex-wrap-center"
         style={{
+          display: 'flex',
           flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
         }}
-        onSubmit={handleSubmit(onSubmit)}>
-          <label htmlFor="name">Board Name</label>
-          <input style={{width:'38.2vw'}} defaultValue="" {...register("name", { required: true })} />
+        onSubmit={handleSubmit(onSubmit)}
+      >
+        <label htmlFor="name">Board Name</label>
+        <div style={{
+            width:`${100/(Math.PHI)+(100/(Math.PHI**3))}%`
+          }}>
+          <input style={{
+              paddingLeft: 0,
+              paddingRight: 0,
+              margin: '4px 0',
+              width: '100%',
+            }}
+            defaultValue="" {...register("name", { required: true })} />
           {errors.name && <span>This field is required</span>}
-          <label htmlFor="content">Symbol </label>
-          <input style={{width:'38.2vw'}} defaultValue="" {...register("symbol", { required: true })} />
-          {errors.symbol && <span>This field is required</span>}
+        </div>
+        <label htmlFor="content">Symbol </label>
+        <div
+          style={{
+            width:`${100/(Math.PHI)+(100/(Math.PHI**3))}%`
+          }}
+        >
+        <input style={{
+            paddingLeft: 0,
+            paddingRight: 0,
+            margin: '4px 0',
+            width: '100%',
+          }}
+          defaultValue="" {...register("symbol", { required: true })} />
+        {errors.symbol && <span>This field is required</span>}
+</div>
         <div>
           <button
             disabled={isSubmitting}
@@ -54,7 +80,7 @@ export const CreateBoard = ({
             }}>{rpcError}</p>)}
             </div>
             </form>
-    </Modal>
+            </Modal>
   );
 }
 

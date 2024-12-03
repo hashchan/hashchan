@@ -1,4 +1,5 @@
 import 'dotenv/config';
+
 import type { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox-viem";
 import "@nomicfoundation/hardhat-verify";
@@ -15,35 +16,35 @@ const config: HardhatUserConfig = {
     },
     classic: {
       url:`https://etc.rpc.rivet.cloud/${process.env.ETC}`,
-      chainId: 61,
+        chainId: 61,
       accounts: {
         mnemonic: process.env.MNEMONIC
       }
     },
     mainnet: {
       url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-      chainId: 1,
+        chainId: 1,
       accounts: {
         mnemonic: process.env.MNEMONIC
       }
     },
     polygon: {
       url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-      chainId: 137,
+        chainId: 137,
       accounts: {
         mnemonic: process.env.MNEMONIC
       }
     },
     avalanche: {
       url: `https://avax-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-      chainId: 43114,
+        chainId: 43114,
       accounts: {
         mnemonic: process.env.MNEMONIC
       }
     },
     sepolia: {
       url: `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-      chainId: 11155111,
+        chainId: 11155111,
       accounts: {
         mnemonic: process.env.MNEMONIC
 
@@ -51,28 +52,35 @@ const config: HardhatUserConfig = {
     },
     'optimism-sepolia': {
       url: `https://optimism-sepolia.infura.io/v3/${process.env.INFURA}`,
-      chainId: 11155420,
+        chainId: 11155420,
       accounts: {
         mnemonic: process.env.MNEMONIC
       }
     },
     optimism: {
       url: `https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-      chainId: 10,
+        chainId: 10,
       accounts: {
         mnemonic: process.env.MNEMONIC
       }
     },
     fantom: {
       url: `https://fantom-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-      chainId: 250,
+        chainId: 250,
       accounts: {
         mnemonic: process.env.MNEMONIC
       }
     },
     base: {
       url: `https://base-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-      chainId: 8453,
+        chainId: 8453,
+      accounts: {
+        mnemonic: process.env.MNEMONIC
+      }
+    },
+    filecoin: {
+      url: `https://rpc.ankr.com/filecoin/${process.env.ANKR}`,
+        chainId: 314,
       accounts: {
         mnemonic: process.env.MNEMONIC
       }
@@ -80,7 +88,7 @@ const config: HardhatUserConfig = {
     flow: {
       //url: `https://flow-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
       url: `https://mainnet.evm.nodes.onflow.org`,
-      chainId: 747,
+        chainId: 747,
       ignition: {
         gasPrice: 100000n,
       },
@@ -90,7 +98,7 @@ const config: HardhatUserConfig = {
     },
     'flow-testnet': {
       url: `https://flow-testnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-      chainId: 545,
+        chainId: 545,
       ignition: {
         gasPrice: 10000n,
       },
@@ -101,28 +109,28 @@ const config: HardhatUserConfig = {
     },
     'base-sepolia': {
       url: `https://base-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-      chainId: 84532,
+        chainId: 84532,
       accounts: {
         mnemonic: process.env.MNEMONIC
       }
     },
     'arbitrum-sepolia': {
       url: `https://arb-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-      chainId: 421614,
+        chainId: 421614,
       accounts: {
         mnemonic: process.env.MNEMONIC
       }
     },
     'arbitrum-one': {
       url: `https://arb-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-      chainId: 42161,
+        chainId: 42161,
       accounts: {
         mnemonic: process.env.MNEMONIC
       }
     },
     'arbitrum-nova': {
       url: `https://arbnova-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-      chainId: 42170,
+        chainId: 42170,
       accounts: {
         mnemonic: process.env.MNEMONIC
       }
@@ -184,7 +192,7 @@ const config: HardhatUserConfig = {
           browserURL: "https://arbiscan.io/",
         }
       },
-			{
+      {
         network: "flow-testnet",
         chainId: 545,
         urls: {
@@ -192,7 +200,7 @@ const config: HardhatUserConfig = {
           browserURL: "https://evm-testnet.flowscan.io/",
         }
       },
-			{
+      {
         network: 'flow',
         chainId: 747,
         urls: {
