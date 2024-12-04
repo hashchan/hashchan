@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Connector, useConnect  } from 'wagmi'
 import { Link } from 'react-router-dom'
 import { useAccount, useDisconnect, useEnsAvatar, useEnsName  } from 'wagmi'
-import {truncateEthAddress} from '@/utils'
+import { truncateEthAddress } from '@/utils/address'
 import { useEstimateGas } from '@/hooks/useEstimateGas'
 import { formatNumberWithSubscriptZeros as fmtZero  } from '@haqq/format-number-with-subscript-zeros';
 

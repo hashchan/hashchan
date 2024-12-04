@@ -3,7 +3,8 @@ import { useParams, useLocation  } from 'react-router-dom'
 
 import { useThread } from '@/hooks/useThread'
 import { CreatePost } from '@/components/CreatePost'
-import {truncateEthAddress, supportedExtensions} from '@/utils'
+import { truncateEthAddress } from '@/utils/address'
+import { supportedExtensions } from '@/utils/content'
 import { useTip } from '@/hooks/useTip'
 import { useForm  } from "react-hook-form";
 

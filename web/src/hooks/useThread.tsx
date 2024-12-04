@@ -19,8 +19,8 @@ import { writeContract,waitForTransactionReceipt  } from '@wagmi/core'
 import { useContract } from '@/hooks/useContract'
 import { useParams } from 'react-router-dom'
 import  sanitizeMarkdown  from 'sanitize-markdown'
-import { parseContent } from '@/utils'
-import { tryRecurseBlockFilter } from '@/utils'
+import { parseContent } from '@/utils/content'
+import { tryRecurseBlockFilter } from '@/utils/blockchain'
 
 export const useThread = () => {
   const {chainId:chainIdParam, boardId:boardIdParam, threadId:threadIdParam} = useParams()
@@ -346,4 +346,3 @@ export const useThread = () => {
   }
 
 }
-

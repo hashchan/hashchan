@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { useForm  } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { useThread } from "@/hooks/useThread";
-import { truncateEthAddress } from '@/utils'
+import { truncateEthAddress } from '@/utils/address'
+import { parseContent } from '@/utils/content'
 import MarkdownEditor from '@uiw/react-markdown-editor';
 import { useW3Storage } from '@/hooks/useW3Storage'
-import { parseContent } from '@/utils'
 import { Modal } from '@/components/Modal'
 
 
@@ -103,5 +103,3 @@ export const CreatePost = ({
               </Modal>
     );
   }
-
-

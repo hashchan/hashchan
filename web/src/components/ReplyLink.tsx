@@ -1,5 +1,5 @@
 import { useState, forwardRef } from 'react'
-import { truncateEthAddress } from '@/utils'
+import { truncateEthAddress } from '@/utils/address'
 export const ReplyLink = forwardRef(({replyId}: {replyId: string}, ref) => {
   const [hovered, setHovered] = useState(false)
   return (

@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { useThreads } from '@/hooks/useThreads'
 import { useNavigate } from 'react-router-dom'
-import { truncateEthAddress } from '@/utils'
+import { truncateEthAddress } from '@/utils/address'
 import { ReducedModeWarning } from '@/components/ReducedModeWarning'
 import { useAccount } from 'wagmi'
 const ListItem = ({

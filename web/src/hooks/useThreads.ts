@@ -14,7 +14,7 @@ import { config } from '@/config'
 import { IDBContext } from '@/provider/IDBProvider'
 import { useBoard } from '@/hooks/useBoard'
 import { useParams } from 'react-router-dom'
-import { tryRecurseBlockFilter } from '@/utils'
+import { tryRecurseBlockFilter } from '@/utils/blockchain'
 
 
 export const useThreads = () => {
@@ -99,17 +99,14 @@ export const useThreads = () => {
               })
               await db.threads.add(threads[threads.length - 1])
           })
+          await db.boards.where('[boardId+chainId]').equals([board.boardId, board.chainId]).modify({'lastSynced': blockNumber.data})
           } catch (e) {
             console.log('log error', e)
             setLogErrors(old => [...old, e.toString()])
           }
 
-
-
-
         }
 
-        await db.boards.where('[boardId+chainId]').equals([board.boardId, board.chainId]).modify({lastSynced: blockNumber.data})
         setThreads(threads)
     }
   }, [
@@ -215,4 +212,3 @@ export const useThreads = () => {
   }
 
 }
-
