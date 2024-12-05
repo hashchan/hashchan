@@ -1,4 +1,8 @@
 import './index.css'
+import { initializeGTM } from './utils/gtm'
+
+// Initialize GTM
+initializeGTM()
 
 // Extend Math interface globally
 declare global {
