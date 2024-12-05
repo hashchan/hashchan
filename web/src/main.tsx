@@ -1,8 +1,8 @@
 import './index.css'
-import { initializeGTM } from './utils/gtm'
+import { initializeGA } from './utils/gtm'
 
-// Initialize GTM
-initializeGTM()
+// Initialize GA
+initializeGA()
 
 // Extend Math interface globally
 declare global {
@@ -36,6 +36,7 @@ import { IDBProvider } from '@/provider/IDBProvider'
 import { W3UpProvider } from '@/provider/W3UpProvider'
 
 import {NavBar} from '@/components/NavBar'
+import { RouteTracker } from './components/RouteTracker'
 
 import { NotFound } from "@/components/NotFound";
 import { Home } from "@/routes/Home";
@@ -56,6 +57,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <IDBProvider>
           <TOSProvider>
             <BrowserRouter>
+              <RouteTracker />
               <NavBar />
               <Routes>
                 <Route path="/tospp" element={<TOSPP />} />
