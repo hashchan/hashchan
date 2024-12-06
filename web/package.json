@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@haqq/format-number-with-subscript-zeros": "^1.0.1",
+    "@helia/unixfs": "^4.0.1",
     "@tanstack/react-query": "^5.51.15",
     "@uiw/react-markdown-editor": "^6.1.2",
     "@uniswap/sdk-core": "^6.0.0",
@@ -21,6 +22,7 @@
     "dexie-react-hooks": "^1.1.7",
     "file-type": "^19.6.0",
     "json2md": "^2.0.1",
+    "multiformats": "^13.3.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-draggable": "^4.4.6",
