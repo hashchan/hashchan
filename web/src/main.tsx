@@ -1,8 +1,8 @@
 import './index.css'
-import { initializeGA } from './utils/gtm'
+import { initializeAnalytics } from './utils/gtm'
 
-// Initialize GA
-initializeGA()
+// Initialize analytics
+initializeAnalytics()
 
 // Extend Math interface globally
 declare global {
