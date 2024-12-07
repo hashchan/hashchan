@@ -114,30 +114,10 @@ const TipCreator = ({creator}: {creator: `0x${string}`}) => {
   )
 }
 
-const IPFSImageDiv = ({imgUrl}: {imgUrl: string}) => {
-  const [blob, setBlob] = useState(null)
-  const { fetchCID, logErrors:heliaLogErrors } = useHelia()
-
-  const handleFetchCID = useCallback(async () => {
-    const {blob, type}  = await fetchCID(imgUrl)
-    setBlob(blob)
-  }, [fetchCID, imgUrl])
-
-  useEffect(() => {
-    handleFetchCID()
-  }, [handleFetchCID])
-  return (
-    <>{blob && (
-      <img
-        src={ URL.createObjectURL(blob)}
-      />
-    )}
-    </>
-  )
-}
-
 const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
-  imgUrl = 'bafkreiab6xxyrrnitmrukgeh5kwvnyhidhxsdmuloyeft7omycpk2vauwu'
+  //imgUrl = 'bafkreiab6xxyrrnitmrukgeh5kwvnyhidhxsdmuloyeft7omycpk2vauwu'
+  const [uri, setUri] = useState(null)
+  const { fetchCID, logErrors:heliaLogErrors } = useHelia()
   const [protocol, setProtocol] = useState(null)
   const [expanded, setExpanded] = useState(false)
   const [isVideo, setIsVideo] = useState(false)
@@ -153,56 +133,61 @@ const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
     setVideoError(true);
   };
 
-  const https = /^https?:\/\//;
+  const handleFetchCID = useCallback(async (cid) => {
+    const {blob, type}  = await fetchCID(cid)
+    console.log('blob', blob)
+    setUri(URL.createObjectURL(blob))
+  }, [fetchCID])
 
-    if (!https.test(imgUrl)) {
-
-    return <IPFSImageDiv imgUrl={imgUrl} />
-  } else {
-    if (videoError && imgError) {
-      return (<></>)
+  useEffect(() => {
+    const https = /^https?:\/\//;
+      if (!https.test(imgUrl)) {
+      handleFetchCID(imgUrl)
+    } else {
+      setUri(imgUrl)
     }
+  }, [handleFetchCID, imgUrl])
 
-    if (isVideo || imgError) {
-      return (
-        <video
-          src={imgUrl}
-          style={{
-            float: 'left',
-            justifyContent: 'center',
-            objectFit: 'contain',
-            paddingRight: `${1/ Math.PHI}vw`,
-            minHeight: `${100*(Math.PHI - 1)}px`,
-            maxWidth: `${100*(Math.PHI + 1)}px`,
-            maxHeight: `${1000/(Math.PHI**3)}px`,
-          }}
-          preload="metadata"
-          controls
-          playsInline
-          onError={handleVideoError}
-        />
-      )
-    }
+  if (videoError && imgError) {
+    return (<></>)
+  }
+
+  if (isVideo || imgError) {
     return (
-      <img 
-        onClick={() => setExpanded(!expanded)}
+      <video
+        src={uri}
         style={{
           float: 'left',
           justifyContent: 'center',
           objectFit: 'contain',
           paddingRight: `${1/ Math.PHI}vw`,
           minHeight: `${100*(Math.PHI - 1)}px`,
-          maxWidth: expanded ? `${(100/(Math.PHI))+(100/(Math.PHI**3))+(100/(Math.PHI**5))}vw` : `${100*(Math.PHI + 1)}px`,
-          maxHeight: expanded ? `${(100/(Math.PHI))+(100/(Math.PHI**3))+(100/(Math.PHI**5))}vh` : `${1000/(Math.PHI**3)}px`,
+          maxWidth: `${100*(Math.PHI + 1)}px`,
+          maxHeight: `${1000/(Math.PHI**3)}px`,
         }}
-        src={imgUrl}
-        onError={handleImageError}
+        preload="metadata"
+        controls
+        playsInline
+        onError={handleVideoError}
       />
     )
-
   }
-
-
+  return (
+    <img 
+      onClick={() => setExpanded(!expanded)}
+      style={{
+        float: 'left',
+        justifyContent: 'center',
+        objectFit: 'contain',
+        paddingRight: `${1/ Math.PHI}vw`,
+        minHeight: `${100*(Math.PHI - 1)}px`,
+        maxWidth: expanded ? `${(100/(Math.PHI))+(100/(Math.PHI**3))+(100/(Math.PHI**5))}vw` : `${100*(Math.PHI + 1)}px`,
+        maxHeight: expanded ? `${(100/(Math.PHI))+(100/(Math.PHI**3))+(100/(Math.PHI**5))}vh` : `${1000/(Math.PHI**3)}px`,
+      }}
+      src={uri}
+      onError={handleImageError}
+    />
+  )
 }
 
 const Post = forwardRef(({
