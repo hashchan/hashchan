@@ -33,6 +33,7 @@ import { WagmiProvider  } from 'wagmi'
 import { config } from './config'
 
 import { IDBProvider } from '@/provider/IDBProvider'
+import { HeliaProvider } from '@/provider/HeliaProvider'
 import { W3UpProvider } from '@/provider/W3UpProvider'
 
 import {NavBar} from '@/components/NavBar'
@@ -53,33 +54,35 @@ import { Thread } from "@/routes/Thread";
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <WagmiProvider config={config}>
     <QueryClientProvider client={new QueryClient()}>
-      <W3UpProvider>
-        <IDBProvider>
-          <TOSProvider>
-            <BrowserRouter>
-              <RouteTracker />
-              <NavBar />
-              <Routes>
-                <Route path="/tospp" element={<TOSPP />} />
-                <Route path="/" element={<Home />}>
-                  <Route path="docs/:docversion" element={<Docs />}>
-                    <Route path="intro" element={<Intro />} />
-                    <Route path="instructions" element={<Instructions />} />
-                  </Route>
-                  <Route path="chains/:chainId" element={<Chain />}>
-                    <Route path="boards/:boardId" element={<Board />}>
-                      <Route path="catalogue" element={<Catalogue />} />
-                      <Route path="thread/:threadId" element={<Thread />} />
+      <HeliaProvider>
+        <W3UpProvider>
+          <IDBProvider>
+            <TOSProvider>
+              <BrowserRouter>
+                <RouteTracker />
+                <NavBar />
+                <Routes>
+                  <Route path="/tospp" element={<TOSPP />} />
+                  <Route path="/" element={<Home />}>
+                    <Route path="docs/:docversion" element={<Docs />}>
+                      <Route path="intro" element={<Intro />} />
+                      <Route path="instructions" element={<Instructions />} />
+                    </Route>
+                    <Route path="chains/:chainId" element={<Chain />}>
+                      <Route path="boards/:boardId" element={<Board />}>
+                        <Route path="catalogue" element={<Catalogue />} />
+                        <Route path="thread/:threadId" element={<Thread />} />
+                      </Route>
                     </Route>
                   </Route>
-                </Route>
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <TOSPPBanner />
-            </BrowserRouter>
-          </TOSProvider>
-        </IDBProvider>
-      </W3UpProvider>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <TOSPPBanner />
+              </BrowserRouter>
+            </TOSProvider>
+          </IDBProvider>
+        </W3UpProvider>
+      </HeliaProvider>
     </QueryClientProvider>
   </WagmiProvider>
   ,

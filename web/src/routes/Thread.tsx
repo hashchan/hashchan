@@ -6,6 +6,8 @@ import { CreatePost } from '@/components/CreatePost'
 import { truncateEthAddress } from '@/utils/address'
 import { supportedExtensions } from '@/utils/content'
 import { useTip } from '@/hooks/useTip'
+import { useHelia } from '@/hooks/useHelia'
+
 import { useForm  } from "react-hook-form";
 
 import MarkdownEditor from '@uiw/react-markdown-editor';
@@ -99,7 +101,7 @@ const TipCreator = ({creator}: {creator: `0x${string}`}) => {
           }}
           onSubmit={handleSubmit(onSubmit)}
         ><label htmlFor="amount">Tip: </label>
-          <input style={{width:`${100/ Math.PHI}px`}} defaultValue="0.01" {...register("amount", { required: true })} />
+          <input style={{width:`${100/ Math.PHI}px`}} defaultValue={(Math.PHI)/100} {...register("amount", { required: true })} />
           {errors.amount && <span>This field is required</span>}
           <button type="submit">Tip</button>
         </form>
@@ -113,6 +115,10 @@ const TipCreator = ({creator}: {creator: `0x${string}`}) => {
 }
 
 const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
+  //imgUrl = 'bafkreiab6xxyrrnitmrukgeh5kwvnyhidhxsdmuloyeft7omycpk2vauwu'
+  const [uri, setUri] = useState(null)
+  const { fetchCID, logErrors:heliaLogErrors } = useHelia()
+  const [protocol, setProtocol] = useState(null)
   const [expanded, setExpanded] = useState(false)
   const [isVideo, setIsVideo] = useState(false)
   const [videoError, setVideoError] = useState(false)
@@ -127,6 +133,21 @@ const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
     setVideoError(true);
   };
 
+  const handleFetchCID = useCallback(async (cid) => {
+    const {blob, type}  = await fetchCID(cid)
+    console.log('blob', blob)
+    setUri(URL.createObjectURL(blob))
+  }, [fetchCID])
+
+  useEffect(() => {
+    const https = /^https?:\/\//;
+      if (!https.test(imgUrl)) {
+      handleFetchCID(imgUrl)
+    } else {
+      setUri(imgUrl)
+    }
+  }, [handleFetchCID, imgUrl])
+
   if (videoError && imgError) {
     return (<></>)
   }
@@ -134,7 +155,7 @@ const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
   if (isVideo || imgError) {
     return (
       <video
-        src={imgUrl}
+        src={uri}
         style={{
           float: 'left',
           justifyContent: 'center',
@@ -152,21 +173,21 @@ const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
     )
   }
   return (
-      <img 
-        onClick={() => setExpanded(!expanded)}
-        style={{
-          float: 'left',
-          justifyContent: 'center',
-          objectFit: 'contain',
-          paddingRight: `${1/ Math.PHI}vw`,
-          minHeight: `${100*(Math.PHI - 1)}px`,
-          maxWidth: expanded ? '95vw' : `${100*(Math.PHI + 1)}px`,
-          maxHeight: expanded ? '95vh' : `${1000/(Math.PHI**3)}px`,
-        }}
-        src={imgUrl}
-        onError={handleImageError}
-      />
-    )
+    <img 
+      onClick={() => setExpanded(!expanded)}
+      style={{
+        float: 'left',
+        justifyContent: 'center',
+        objectFit: 'contain',
+        paddingRight: `${1/ Math.PHI}vw`,
+        minHeight: `${100*(Math.PHI - 1)}px`,
+        maxWidth: expanded ? `${(100/(Math.PHI))+(100/(Math.PHI**3))+(100/(Math.PHI**5))}vw` : `${100*(Math.PHI + 1)}px`,
+        maxHeight: expanded ? `${(100/(Math.PHI))+(100/(Math.PHI**3))+(100/(Math.PHI**5))}vh` : `${1000/(Math.PHI**3)}px`,
+      }}
+      src={uri}
+      onError={handleImageError}
+    />
+  )
 }
 
 const Post = forwardRef(({
@@ -238,11 +259,7 @@ export const Thread = () => {
 
   return (
     <>
-    { toggleReply && (
-          <CreatePost threadId={threadId} replyIds={makeReply} handleClose={handleClose} />
-      )
-      }
-
+      {toggleReply && (<CreatePost threadId={threadId} replyIds={makeReply} handleClose={handleClose} />)}
       {isReducedMode && <ReducedModeWarning />}
       <h3 style={{wordWrap: 'break-word'}}>Thread {threadId}</h3>
       {posts && posts.map((post, i) => {
