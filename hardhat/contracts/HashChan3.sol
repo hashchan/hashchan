@@ -14,11 +14,6 @@ contract HashChan3 {
     string[] rules;
   }
 
-  struct Image {
-    string url;
-    string CID;
-  }
-
   event NewBoard (
     uint256 indexed id,
     string name,
@@ -102,10 +97,14 @@ contract HashChan3 {
     return boardCount;
   }
 
+  function getBoard(uint256 id) public view returns (Board memory) {
+    return boards[id];
+  }
+
   function createThread(
     uint256 board,
     string memory title,
-    string memory url,
+    string memory imgUrl,
     string memory imgCID,
     string memory content
   ) public returns (bytes32 threadId) {
@@ -122,7 +121,7 @@ contract HashChan3 {
       board,
       msg.sender,
       threadId,
-      url,
+      imgUrl,
       imgCID,
       title,
       content,
