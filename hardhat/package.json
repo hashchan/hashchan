@@ -14,6 +14,7 @@
     "@nomicfoundation/hardhat-verify": "^2.0.9"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "^5.1.0",
     "@starboardventures/hardhat-verify": "^1.0.1",
     "dotenv": "^16.4.5"
   }

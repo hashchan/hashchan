@@ -6,7 +6,30 @@ import "@nomicfoundation/hardhat-verify";
 import "@nomicfoundation/hardhat-ignition-viem";
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.26",
+	solidity: {
+			compilers: [
+				{
+					version: "0.8.26",
+					settings: {
+						optimizer: {
+							enabled: true,
+							runs: 200,
+						},
+						evmVersion: "paris",
+					},
+				},
+				{
+					version: "0.8.28",
+					settings: {
+						optimizer: {
+							enabled: true,
+							runs: 200,
+						},
+						evmVersion: "paris",
+					},
+				},
+			],
+		},
   networks: {
     hardhat:{
       chainId: 31337,
