@@ -4,20 +4,23 @@ import { expect } from "chai";
 import "@nomicfoundation/hardhat-chai-matchers";
 
 import {loadFixture} from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
-
 import HashChan3Module from "../ignition/modules/HashChan3";
+
+import { getAddress } from 'viem'
 
 import { createPublicClient, custom } from "viem";
 describe("HashChan3", function () {
   let hashChan3: any
   let modServiceFactory: any
+  let exampleModerationService: any
   let publicClient: any
   let threadId: `0x${string}`
   let postId: `0x${string}`
-  let deployer;
-  let poster;
-  let moderator;
-  let janny;
+  let deployer: any;
+  let poster: any;
+  let moderator: any;
+  let janny: any;
+  let flagSig: any;
   beforeEach(async () => {
     ;([deployer, poster, moderator, janny] = await viem.getWalletClients())
     ;({hashChan3, modServiceFactory} = await ignition.deploy(HashChan3Module))
@@ -124,6 +127,115 @@ describe("HashChan3", function () {
       postId = newPostEvents[0].args.id as `0x${string}`
     })
 
-    it("should create a moderation service")
+    it("should create a moderation service", async () => {
+      const name = "Example Moderation Service"
+      const hash = await modServiceFactory.write.createModerationService([name])
+      const receipt =  await publicClient.waitForTransactionReceipt({ hash })
+
+      const newModerationServiceEvents = await publicClient.getContractEvents({
+        address: modServiceFactory.address,
+        abi: modServiceFactory.abi,
+        eventName: "NewModerationService",
+        fromBlock: 0n
+      })
+      expect(newModerationServiceEvents.length).to.be.greaterThan(0)
+      expect(newModerationServiceEvents[0].args.name).to.deep.contain(name)
+
+      exampleModerationService = await viem.getContractAt(
+        "ModerationService",
+        newModerationServiceEvents[0].args.moderationService
+      )
+
+      const modName = await exampleModerationService.read.name()
+      expect(modName).to.deep.contain(name)
+
+
+    })
+
+    it("should add a janitor", async () => {
+      const hash = await exampleModerationService.write.addJanitor([
+        janny.account.address
+      ])
+      await publicClient.waitForTransactionReceipt({ hash })
+
+      const newJanitorEvents = await publicClient.getContractEvents({
+        address: exampleModerationService.address,
+        abi: exampleModerationService.abi,
+        eventName: "NewJanitor",
+        fromBlock: 0n
+      })
+
+      expect(newJanitorEvents.length).to.be.greaterThan(0)
+      expect(
+        getAddress(newJanitorEvents[0].args.janitor)
+      ).to.be.equal(getAddress(janny.account.address))
+    })
+
+    it("janitor can flag a post", async () => {
+
+      const typedData = {
+        domain: {
+          name: "Example Moderation Service",
+          version: "1",
+          chainId: await publicClient.getChainId(),
+          verifyingContract: exampleModerationService.address
+        },
+        message: {
+          chainId: await publicClient.getChainId(),
+          boardId: 0n,
+          threadId: threadId,
+          postId: postId,
+          reason: 0n
+        },
+        primaryType: "FlagData",
+        types: {
+          EIP712Domain: [
+            {name: "name", type: "string"},
+            {name: "version", type: "string"},
+            {name: "chainId", type: "uint256"},
+            {name: "verifyingContract", type: "address"}
+          ],
+          FlagData: [
+            {name: "chainId", type: "uint256"},
+            {name: "boardId", type: "uint256"},
+            {name: "threadId", type: "bytes32"},
+            {name: "postId", type: "bytes32"},
+            {name: "reason", type: "uint256"}
+          ]
+        }
+      } 
+
+
+      const signature = await janny.signTypedData(typedData)
+      console.log('signature', signature)
+      flagSig = signature
+    })
+
+    it("a lurker can review a janitors flag", async () => {
+      const hash = await exampleModerationService.write.addReview([
+        janny.account.address,
+        true,
+        "thanks for the flag",
+        flagSig,
+        {
+          chainId: await publicClient.getChainId(),
+          boardId: 0n,
+          threadId: threadId,
+          postId: postId,
+          reason: 0n
+        }
+      ], {
+        value: 10n
+      })
+      const receipt = await publicClient.waitForTransactionReceipt({ hash })
+
+      const jannyData = await exampleModerationService.read.getJanitor([janny.account.address])
+      console.log('jannyData', jannyData)
+      expect(jannyData).to.deep.contain({
+        positiveReviews: 1n,
+        negativeReviews: 0n,
+        claimedWages: 10n
+      })
+    })
   })
 })

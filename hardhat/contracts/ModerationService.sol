@@ -1,11 +1,28 @@
 pragma solidity 0.8.28;
 
 import "./HashChan3.sol";
+
 import "@openzeppelin/contracts/access/Ownable.sol";
-contract ModerationService is Ownable {
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+
+contract ModerationService is Ownable, EIP712 {
+  using ECDSA for bytes32;
   HashChan3 public hashChan3;
 
   string public name;
+
+  struct FlagData {
+    uint256 chainId;
+    uint256 boardId;
+    bytes32 threadId;
+    bytes32 postId;
+    uint256 reason;
+  }
+
+  bytes32 public constant FlagDataTypeHash = keccak256(
+    "FlagData(uint256 chainId,uint256 boardId,bytes32 threadId,bytes32 postId,uint256 reason)"
+  );
 
 
   struct Janitor {
@@ -16,8 +33,8 @@ contract ModerationService is Ownable {
   }
 
   mapping(address => Janitor) public janitors;
-  event JanitorAdded(address indexed janitor);
-  event JanitorRemoved(address indexed janitor);
+  event NewJanitor(address indexed janitor);
+  event RemovedJanitor(address indexed janitor);
 
   struct Review {
     bool positive;
@@ -26,34 +43,70 @@ contract ModerationService is Ownable {
     bytes32 postId;
   }
 
-  event ReviewAdded(address indexed janitor, bool indexed positive, string review, bytes32 postId, uint256 tip);
+  event ReviewAdded(
+    address indexed janitor,
+    bytes32 indexed postId,
+    bool indexed positive,
+    uint256 tip,
+    string review
+  );
 
-  constructor(address _hashChan3, string memory _name) Ownable(msg.sender) {
+  constructor(
+    address _hashChan3,
+    string memory _name,
+    address _owner
+  ) Ownable(
+    _owner
+  ) EIP712(
+    _name,
+    '1'
+  ) {
     hashChan3 = HashChan3(_hashChan3);
     name = _name;
   }
 
-  function addJanitor(address _janitor) public onlyOwner {
-    janitors[_janitor] = Janitor({positiveReviews: 0, negativeReviews: 0, started: block.timestamp, claimedWages: 0});
+  function getJanitor(address _janitor) public view returns (Janitor memory) {
+    return janitors[_janitor];
+  }
 
-    emit JanitorAdded(_janitor);
+  function addJanitor(address _janitor) public onlyOwner {
+    janitors[_janitor] = Janitor({positiveReviews: 0, negativeReviews: 0, started: block.number, claimedWages: 0});
+
+    emit NewJanitor(_janitor);
   }
 
   function removeJanitor(address _janitor) public onlyOwner {
     require(janitors[_janitor].negativeReviews >=  10, "Janitors with insuficient negative feedback will not be removed");
     delete janitors[_janitor];
-    emit JanitorRemoved(_janitor);
+    emit RemovedJanitor(_janitor);
   }
 
   function addReview(
     address _janitor,
-    bool positive,
+    bool isPositive,
     string memory review,
-    bytes32 postId
+    bytes calldata flagSig,
+    FlagData calldata flagData
   ) public payable {
     Janitor	 storage janitor = janitors[_janitor];
     require(janitor.started != 0, "Janitor hasn't started yet");
-    if (positive) {
+    bytes32 digest = _hashTypedDataV4(
+      keccak256(
+        abi.encode(
+          FlagDataTypeHash,
+          flagData.chainId,
+          flagData.boardId,
+          flagData.threadId,
+          flagData.postId,
+          flagData.reason
+        )
+      )
+    );
+
+    address signer = digest.recover(flagSig);
+    require(signer == _janitor, "signer janitor mis match");
+
+    if (isPositive) {
       janitor.positiveReviews++;
     } else {
       janitor.negativeReviews++;
@@ -61,10 +114,12 @@ contract ModerationService is Ownable {
 
     janitor.claimedWages += msg.value;
 
-    emit ReviewAdded(_janitor, positive, review, postId, msg.value);
-
-
-
+    emit ReviewAdded(
+      _janitor,
+      flagData.postId,
+      isPositive,
+      msg.value,
+      review
+    );
   }
-
 }

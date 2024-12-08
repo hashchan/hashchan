@@ -8,25 +8,31 @@ contract ModerationServiceFactory {
   address[] public modServices;
   uint256 public modServiceIterator;
 
-  event ModerationServiceCreated(
+  event NewModerationService(
     address indexed owner,
-    address moderationService,
-    uint256 timestamp
+    address indexed moderationService,
+    uint256 indexed blockNumber,
+    string name
   );
 
   constructor () {
   }
-
 
   function createModerationService(
     string memory name
   ) public  {
     ModerationService  newModService = new ModerationService(
       address(hashChan3),
-      name
+      name,
+      msg.sender
     );
     modServices.push(address(newModService));
     modServiceIterator++;
-    emit ModerationServiceCreated(msg.sender, address(newModService), block.timestamp);
+    emit NewModerationService(
+      msg.sender,
+      address(newModService),
+      block.number,
+      name
+    );
   }
 }
