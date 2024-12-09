@@ -7,6 +7,43 @@ import { useAccount } from 'wagmi'
 
 import { useBoard } from '@/hooks/useBoard'
 
+
+
+
+
+
+
+
+const PostButton = ({
+  threadId,
+  address,
+  chain,
+  handleClose
+}:{
+  threadId: string | null,
+  address: string | null,
+  chain: number | null,
+  handleClose: () => void
+}) => {
+  if (!address) {
+    return (<p>Please connect a wallet to get started</p>)
+  }
+
+  if (!chain) {
+    return (<p>Please connect to a supported chain</p>)
+  }
+
+
+  return (
+    <button
+      onClick={handleClose}
+    >
+      {threadId ? "Make Post" : "Make Thread"}
+    </button>
+  )
+}
+
+
 export const Board = () => {
   const { address, chain } = useAccount()
   const { board } = useBoard()
@@ -15,46 +52,39 @@ export const Board = () => {
   const handleClose = () => {
     setOpenMakeContent(!openMakeContent)
   }
+
+
   return (
     <>
       <div
         className="flex-wrap-center"
         style={{
-        marginTop: '0',
-        justifyContent: 'space-between'
+          marginTop: '0',
+          justifyContent: 'space-between'
         }}>
         { board && (
-          <h2><Link to={`/chains/${chainId}/boards/${boardId}`}>/{board.symbol}/</Link></h2>
+          <h2>
+            <Link to={`/chains/${chainId}/boards/${boardId}`}>
+              /{board.symbol}/
+            </Link>
+          </h2>
         )}
-        { address ? (<> { chain ? (
-          <button  onClick={() => {
-            setOpenMakeContent(!openMakeContent)
-          }}>{threadId ? "Make Post" : "Make Thread"}</button>
-        ):(
-          <p>Please connect to a supported chain</p>
-        ) 
-          }
-        </>) : (
-          <p>please connect a wallet to post</p>
-        )
-        }
+        <PostButton
+          threadId={threadId}
+          address={address}
+          chain={chain?.id}
+          handleClose={handleClose}
+        />
       </div>
       <p>[<Link to={`/chains/${chainId}/boards/${boardId}/catalogue`}>Catalogue</Link>]</p>
       
       {openMakeContent && (<>
         { threadId ? (
-          <div style={{
-            width: '85.4vw',
-            margin: '0 auto',
-          }}>
           <CreatePost threadId={threadId} replyIds={[]} handleClose={handleClose} />
-          </div>
         ): (
-        <CreateThread board={board}  handleClose={handleClose}/>
-        )
-        }
-        </>)
-      }
+          <CreateThread board={board}  handleClose={handleClose}/>
+        )}
+      </>)}
 
 
       <Outlet />

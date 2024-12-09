@@ -48,23 +48,15 @@ function iteratorToStream(asyncIterator) {
 				const { value, done  } = await asyncIterator.next()
 				if (done) {
 					controller.close()
-
 				} else {
 					controller.enqueue(value)
-
 				}
-
 			} catch (error) {
 				controller.error(error)
-
 			}
-
 		}
-
 	})
-
 }
-
 
 export const useHelia = () => {
 	const {helia, fs} = useContext(HeliaContext)
@@ -75,9 +67,6 @@ export const useHelia = () => {
 		if (helia && fs) {
 			try {
 				const cid = CID.parse(cidSting)
-				console.log('cid.code', cid.code)
-
-				console.log('trying to get')
 				const res = await fs.cat(cid)
 				const stream = iteratorToStream(res)
 				// Create blob from stream

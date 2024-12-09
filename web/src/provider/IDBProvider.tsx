@@ -14,6 +14,7 @@ interface Post {
   postId: string;
   creator: `0x${string}`;
   imgUrl: string;
+  imgCID: string;
   replyIds: string[];
   content: string;
   timestamp: number
@@ -26,6 +27,7 @@ interface Thread {
   threadId: string;
   creator: `0x${string}`;
   imgUrl: string;
+  imgCID: string;
   title: string;
   content: string;
   timestamp: number;

@@ -11,7 +11,11 @@ import { useHelia } from '@/hooks/useHelia'
 import { useForm  } from "react-hook-form";
 
 import MarkdownEditor from '@uiw/react-markdown-editor';
+import { FaHandHoldingDollar  } from "react-icons/fa6";
+
 import { ReducedModeWarning } from '@/components/ReducedModeWarning'
+import { Modal } from '@/components/Modal'
+
 
 const PostIdSpan = ({postId, handleOpenPost}:{postId:string, handleOpenPost: (postId:string) => void}) => {
   const [hovered, setHovered] = useState(false)
@@ -66,10 +70,14 @@ const ReplySpans = ({replies}: {replies: any}) => {
 }
 
 const TipCreator = ({creator}: {creator: `0x${string}`}) => {
-  const { createTip } = useTip()
+  const { createTip, hash, receipt, error } = useTip()
+  const [isOpen, setIsOpen] = useState(false)
   const [hovered, setHovered] = useState(false)
   const { register, handleSubmit, formState: { errors  }  } = useForm();
-  const [rpcError, setRpcError] = useState(null)
+
+  const handleClose = () => {
+    setIsOpen(old => !old)
+  }
 
   const onSubmit = async (data) => {
     const response = await createTip(
@@ -80,37 +88,54 @@ const TipCreator = ({creator}: {creator: `0x${string}`}) => {
       console.log('response', response)
     } else {
       console.log('error', response.error.message)
-      setRpcError(response.error.message)
     }
   }
 
   return (
-    <span
-      onMouseEnter={() => setHovered(true)}
-      style={{
-        color: hovered ? '#20c20E': 'green',
-      }}
-    >{creator && truncateEthAddress(creator)}
-      {hovered &&
-        <form
-          onMouseLeave={() => setHovered(false)}
-          style={{
-            backgroundColor:"#090909",
-            position: 'absolute',
-            padding: `${1/ Math.PHI}vh ${1/ Math.PHI}vw`,
-          }}
-          onSubmit={handleSubmit(onSubmit)}
-        ><label htmlFor="amount">Tip: </label>
-          <input style={{width:`${100/ Math.PHI}px`}} defaultValue={(Math.PHI)/100} {...register("amount", { required: true })} />
-          {errors.amount && <span>This field is required</span>}
-          <button type="submit">Tip</button>
-        </form>
+    <>
+      <span
+        onClick={handleClose}
+        style={{
+          paddingLeft: `${1/ Math.PHI}vw`,
+          color: hovered ? '#20c20E': 'white',
+        }}
+      >
+        <FaHandHoldingDollar />
+      </span>
+
+      {isOpen &&
+        <Modal handleClose={handleClose}>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex-wrap-center"
+            style={{
+              flexDirection: 'column',
+            }}
+          >
+            <label htmlFor="amount">Tip Amount</label>
+            <div style={{
+              width:`${100/(Math.PHI)+(100/(Math.PHI**3))}%`
+              }}
+            >
+              <input style={{
+                paddingLeft: 0,
+                paddingRight: 0,
+                margin: '4px 0',
+                width: '100%',
+              }}
+              defaultValue={(Math.PHI)/100} {...register("amount", { required: true })} />
+              {errors.amount && <span>This field is required</span>}
+            </div>
+            <button type="submit">Tip</button>
+          </form>
+          {hash && <p>Transaction hash: {truncateEthAddress(hash)}</p>}
+          {receipt && <p>Transaction receipt: {receipt.status}</p>}
+          {error && <div 
+            style={{ backgroundColor: 'red', position: 'absolute' }}
+          >{error}</div>}
+        </Modal>
       }
-      {rpcError && <div 
-        onMouseLeave={() => setRpcError(null)}
-        style={{ backgroundColor: 'red', position: 'absolute' }}
-      >{rpcError}</div>}
-    </span>
+    </>
   )
 }
 
@@ -219,6 +244,7 @@ const Post = forwardRef(({
       }}> 
       <div
       >
+        <span>{truncateEthAddress(creator)}</span>
         <TipCreator creator={creator} />&nbsp;
         <PostIdSpan postId={postId} handleOpenPost={handleOpenPost} />
         <span>&nbsp;{timestamp && new Date(timestamp * 1000).toLocaleString()}</span>

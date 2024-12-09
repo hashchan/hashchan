@@ -21,6 +21,8 @@ import { useParams } from 'react-router-dom'
 import  sanitizeMarkdown  from 'sanitize-markdown'
 import { parseContent } from '@/utils/content'
 import { tryRecurseBlockFilter } from '@/utils/blockchain'
+import { computeImageCID } from '@/utils/cids'
+
 
 export const useThread = () => {
   const {chainId:chainIdParam, boardId:boardIdParam, threadId:threadIdParam} = useParams()
@@ -75,7 +77,7 @@ export const useThread = () => {
         })
 
 
-        const { creator, content, id:threadId, imgUrl, replyIds, timestamp } = threadLogs[0].args
+        const { creator, content, threadId, imgUrl, replyIds, timestamp } = threadLogs[0].args
 
         thread = {
           lastSynced: 0,
@@ -125,8 +127,6 @@ export const useThread = () => {
             })
           })
         }
-        console.log('last synced', thread.lastSynced)
-        console.log('to block', blockNumber.data)
         const postFilterArgs = {
           address: contractAddress,
           abi,
@@ -144,7 +144,7 @@ export const useThread = () => {
         })
 
         logs.forEach(async (log) => {
-          const { creator, id:postId, imgUrl, content, replyIds, timestamp } = log.args
+          const { creator, postId, imgUrl, content, replyIds, timestamp } = log.args
           //const { replyIds } = parseContentTwo(content, localRefsObj)
           //const { replyIds, parsed } = parseContentTwo(content, localRefsObj)
           localRefsObj[postId] = createRef()
@@ -213,8 +213,15 @@ export const useThread = () => {
     replyIds: string[]
   ) => {
     if (boardIdParam && threadIdParam && publicClient && walletClient && address && chain) {
-      try {
 
+      const { cid, error } = await computeImageCID(imgUrl)
+      if (error) {
+        return {
+          receipt: null,
+          error
+        }
+      }
+      try {
         const hash = await writeContract(config, {
           address: contractAddress as `0x${string}`,
           abi,
@@ -224,6 +231,7 @@ export const useThread = () => {
             threadIdParam,
             replyIds,
             imgUrl,
+            cid,
             content 
           ]
         })
@@ -290,7 +298,7 @@ export const useThread = () => {
         },
         async onLogs(logs) {
           console.log('logs', logs)
-          const { creator, content, id:postId, imgUrl, timestamp } = logs[0].args
+          const { creator, content, postId, imgUrl, timestamp } = logs[0].args
           setRefsObj((oldRefs) => {
             const replyIds  = parseContent(content)
             oldRefs[postId] = createRef()

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import {
   abi,
   localhost,
+  sepolia
 } from '@/assets/abi/HashChan3.json'
 import { useAccount   } from 'wagmi'
 

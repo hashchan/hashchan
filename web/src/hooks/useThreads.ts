@@ -78,9 +78,9 @@ export const useThreads = () => {
             console.log('logs', logs) 
             logs.forEach(async (log) => {
               const {
-                board:boardId,
+                boardId,
                 creator,
-                id:threadId,
+                threadId,
                 imgUrl,
                 title,
                 content,
@@ -138,7 +138,7 @@ export const useThreads = () => {
          const thread = {
            title: logs[0].args.title,
            creator: logs[0].args.creator,
-           threadId: logs[0].args.id,
+           threadId: logs[0].args.threadId,
            imgUrl: logs[0].args.imgUrl,
            content: logs[0].args.content
          }

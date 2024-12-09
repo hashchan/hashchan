@@ -21,7 +21,8 @@ contract HashChan3 {
     string description,
     string bannerUrl,
     string bannerCID,
-    string[] rules
+    string[] rules,
+    uint256 timestamp
   );
 
   event NewThread (
@@ -31,7 +32,8 @@ contract HashChan3 {
     string imgUrl,
     string imgCID,
     string title,
-    string content
+    string content,
+    uint256 timestamp
   );
 
   event NewPost (
@@ -42,7 +44,8 @@ contract HashChan3 {
     address indexed creator,
     string imgUrl,
     string imgCID,
-    string content
+    string content,
+    uint256 timestamp
   );
 
   constructor() {
@@ -87,7 +90,8 @@ contract HashChan3 {
       description,
       bannerUrl,
       bannerCID,
-      rules
+      rules,
+      block.timestamp
     );
     return boardCount;
   }
@@ -118,7 +122,8 @@ contract HashChan3 {
       imgUrl,
       imgCID,
       title,
-      content
+      content,
+      block.timestamp
     );
   }
 
@@ -145,7 +150,8 @@ contract HashChan3 {
       msg.sender,
       imgUrl,
       imgCID,
-      content
+      content,
+      block.timestamp
     );
   }
 

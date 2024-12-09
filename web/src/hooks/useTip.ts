@@ -4,6 +4,9 @@ import { parseEther } from 'viem'
 import { sendTransaction } from '@wagmi/core'
 import {config} from '@/config'
 export const useTip = () => {
+  const [hash, setHash] = useState(null)
+  const [receipt, setReceipt] = useState(null)
+  const [error, setError] = useState(null)
   const { address } = useAccount()
   const walletClient = useWalletClient()
   const publicClient = usePublicClient();
@@ -19,8 +22,9 @@ export const useTip = () => {
           to: receiver,
           value: parseEther(amount)
         })
-
+        setHash(hash)
         const receipt = await publicClient.waitForTransactionReceipt({hash})
+        setReceipt(receipt)
         return {
           hash,
           receipt,
@@ -28,6 +32,7 @@ export const useTip = () => {
         }
       } catch (e) {
         console.log(e)
+        setError(e)
         return {
           hash: null,
           receipt: null,
@@ -39,7 +44,10 @@ export const useTip = () => {
 
 
   return {
-    createTip
+    createTip,
+    hash,
+    receipt,
+    error
   }
 }
 

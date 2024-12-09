@@ -13,6 +13,7 @@ import { writeContract, waitForTransactionReceipt } from '@wagmi/core'
 import { parseEventLogs } from 'viem'
 import { useBoard } from '@/hooks/useBoard'
 import { config } from '@/config'
+import { computeImageCID } from '@/utils/cids'
 
 export const useCreateThread = () => {
   const { db } = useContext(IDBContext)
@@ -29,6 +30,14 @@ export const useCreateThread = () => {
     content: string
   ) => {
     if (walletClient && address && chain && db && board && contractAddress) {
+
+      const { cid, error } = await computeImageCID(imageUrl)
+      if (error) {
+        return {
+          hash: null,
+          error
+        }
+      }
       try {
         const tx = await writeContract(config, {
           address: contractAddress,
@@ -38,6 +47,7 @@ export const useCreateThread = () => {
             board.boardId,
             title,
             imageUrl,
+            cid,
             content
           ]
         })
@@ -52,20 +62,26 @@ export const useCreateThread = () => {
           logs: receipt.logs
         })
         console.log('logs', logs)
-        setThreadId(logs[0].args.id)
 
+
+        setThreadId(logs[0].args.threadId)
+
+        await db.threads.add(logs[0].args)
+
+        /*
         await db.threads.add({
           threadId: logs[0].args.id,
           boardId: logs[0].args.boardId,
           creator: logs[0].args.creator,
           imgUrl: logs[0].args.imgUrl,
+          imgCID: logs[0].args.imgCID,
           title: logs[0].args.title,
           content: logs[0].args.content,
           timestamp: logs[0].args.timestamp
-
         })
+       */
         return  {
-          hash: logs[0].args.id,
+          hash: logs[0].args.threadId,
           error: null
         }
       }  catch (e) {
