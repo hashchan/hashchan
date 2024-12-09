@@ -1,19 +1,8 @@
 import { useEffect, useState, useCallback } from 'react'
 import {
   abi,
-  mainnet,
-  optimism,
-  classic,
-  polygon,
-  fantom,
-  flow,
   localhost,
-  base,
-  arbitrum,
-  nova,
-  avalanche,
-  sepolia,
-} from '@/assets/HashChan2.json'
+} from '@/assets/abi/HashChan3.json'
 import { useAccount   } from 'wagmi'
 
 export const useContract = () => {

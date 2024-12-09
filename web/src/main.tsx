@@ -40,11 +40,14 @@ import {NavBar} from '@/components/NavBar'
 import { RouteTracker } from './components/RouteTracker'
 
 import { NotFound } from "@/components/NotFound";
+import { Warnings } from "@/components/Warnings";
 import { Home } from "@/routes/Home";
 import { Docs } from "@/routes/Docs/Docs";
 import { Intro } from "@/routes/Docs/Intro";
 import { Instructions } from "@/routes/Docs/Instructions";
 import { TOSPP, TOSPPBanner, TOSProvider } from "@/routes/TOSPP";
+
+import { Janitors } from "@/routes/Janitors/Janitors";
 
 import { Chain } from "@/routes/Chain";
 import { Board } from "@/routes/Board";
@@ -61,20 +64,21 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <BrowserRouter>
                 <RouteTracker />
                 <NavBar />
+                <Warnings />
                 <Routes>
                   <Route path="/tospp" element={<TOSPP />} />
-                  <Route path="/" element={<Home />}>
-                    <Route path="docs/:docversion" element={<Docs />}>
-                      <Route path="intro" element={<Intro />} />
-                      <Route path="instructions" element={<Instructions />} />
-                    </Route>
-                    <Route path="chains/:chainId" element={<Chain />}>
-                      <Route path="boards/:boardId" element={<Board />}>
-                        <Route path="catalogue" element={<Catalogue />} />
-                        <Route path="thread/:threadId" element={<Thread />} />
-                      </Route>
+                  <Route path="/janitors" element={<Janitors />} />
+                  <Route path="/docs/:docversion" element={<Docs />}>
+                    <Route path="intro" element={<Intro />} />
+                    <Route path="instructions" element={<Instructions />} />
+                  </Route>
+                  <Route path="/chains/:chainId" element={<Chain />}>
+                    <Route path="boards/:boardId" element={<Board />}>
+                      <Route path="catalogue" element={<Catalogue />} />
+                      <Route path="thread/:threadId" element={<Thread />} />
                     </Route>
                   </Route>
+                  <Route path="/" element={<Home />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <TOSPPBanner />

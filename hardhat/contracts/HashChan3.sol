@@ -15,37 +15,34 @@ contract HashChan3 {
   }
 
   event NewBoard (
-    uint256 indexed id,
+    uint256 indexed boardId,
     string name,
     string symbol,
     string description,
     string bannerUrl,
     string bannerCID,
-    string[] rules,
-    uint256 blockNumber
+    string[] rules
   );
 
   event NewThread (
-    uint256 indexed board,
+    uint256 indexed boardId,
+    bytes32 indexed threadId,
     address indexed creator,
-    bytes32 indexed id,
     string imgUrl,
     string imgCID,
     string title,
-    string content,
-    uint256 blockNumber
+    string content
   );
 
   event NewPost (
-    uint256 indexed board,
+    uint256 boardId,
     bytes32 indexed threadId,
-    bytes32 indexed id,
-    address creator,
+    bytes32 indexed postId,
     bytes32[] replyIds,
+    address indexed creator,
     string imgUrl,
     string imgCID,
-    string content,
-    uint256 blockNumber
+    string content
   );
 
   constructor() {
@@ -90,9 +87,7 @@ contract HashChan3 {
       description,
       bannerUrl,
       bannerCID,
-      rules,
-      block.number
-
+      rules
     );
     return boardCount;
   }
@@ -102,7 +97,7 @@ contract HashChan3 {
   }
 
   function createThread(
-    uint256 board,
+    uint256 boardId,
     string memory title,
     string memory imgUrl,
     string memory imgCID,
@@ -110,49 +105,47 @@ contract HashChan3 {
   ) public returns (bytes32 threadId) {
     threadId = keccak256(
       abi.encode(
-        board,
-        title,
-        msg.sender,
+        boardId,
         imgCID,
+        msg.sender,
         block.number
     ));
 
     emit NewThread (
-      board,
-      msg.sender,
+      boardId,
       threadId,
+      msg.sender,
       imgUrl,
       imgCID,
       title,
-      content,
-      block.number
+      content
     );
   }
 
   function createPost(
-    uint256 board,
+    uint256 boardId,
     bytes32  threadId,
     bytes32[] memory replyIds,
     string  memory imgUrl,
     string  memory imgCID,
     string  memory content
-  ) public returns (bytes32 id){
-    id = keccak256(abi.encode(
+  ) public returns (bytes32 postId){
+    postId = keccak256(abi.encode(
+      boardId,
       threadId,
       imgCID,
       msg.sender,
       block.number
     ));
     emit NewPost(
-      board,
+      boardId,
       threadId,
-      id,
-      msg.sender,
+      postId,
       replyIds,
+      msg.sender,
       imgUrl,
       imgCID,
-      content,
-      block.number
+      content
     );
   }
 

@@ -54,10 +54,10 @@ export const config = createConfig({
   ],
   connectors,
   transports: {
+    [localhost.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
     [classic.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
     [mainnet.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
     [sepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-    [localhost.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
     [optimismSepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
     [optimism.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
     [fantom.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),

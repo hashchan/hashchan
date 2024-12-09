@@ -3,6 +3,7 @@ import HashchanLogo from '@/assets/logo-4.png'
 import HashchanLogoGif from '@/assets/animated-banner.gif'
 import HashchanLogoGlitchGif from '@/assets/glitched-logo.gif'
 import {FaGithub, FaSquareXTwitter, FaDiscord, FaBook, FaYoutube} from 'react-icons/fa6'
+import { GiMagicBroom, GiBookshelf } from 'react-icons/gi'
 import { Link } from 'react-router-dom'
 import { ConnectWallet } from './ConnectWallet'
 import { ConnectW3Storage } from './ConnectW3Storage'
@@ -69,9 +70,15 @@ export const NavBar = () => {
       >
         <Link
           className="nav-icon"
+          to="janitors"
+        >
+          <GiMagicBroom size={pxSize} />
+        </Link>
+        <Link
+          className="nav-icon"
           to="docs/v1/intro"
         >
-          <FaBook size={pxSize} />
+          <GiBookshelf size={pxSize} />
         </Link>
         <IconLink href="https://github.com/hashchan/hashchan" Logo={<FaGithub size={pxSize} />} />
         <IconLink href="https://twitter.com/0xhashchan" Logo={<FaSquareXTwitter size={pxSize}   />} />

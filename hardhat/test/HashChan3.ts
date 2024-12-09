@@ -78,7 +78,7 @@ describe("HashChan3", function () {
       const { publicClient, hashChan3, modServiceFactory } = await loadFixture(deployFixture)
 
       const args = {
-        board: 0n,
+        boardId: 0n,
         title: "title",
         imgUrl: "https://image.com/image.png",
         imgCID: "bafkreib7cvtqy5exmymnm32hksayaok7ywf5lsoz3xglipfnverpdgmrki",
@@ -98,13 +98,13 @@ describe("HashChan3", function () {
       expect(receipt.logs.length).to.be.greaterThan(0)
       expect(newThreadEvents.length).to.be.greaterThan(0)
       expect(newThreadEvents[0].args).to.deep.contain(args)
-      threadId = newThreadEvents[0].args.id as `0x${string}`
+      threadId = newThreadEvents[0].args.threadId as `0x${string}`
     })
 
     it("should create a post", async () => {
       const { publicClient, hashChan3 } = await loadFixture(deployFixture)
       const args = {
-        board: 0n,  
+        boardId: 0n,  
         threadId: threadId,
         replyIds: [threadId],
         imgUrl: "https://image.com/image.png",
@@ -124,7 +124,7 @@ describe("HashChan3", function () {
       expect(newPostEvents.length).to.be.greaterThan(0)
       expect(newPostEvents[0].args).to.deep.contain(args)
 
-      postId = newPostEvents[0].args.id as `0x${string}`
+      postId = newPostEvents[0].args.postId as `0x${string}`
     })
 
     it("should create a moderation service", async () => {
