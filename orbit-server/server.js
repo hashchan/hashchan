@@ -1,3 +1,4 @@
+import "dotenv/config"
 import { LevelBlockstore } from 'blockstore-level'
 import { LevelDatastore } from 'datastore-level'
 
@@ -5,6 +6,7 @@ import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 import { createLibp2p } from 'libp2p'
 import { createHelia } from 'helia'
 import { tcp } from '@libp2p/tcp'
+import { webSockets } from '@libp2p/websockets'
 import { createOrbitDB, IPFSAccessController  } from '@orbitdb/core'
 import { identify } from "@libp2p/identify";
 const main = async () => {
@@ -16,9 +18,9 @@ const main = async () => {
   const libp2p = await createLibp2p({
     datastore,
     addresses: {
-      listen: ['/ip4/192.53.120.61/tcp/81']
+      listen: [`/ip4/${process.env.IP}/tcp/${process.env.PORT}`],
     },
-    transports: [tcp()],
+    transports: [tcp(), webSockets()],
     services: {
       pubsub: gossipsub({
         allowPublishToZeroTopicPeers: true
@@ -43,6 +45,10 @@ const main = async () => {
 
   db.events.on('update', (entry) => {
     console.log("update", entry)
+  })
+
+  db.events.on('join', (peerId, heads) => {
+    console.log("join", entry)
   })
 
   process.on('SIGINT', async () => {
