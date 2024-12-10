@@ -7,7 +7,15 @@ import { createHelia } from 'helia'
 import { createOrbitDB  } from '@orbitdb/core'
 import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 
+import { yamux  } from '@chainsafe/libp2p-yamux'
+import { noise  } from '@chainsafe/libp2p-noise'
 import { identify  } from "@libp2p/identify";
+import { webSockets  } from '@libp2p/websockets'
+import { webRTC  } from '@libp2p/webrtc'
+
+import * as filters from '@libp2p/websockets/filters'
+import { circuitRelayTransport  } from '@libp2p/circuit-relay-v2'
+import { multiaddr  } from '@multiformats/multiaddr'
 
 
 import { unixfs } from '@helia/unixfs'
@@ -52,22 +60,48 @@ export const HeliaProvider = ({ children }) => {
         await blockstore.open()
         const libp2p = await createLibp2p({
           datastore,
+          addresses: {
+            listen: [
+              '/webrtc'
+            ]
+          },
+          transports: [
+            webSockets({
+              filter: filters.all
+            }),
+            webRTC(),
+            circuitRelayTransport()
+          ],
+          connectionEncrypters: [noise()],
+          streamMuxers: [yamux()],
+          connectionGater: {
+            denyDialMultiaddr: () => {
+              return false
+            }
+          },
           services: {
             pubsub: gossipsub({
               allowPublishToZeroTopicPeers: true
             }),
-            identify: identify()
+            identify: identify(),
           }
         })
+
+
+
         const helia = await createHelia({
           datastore,
           blockstore,
           libp2p
         })
+
         const orbit = await createOrbitDB({ipfs:helia})
 
         const db  = await orbit.open('hashchan')
 
+        //const dial = await helia.libp2p.dial(multiaddr('/ip4/127.0.0.1/tcp/40113/ws/p2p/12D3KooWQMdBkn7wH8tJiaYqGaRXK3HnN4WPFwQLieqc58uabf5a'))
+        //const dial = await helia.libp2p.dial(multiaddr('/ip4/192.53.120.61/tcp/81/ws'))
+        console.log('dial', dial)
         setLibp2p(libp2p)
         setHelia(helia)
         setOrbit(orbit)

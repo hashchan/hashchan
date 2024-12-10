@@ -54,6 +54,11 @@ const main = async () => {
     { AccessController: IPFSAccessController({ write: ['*'] })}
   )
 
+  console.log('serverlistening on: ')
+  helia.libp2p.getMultiaddrs().forEach((addr) => {
+    console.log(addr.toString())
+  })
+
   db.events.on('update', (entry) => {
     console.log("update", entry)
   })

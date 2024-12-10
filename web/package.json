@@ -11,9 +11,13 @@
   },
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^14.1.0",
+    "@chainsafe/libp2p-noise": "^16.0.0",
+    "@chainsafe/libp2p-yamux": "^7.0.1",
     "@haqq/format-number-with-subscript-zeros": "^1.0.1",
     "@helia/dag-json": "^4.0.1",
     "@helia/unixfs": "^4.0.1",
+    "@libp2p/circuit-relay-v2": "^3.1.4",
+    "@libp2p/webrtc": "^5.0.20",
     "@orbitdb/core": "^2.4.3",
     "@tanstack/react-query": "^5.51.15",
     "@uiw/react-markdown-editor": "^6.1.2",
