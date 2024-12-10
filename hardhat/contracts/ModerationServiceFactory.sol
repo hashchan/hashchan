@@ -20,6 +20,10 @@ contract ModerationServiceFactory {
     hashChan3 = HashChan3(_hashChan3);
   }
 
+  function getModerationServices() public view returns (address[] memory) {
+    return modServices;
+  }
+
   function createModerationService(
     string memory name,
     string memory uri,
