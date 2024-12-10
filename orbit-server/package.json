@@ -2,6 +2,7 @@
   "name": "orbit-server",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -14,7 +15,10 @@
     "@chainsafe/libp2p-noise": "^16.0.0",
     "@chainsafe/libp2p-yamux": "^7.0.1",
     "@libp2p/circuit-relay-v2": "^3.1.4",
+    "@libp2p/crypto": "^5.0.8",
     "@libp2p/identify": "^3.0.13",
+    "@libp2p/peer-id": "^5.0.9",
+    "@libp2p/peer-id-factory": "^4.2.4",
     "@libp2p/tcp": "^10.0.14",
     "@libp2p/websockets": "^9.1.0",
     "@orbitdb/core": "^2.4.3",

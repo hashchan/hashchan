@@ -98,10 +98,11 @@ export const HeliaProvider = ({ children }) => {
         const orbit = await createOrbitDB({ipfs:helia})
 
         const db  = await orbit.open('hashchan')
-
-        //const dial = await helia.libp2p.dial(multiaddr('/ip4/127.0.0.1/tcp/40113/ws/p2p/12D3KooWQMdBkn7wH8tJiaYqGaRXK3HnN4WPFwQLieqc58uabf5a'))
-        //const dial = await helia.libp2p.dial(multiaddr('/ip4/192.53.120.61/tcp/81/ws'))
+        
+        //const dial = await helia.libp2p.dial(multiaddr('/dns4/orbit.hashchan.org/tcp/443/wss/p2p/12D3KooWKeZf5CuFWUkyzpEyg5ufirvoeznRSWQETaHGWtadgFTW'))
+        const dial = await helia.libp2p.dial(multiaddr('/dns4/orbit.hashchan.org/tcp/443/wss/p2p/12D3KooWKeZf5CuFWUkyzpEyg5ufirvoeznRSWQETaHGWtadgFTW'))
         console.log('dial', dial)
+
         setLibp2p(libp2p)
         setHelia(helia)
         setOrbit(orbit)

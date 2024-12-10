@@ -15,14 +15,21 @@ import { identify } from "@libp2p/identify";
 import { circuitRelayServer  } from '@libp2p/circuit-relay-v2'
 
 import * as filters from "@libp2p/websockets/filters";
+import { loadOrCreatePeerId } from  "./src/loadOrCreatePeerId.js"
+
 
 const main = async () => {
+  const peerId = await loadOrCreatePeerId()
+	//console.log(peerId.toJSON())	
+
   const blockstore = new LevelBlockstore("./hashchan/blockstore")
   const datastore = new LevelDatastore("./hashchan/datastore")
 
   await datastore.open()
   await blockstore.open()
+  console.log('peerId', peerId)
   const libp2p = await createLibp2p({
+    peerId,
     datastore,
     addresses: {
       listen: [
@@ -38,7 +45,7 @@ const main = async () => {
       webSockets({
       filter: filters.all
     }),
-      tcp()
+      //tcp()
     ],
     connectionEncrypters: [noise()],
     streamMuxers: [yamux()],
@@ -68,6 +75,14 @@ const main = async () => {
   console.log('serverlistening on: ')
   helia.libp2p.getMultiaddrs().forEach((addr) => {
     console.log(addr.toString())
+  })
+
+  helia.libp2p.on('peer:discovery', (peerId) => {
+    console.log("helia:libp2p:peer:discovery", peerId)
+  })
+
+  orbit.events.on('peer:discovery', (peerId) => {
+    console.log("orbit:events:peer:discovery", peerId)
   })
 
   db.events.on('update', (entry) => {
