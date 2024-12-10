@@ -51,7 +51,8 @@ const main = async () => {
     streamMuxers: [yamux()],
     services: {
       pubsub: gossipsub({
-        allowPublishToZeroTopicPeers: true
+        allowPublishToZeroTopicPeers: true,
+        emitSelf: true,
       }),
       relay: circuitRelayServer(),
       identify: identify()
@@ -81,6 +82,14 @@ const main = async () => {
 
   helia.libp2p.services.pubsub.addEventListener('message', (event) => {
     console.log('message', event)
+  })
+
+  helia.libp2p.addEventListener('peer:discovery', (event) => {
+    console.log("peer:discovery", event)
+  })
+
+  helia.libp2p.addEventListener('peer:connect', (event) => {
+    console.log("peer:connect", event)
   })
 
   db.events.on('peer:join', (peerId) => {
