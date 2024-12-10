@@ -77,12 +77,8 @@ const main = async () => {
     console.log(addr.toString())
   })
 
-  helia.libp2p.on('peer:discovery', (peerId) => {
-    console.log("helia:libp2p:peer:discovery", peerId)
-  })
-
-  orbit.events.on('peer:discovery', (peerId) => {
-    console.log("orbit:events:peer:discovery", peerId)
+  db.events.on('peer:join', (peerId) => {
+    console.log("peer:join", peerId)
   })
 
   db.events.on('update', (entry) => {
