@@ -76,7 +76,7 @@ import {
               console.log("boardIterator", boardIterator)
 
               for (let i = boardsSync.boardIterator; i < boardIterator; i++) {
-                const [boardName, boardSymbol] = await hashchan.read.boards([i])
+                const ethBoard = await hashchan.read.getBoard([i])
 
                 const exist = await db.boards.where('[boardId+chainId]').equals([i, chain.id]).first()
                 console.log('exist', Boolean(exist) )
@@ -85,8 +85,12 @@ import {
                     boardId: Number(i),
                     chainId: chain.id,
                     favourite: 0,
-                    name: boardName,
-                    symbol: boardSymbol,
+                    name: ethBoard.name,
+                    symbol: ethBoard.symbol,
+                    description: ethBoard.description,
+                    bannerUrl: ethBoard.bannerUrl,
+                    bannerCID: ethBoard.bannerCID,
+                    rules: ethBoard.rules,
                     lastSynced: 0
                   }
                   await db.boards.add(board)

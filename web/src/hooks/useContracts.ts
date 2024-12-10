@@ -23,7 +23,6 @@ export const useContracts = () => {
 
   const fetchContracts = useCallback(async () => {
     if (publicClient && walletClient?.data && chain?.id) {
-      console.log('walletClient', walletClient)
       setHashchan(getContract({
         address: HashChan3[chain.id].address,
         abi: HashChan3.abi,
@@ -32,8 +31,6 @@ export const useContracts = () => {
           wallet: walletClient.data
         }
       }))
-      console.log(ModerationServiceFactory[chain.id].address)
-      console.log(walletClient.data)
       const modFactory = getContract({
         address: ModerationServiceFactory[chain.id].address,
         abi: ModerationServiceFactory.abi,
@@ -44,8 +41,6 @@ export const useContracts = () => {
       })
 
       setModerationServiceFactory(modFactory)
-      const thing = await modFactory.read.hashChan3()
-      console.log('thing', thing)
     }
   }, [publicClient, walletClient?.data, chain?.id])
 

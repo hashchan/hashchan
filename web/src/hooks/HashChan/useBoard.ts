@@ -29,6 +29,7 @@ export const useBoard = () => {
 
   const fetchBoard = useCallback(async () => {
     console.log('fetching board')
+    console.log(Boolean(chain), Boolean(db), Boolean(boardId), Boolean(chainId), Boolean(publicClient), Boolean(hashchan))
     if (
       chain &&
       db &&
@@ -50,6 +51,13 @@ export const useBoard = () => {
       }
 
       if (!board) {
+        const logs = await hashchan.getEvents.NewBoard(
+          {
+            boardId: boardId
+          }
+        )
+
+        /*
         const boardFilter = await publicClient.createContractEventFilter({
           address: contractAddress,
           abi,
@@ -63,7 +71,9 @@ export const useBoard = () => {
           filter: boardFilter
         })
 
-        const log = events[0]
+       */
+      console.log('logs', logs)
+        const log = logs[0]
         if (!log) {return}
 
         const { id, name, symbol } = log.args
@@ -87,13 +97,12 @@ export const useBoard = () => {
     }
 
   }, [
-    abi,
-    contractAddress,
     publicClient,
     chain,
     db,
     boardId,
-    chainId
+    chainId,
+    hashchan
   ]);
 
 
@@ -105,8 +114,6 @@ export const useBoard = () => {
       Boolean(boardId),
       Boolean(chainId),
       Boolean(publicClient),
-      Boolean(contractAddress),
-      Boolean(abi),
     )
     if (
       isInitialized ||
@@ -114,9 +121,7 @@ export const useBoard = () => {
       !db ||
       !boardId ||
       !chainId ||
-      !publicClient ||
-      !contractAddress ||
-      !abi
+      !publicClient 
     ) return
 
     const init = async () => {
@@ -133,8 +138,6 @@ export const useBoard = () => {
     boardId,
     chainId,
     publicClient,
-    contractAddress,
-    abi,
     fetchBoard
   ])
 
