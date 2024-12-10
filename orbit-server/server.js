@@ -77,6 +77,12 @@ const main = async () => {
     console.log(addr.toString())
   })
 
+  helia.libp2p.services.pubsub.subscribe('hashchan')
+
+  helia.libp2p.services.pubsub.addEventListener('message', (event) => {
+    console.log('message', event)
+  })
+
   db.events.on('peer:join', (peerId) => {
     console.log("peer:join", peerId)
   })
