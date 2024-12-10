@@ -70,8 +70,8 @@ const config: HardhatUserConfig = {
         chainId: 11155111,
       accounts: {
         mnemonic: process.env.MNEMONIC
-
-      }
+      },
+      gas: 'auto',
     },
     'optimism-sepolia': {
       url: `https://optimism-sepolia.infura.io/v3/${process.env.INFURA}`,

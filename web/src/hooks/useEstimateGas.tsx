@@ -15,7 +15,7 @@ import {
 } from 'wagmi'
 
 
-import { useContract } from '@/hooks/useContract'
+import { useContracts } from '@/hooks/useContracts'
 import { useWETHUSDC } from '@/hooks/useWETHUSDC'
 
 export const useEstimateGas = () => {
@@ -24,7 +24,7 @@ export const useEstimateGas = () => {
   const [ethPrice, setEthPrice] = useState(null)
   const [gasPrice, setGasPrice] = useState(null)
   const { chain } = useAccount()
-  const { contractAddress, abi } = useContract()
+  const { contractAddress, abi } = useContracts()
   const publicClient = usePublicClient();
   const [createThreadEstimate, setCreateThreadEstimate] = useState(null)
   const [createPostEstimate, setCreatePostEstimate] = useState(null)

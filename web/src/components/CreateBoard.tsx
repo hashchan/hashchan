@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useForm  } from "react-hook-form";
-import { useCreateBoard } from "@/hooks/useCreateBoard";
+import { useCreateBoard } from "@/hooks/HashChan/useCreateBoard";
 import { Modal } from '@/components/Modal'
 
 export const CreateBoard = ({

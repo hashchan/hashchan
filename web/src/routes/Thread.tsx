@@ -1,13 +1,13 @@
 import { useState,useEffect, forwardRef, useCallback  } from 'react'
 import { useParams, useLocation  } from 'react-router-dom'
 
-import { useThread } from '@/hooks/useThread'
+import { useThread } from '@/hooks/HashChan/useThread'
 import { CreatePost } from '@/components/CreatePost'
 import { truncateEthAddress } from '@/utils/address'
 import { supportedExtensions } from '@/utils/content'
 import { useTip } from '@/hooks/useTip'
-import { useHelia } from '@/hooks/useHelia'
-import { useJannyPost } from '@/hooks/useJannyPost'
+import { useHelia } from '@/hooks/p2p/useHelia'
+import { useJannyPost } from '@/hooks/ModerationService/useJannyPost'
 
 import { useForm  } from "react-hook-form";
 

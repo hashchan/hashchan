@@ -99,9 +99,28 @@ export const HeliaProvider = ({ children }) => {
 
         const db  = await orbit.open('hashchan')
         
-        //const dial = await helia.libp2p.dial(multiaddr('/dns4/orbit.hashchan.org/tcp/443/wss/p2p/12D3KooWKeZf5CuFWUkyzpEyg5ufirvoeznRSWQETaHGWtadgFTW'))
-        const dial = await helia.libp2p.dial(multiaddr('/dns4/orbit.hashchan.org/tcp/443/wss/p2p/12D3KooWKeZf5CuFWUkyzpEyg5ufirvoeznRSWQETaHGWtadgFTW'))
+        const dial = await helia.libp2p.dial(multiaddr('/dns4/orbit.hashchan.org/tcp/443/wss'))
         console.log('dial', dial)
+
+        await helia.libp2p.services.pubsub.subscribe('hashchan')
+
+        helia.libp2p.services.pubsub.addEventListener('message', (event) => {
+          console.log('message', event)
+        })
+
+        helia.libp2p.addEventListener('peer:discovery', (event) => {
+          console.log('Discovered peer:', event.detail.id.toString())
+        })
+
+        // Listen for peer connection
+        helia.libp2p.addEventListener('peer:connect', (event) => {
+          console.log('Connected to peer:', event.detail.toString())
+        })
+
+				await new Promise(resolve => setTimeout(resolve, 1000))
+
+
+        await libp2p.services.pubsub.publish('hashchan', new TextEncoder().encode('hello world'))
 
         setLibp2p(libp2p)
         setHelia(helia)

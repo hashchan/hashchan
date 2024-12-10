@@ -3,8 +3,9 @@ import "./ModerationService.sol";
 import "./HashChan3.sol";
 
 contract ModerationServiceFactory {
+  
+  
   HashChan3 public hashChan3;
-
   address[] public modServices;
   uint256 public modServiceIterator;
 
@@ -15,16 +16,21 @@ contract ModerationServiceFactory {
     string name
   );
 
-  constructor () {
+  constructor (address _hashChan3) {
+    hashChan3 = HashChan3(_hashChan3);
   }
 
   function createModerationService(
-    string memory name
+    string memory name,
+    string memory uri,
+    uint256 port
   ) public  {
     ModerationService  newModService = new ModerationService(
       address(hashChan3),
       name,
-      msg.sender
+      msg.sender,
+      uri,
+      port
     );
     modServices.push(address(newModService));
     modServiceIterator++;

@@ -5,14 +5,7 @@ import { CreateThread } from '@/components/CreateThread'
 import { CreatePost } from '@/components/CreatePost'
 import { useAccount } from 'wagmi'
 
-import { useBoard } from '@/hooks/useBoard'
-
-
-
-
-
-
-
+import { useBoard } from '@/hooks/HashChan/useBoard'
 
 const PostButton = ({
   threadId,

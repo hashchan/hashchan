@@ -11,6 +11,10 @@ contract ModerationService is Ownable, EIP712 {
   HashChan3 public hashChan3;
 
   string public name;
+  string public uri;
+  uint256 public port;
+
+  event URLUpdated(string uri, uint256 port);
 
   struct FlagData {
     uint256 chainId;
@@ -23,7 +27,6 @@ contract ModerationService is Ownable, EIP712 {
   bytes32 public constant FlagDataTypeHash = keccak256(
     "FlagData(uint256 chainId,uint256 boardId,bytes32 threadId,bytes32 postId,uint256 reason)"
   );
-
 
   struct Janitor {
     uint256 positiveReviews;
@@ -54,7 +57,9 @@ contract ModerationService is Ownable, EIP712 {
   constructor(
     address _hashChan3,
     string memory _name,
-    address _owner
+    address _owner,
+    string memory _uri,
+    uint256 _port
   ) Ownable(
     _owner
   ) EIP712(
@@ -63,7 +68,20 @@ contract ModerationService is Ownable, EIP712 {
   ) {
     hashChan3 = HashChan3(_hashChan3);
     name = _name;
+    uri = _uri;
+    port = _port;
   }
+  
+  function setURL(
+    string memory _uri,
+    uint256 _port
+  ) public onlyOwner {
+    uri = _uri;
+    port = _port;
+
+    emit URLUpdated(_uri, _port);
+  }
+
 
   function getJanitor(address _janitor) public view returns (Janitor memory) {
     return janitors[_janitor];

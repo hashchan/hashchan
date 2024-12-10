@@ -106,7 +106,7 @@ export const Modal = ({
             paddingBottom: `${1/(Math.PHI**2)}rem`,
             background: '#20C20E20',
             margin: `-${1/(Math.PHI**2)}rem -${1/(Math.PHI**2)}rem ${1/(Math.PHI)}rem -${1/(Math.PHI**2)}rem`,
-            padding: `${1/(Math.PHI**2)}rem ${1/(Math.PHI**2)}rem`,
+            padding: `${1/(Math.PHI**9)}rem ${1/(Math.PHI**2)}rem`,
             borderBottom: '1px solid #20C20E20',
           }}
         >

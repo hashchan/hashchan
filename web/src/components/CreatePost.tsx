@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useForm  } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
-import { useThread } from "@/hooks/useThread";
+import { useThread } from "@/hooks/HashChan/useThread";
 import { truncateEthAddress } from '@/utils/address'
 import { parseContent } from '@/utils/content'
 import MarkdownEditor from '@uiw/react-markdown-editor';

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm  } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { useCreateThread } from "@/hooks/useCreateThread";
+import { useCreateThread } from "@/hooks/HashChan/useCreateThread";
 import { useW3Storage } from '@/hooks/useW3Storage'
 import MarkdownEditor from '@uiw/react-markdown-editor';
 import { useParams } from "react-router-dom";

@@ -1,8 +1,8 @@
 {
-  "localhost": {
+  "31337": {
     "address": "0x7cE23ee9023A138193C33F060A0060E918246E59"
   },
-  "sepolia": {
+  "11155111": {
     "address": "0x53f440C34334314ECd1F465C04F37Caa83D5996a"
   },
   "_format": "hh-sol-artifact-1",
