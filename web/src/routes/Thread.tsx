@@ -7,6 +7,7 @@ import { truncateEthAddress } from '@/utils/address'
 import { supportedExtensions } from '@/utils/content'
 import { useTip } from '@/hooks/useTip'
 import { useHelia } from '@/hooks/useHelia'
+import { useJannyPost } from '@/hooks/useJannyPost'
 
 import { useForm  } from "react-hook-form";
 
@@ -139,6 +140,17 @@ const TipCreator = ({creator}: {creator: `0x${string}`}) => {
   )
 }
 
+const JannyPost = ({postId}: {postId: `0x${string}`}) => {
+  const {
+    fetchJannyPost,
+
+  } = useJannyPost()
+ return (
+   <>
+   </>
+ ) 
+}
+
 const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
   //imgUrl = 'bafkreiab6xxyrrnitmrukgeh5kwvnyhidhxsdmuloyeft7omycpk2vauwu'
   const [uri, setUri] = useState(null)
@@ -246,6 +258,7 @@ const Post = forwardRef(({
       >
         <span>{truncateEthAddress(creator)}</span>
         <TipCreator creator={creator} />&nbsp;
+        <JannyPost postId={postId} />
         <PostIdSpan postId={postId} handleOpenPost={handleOpenPost} />
         <span>&nbsp;{timestamp && new Date(timestamp * 1000).toLocaleString()}</span>
         <ReplySpans replies={replies} />

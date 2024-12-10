@@ -1,0 +1,22 @@
+{
+  "name": "orbit-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@chainsafe/libp2p-gossipsub": "^14.1.0",
+    "@libp2p/identify": "^3.0.13",
+    "@libp2p/tcp": "^10.0.14",
+    "@orbitdb/core": "^2.4.3",
+    "blockstore-level": "^2.0.1",
+    "datastore-level": "^11.0.1",
+    "helia": "^5.1.1",
+    "libp2p": "^2.4.0"
+  }
+}
