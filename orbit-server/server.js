@@ -11,6 +11,7 @@ import { createHelia } from 'helia'
 import { webSockets } from '@libp2p/websockets'
 import { createOrbitDB, IPFSAccessController  } from '@orbitdb/core'
 import { identify } from "@libp2p/identify";
+import { circuitRelayServer  } from '@libp2p/circuit-relay-v2'
 
 import * as filters from "@libp2p/websockets/filters";
 
