@@ -9,6 +9,7 @@ import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 import { createLibp2p } from 'libp2p'
 import { createHelia } from 'helia'
 import { webSockets } from '@libp2p/websockets'
+import { tcp } from '@libp2p/tcp'
 import { createOrbitDB, IPFSAccessController  } from '@orbitdb/core'
 import { identify } from "@libp2p/identify";
 import { circuitRelayServer  } from '@libp2p/circuit-relay-v2'
@@ -24,11 +25,21 @@ const main = async () => {
   const libp2p = await createLibp2p({
     datastore,
     addresses: {
-      listen: [`/ip4/${process.env.IP}/tcp/${process.env.PORT}/ws`],
+      listen: [
+        `/ip4/127.0.0.1/tcp/${process.env.PORT}/ws`,
+        `/ip4/0.0.0.0/tcp/4002/`
+      ],
+      announce: [
+        `/dns4/orbit.hashchan.org/tcp/443/wss`,
+        `/ip4/${process.env.IP}/tcp/4002`
+      ]
     },
-    transports: [ webSockets({
+    transports: [
+      webSockets({
       filter: filters.all
-    })],
+    }),
+      tcp()
+    ],
     connectionEncrypters: [noise()],
     streamMuxers: [yamux()],
     services: {
