@@ -2,13 +2,18 @@ import "dotenv/config"
 import { LevelBlockstore } from 'blockstore-level'
 import { LevelDatastore } from 'datastore-level'
 
+import { yamux  } from '@chainsafe/libp2p-yamux'
+import { noise  } from '@chainsafe/libp2p-noise'
+
 import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 import { createLibp2p } from 'libp2p'
 import { createHelia } from 'helia'
-import { tcp } from '@libp2p/tcp'
 import { webSockets } from '@libp2p/websockets'
 import { createOrbitDB, IPFSAccessController  } from '@orbitdb/core'
 import { identify } from "@libp2p/identify";
+
+import * as filters from "@libp2p/websockets/filters";
+
 const main = async () => {
   const blockstore = new LevelBlockstore("./hashchan/blockstore")
   const datastore = new LevelDatastore("./hashchan/datastore")
@@ -18,13 +23,18 @@ const main = async () => {
   const libp2p = await createLibp2p({
     datastore,
     addresses: {
-      listen: [`/ip4/${process.env.IP}/tcp/${process.env.PORT}`],
+      listen: [`/ip4/${process.env.IP}/tcp/${process.env.PORT}/ws`],
     },
-    transports: [tcp(), webSockets()],
+    transports: [ webSockets({
+      filter: filters.all
+    })],
+    connectionEncrypters: [noise()],
+    streamMuxers: [yamux()],
     services: {
       pubsub: gossipsub({
         allowPublishToZeroTopicPeers: true
       }),
+      relay: circuitRelayServer(),
       identify: identify()
     }
   })
