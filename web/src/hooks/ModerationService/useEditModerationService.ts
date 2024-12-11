@@ -18,17 +18,15 @@ import {
 } from '@/provider/HeliaProvider'
 
 
-export const useCreateModerationService = () => {
+export const useEditModerationService = (instance: any) => {
   const { helia } = useContext(HeliaContext)
-  const { moderationServiceFactory } = useContracts()
   const { address, chain } = useAccount()
   
   const [ hash, setHash] = useState(null)
   const [logs, setLogs] = useState([])
   const [logErrors, setLogErrors] = useState([])
 
-  const createModerationService = useCallback(async ({
-    name,
+  const editUrl = useCallback(async ({
     uri,
     port
   }:{
@@ -36,11 +34,10 @@ export const useCreateModerationService = () => {
     uri: string
     port: number
   }) => {
-    if ( moderationServiceFactory && address) {
+    if ( instance && address) {
       try {
-        const unwatch  =  moderationServiceFactory.watchEvent.NewModerationService(
+        const unwatch  =  instance.watchEvent.URLUpdated(
           {
-            owner: address
           },
           { 
             onError: (error) => {
@@ -54,8 +51,8 @@ export const useCreateModerationService = () => {
             }
           }
         )
-        setHash(await moderationServiceFactory.write.createModerationService([
-          name, uri, port
+        setHash(await instance.write.setURL([
+          uri, port
         ]))
 
       } catch (e) {
@@ -63,13 +60,13 @@ export const useCreateModerationService = () => {
         setLogErrors(old => [...old, e.message])
       }
     }
-  },[moderationServiceFactory, address])
+  },[instance, address])
 
 
   return {
     hash,
     logs,
     logErrors,
-    createModerationService,
+    editUrl,
   }
 }

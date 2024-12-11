@@ -26,7 +26,6 @@ export const CreatePost = ({
     logErrors,
     createPost
   } =  useCreatePost()
-  const [rpcError, setRpcError] = useState(null)
   const onSubmit = async (data) => {
     setWait(1)
     console.log(data)
@@ -129,9 +128,6 @@ export const CreatePost = ({
               <p className="break-words" key={i}>{log.toString()}</p>
             )
           })}
-          { rpcError && (
-            <p className="break-words">{rpcError}</p>
-          )}
         </div>
       </form>
     </Modal>

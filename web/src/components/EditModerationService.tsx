@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useForm  } from "react-hook-form";
 import { Modal } from '@/components/Modal'
-import { useCreateModerationService } from '@/hooks/ModerationService/useCreateModerationService'
-export const CreateModerationService = () => {
+import { useEditModerationService } from '@/hooks/ModerationService/useEditModerationService'
+export const EditModerationService = ({instance}:{instance: any}) => {
   const [isOpen, setIsOpen] = useState(false)
   const {
     register,
@@ -15,11 +15,11 @@ export const CreateModerationService = () => {
   } = useForm();
 
   const {
-    createModerationService,
+    editUrl,
     hash,
     logs,
     logErrors,
-  } = useCreateModerationService()
+  } = useEditModerationService(instance)
 
   const [wait, setWait] = useState(0)
 
@@ -29,8 +29,7 @@ export const CreateModerationService = () => {
 
   const onSubmit = async (data) => {
     setWait(1)
-    await createModerationService({
-      name: data.name,
+    await editUrl({
       uri: data.uri,
       port: data.port,
     })
@@ -50,7 +49,7 @@ export const CreateModerationService = () => {
 
   return (
     <>
-      <button onClick={handleClose}>Create Moderation Service</button>
+      <button onClick={handleClose}>Edit</button>
       { isOpen &&
       <Modal handleClose={handleClose}>
         <form
@@ -61,18 +60,6 @@ export const CreateModerationService = () => {
             alignItems: 'center',
           }}
         >
-          <label htmlFor="name">Moderation Service Name</label>
-          <div style={{
-            width: `${100/(Math.PHI)+(100/(Math.PHI**3))}%`
-            }}>
-            <input style={{
-              paddingLeft: 0,
-              paddingRight: 0,
-              margin: '4px 0',
-              width: '100%',
-              }}
-              defaultValue="" {...register("name", { required: true })} />
-          </div>
           <label htmlFor="url">Orbit DB URI</label>
           <div style={{
             width: `${100/(Math.PHI)+(100/(Math.PHI**3))}%`
@@ -102,7 +89,7 @@ export const CreateModerationService = () => {
               disabled={isSubmitting}
               type="submit"
             >
-              {isSubmitting ? (<span>Submitting...</span>): (<span>Create Moderation Service</span>)}
+              {isSubmitting ? (<span>Submitting...</span>): (<span>Update URL</span>)}
             </button>
           </div>
         <div>

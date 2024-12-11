@@ -38,7 +38,7 @@ export const useCreateThread = () => {
         setLogErrors(old => [...old, error])
       }
       try {
-        const unwatch = hashchan.watchEvent.ThreadCreated(
+        const unwatch = hashchan.watchEvent.NewThread(
           {
             boardId: board.boardId,
             creator: address
