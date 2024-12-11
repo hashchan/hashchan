@@ -150,3 +150,9 @@ input {
 .modal-container::-webkit-scrollbar-thumb:hover {
   background: #27e811;
 }
+
+.break-words {
+  word-break: break-all;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}

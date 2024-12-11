@@ -99,8 +99,8 @@ export const HeliaProvider = ({ children }) => {
 
         const db  = await orbit.open('hashchan')
         
-        const dial = await helia.libp2p.dial(multiaddr('/dns4/orbit.hashchan.org/tcp/443/wss'))
-        console.log('dial', dial)
+        //const dial = await helia.libp2p.dial(multiaddr('/dns4/orbit.hashchan.org/tcp/443/wss'))
+        //console.log('dial', dial)
 
         await helia.libp2p.services.pubsub.subscribe('hashchan')
 

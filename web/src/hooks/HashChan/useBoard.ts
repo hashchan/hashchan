@@ -28,8 +28,6 @@ export const useBoard = () => {
   const {db} = useContext(IDBContext)
 
   const fetchBoard = useCallback(async () => {
-    console.log('fetching board')
-    console.log(Boolean(chain), Boolean(db), Boolean(boardId), Boolean(chainId), Boolean(publicClient), Boolean(hashchan))
     if (
       chain &&
       db &&
@@ -39,13 +37,11 @@ export const useBoard = () => {
       hashchan
     ) {
       let board
-      console.log('boardId', boardId, 'chainId', chainId)
       try {
         board = await db.boards
         .where('[boardId+chainId]')
         .equals([Number(boardId), Number(chainId)])
         .first()
-      console.log('board:48', board)
       } catch (e) {
         console.log('db error, skipping')
       }
@@ -72,7 +68,6 @@ export const useBoard = () => {
         })
 
          */
-        console.log('logs', logs)
         const log = logs[0]
         if (!log) {return}
 
@@ -92,7 +87,6 @@ export const useBoard = () => {
           console.log('db error, skipping')
         }
       }
-      console.log('board:95', board)
       setBoard(board)
     }
 
@@ -107,14 +101,6 @@ export const useBoard = () => {
 
 
   useEffect(() => {
-    console.log(
-      Boolean(isInitialized),
-      Boolean(chain),
-      Boolean(db),
-      Boolean(boardId),
-      Boolean(chainId),
-      Boolean(publicClient),
-    )
     if (
       isInitialized ||
       !chain ||

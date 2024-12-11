@@ -48,7 +48,6 @@ import {
 
 
     const fetchBoards = useCallback(async (cacheOnly: boolean) => {
-      console.log('fetching boards')
       if ( db && hashchan && chain && blockNumber) {
         let boards = []
         let boardsSync = await db.boardsSync.where('chainId').equals(chain.id).first()
@@ -64,7 +63,6 @@ import {
         }
           try {
             boards = await db.boards.where('chainId').equals(chain.id).toArray()
-            console.log('boards', boards)
           } catch (e) {
             console.log('e', e)
             console.log('db error, skipping')
@@ -72,14 +70,11 @@ import {
           try {
             if (!cacheOnly) {
               const boardIterator = await hashchan.read.boardCount()
-              console.log("boardsSync", boardsSync)
-              console.log("boardIterator", boardIterator)
 
               for (let i = boardsSync.boardIterator; i < boardIterator; i++) {
                 const ethBoard = await hashchan.read.getBoard([i])
 
                 const exist = await db.boards.where('[boardId+chainId]').equals([i, chain.id]).first()
-                console.log('exist', Boolean(exist) )
                 if (!exist) {
                   const board = {
                     boardId: Number(i),
@@ -98,7 +93,6 @@ import {
                 }
               }
 
-              console.log('setting boards: ', boards)
               setBoards(boards)
               await db.boardsSync.where('chainId').equals(chain.id).modify({
                 lastSynced: Number(blockNumber.data),

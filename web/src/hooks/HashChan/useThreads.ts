@@ -19,14 +19,13 @@ import { tryRecurseBlockFilter } from '@/utils/blockchain'
 
 export const useThreads = () => {
   const { board } = useBoard()
-  const { boardId, chainId } = useParams()
   const { db } = useContext(IDBContext)
   const [isInitialized, setIsInitialized] = useState(false)
   const { address, chain } = useAccount()
   const publicClient = usePublicClient({config});
   const blockNumber = useBlockNumber();
 
-  const { contractAddress, abi } = useContracts()
+  const { hashchan } = useContracts()
   const [logErrors, setLogErrors] = useState([])
   //const walletClient = useWalletClient()
   const [threads, setThreads] = useState([])
@@ -35,29 +34,28 @@ export const useThreads = () => {
 
 
   const fetchThreads = useCallback(async () => {
+    console.log('fetching threads')
+    console.log(Boolean(address),
+      Boolean(db),
+      Boolean(blockNumber),
+      Boolean(hashchan),
+      Boolean(board)
+    ) 
     if (
       publicClient &&
       address &&
-      chain &&
       db &&
       blockNumber &&
-      abi &&
-      contractAddress &&
-      boardId &&
-      chainId &&
+      hashchan &&
       board
     ) {
-      // needs to fetch board by unique ID
       const threads = await db.threads
-      .where(['boardId+chainId'])
-      .equals([Number(boardId), Number(chainId)]).toArray()
-        console.log('blockNumber', blockNumber.data)
-        console.log('board.lastSynced', board.lastSynced)
-        if (blockNumber.data > board.lastSynced) {
-          
+        .where(['boardId+chainId'])
+        .equals([Number(board.boardId), Number(board.chainId)]).toArray()
+      if (blockNumber.data > board.lastSynced) {
           const startingFilterArgs = {
-            address: contractAddress,
-            abi,
+            address: hashchan.address,
+            abi: hashchan.abi,
             eventName: 'NewThread',
             args: {
               'board': `0x${BigInt(board.boardId).toString(16)}`
@@ -82,6 +80,7 @@ export const useThreads = () => {
                 creator,
                 threadId,
                 imgUrl,
+                imgCID,
                 title,
                 content,
                 timestamp
@@ -92,6 +91,7 @@ export const useThreads = () => {
                 threadId,
                 creator,
                 imgUrl,
+                imgCID,
                 title,
                 content,
                 chainId: chain.id,
@@ -100,6 +100,7 @@ export const useThreads = () => {
               await db.threads.add(threads[threads.length - 1])
           })
           await db.boards.where('[boardId+chainId]').equals([board.boardId, board.chainId]).modify({'lastSynced': blockNumber.data})
+
           } catch (e) {
             console.log('log error', e)
             setLogErrors(old => [...old, e.toString()])
@@ -108,26 +109,23 @@ export const useThreads = () => {
         }
 
         setThreads(threads)
+
     }
   }, [
     publicClient,
     address,
     board,
-    chain,
-    contractAddress,
-    abi,
+    hashchan,
     blockNumber,
     db,
-    boardId,
-    chainId
   ])
 
   const watchThreads = useCallback(async () => {
-   if (publicClient && address && chain && board && blockNumber && abi && contractAddress) {
+   if (address && board && blockNumber && hashchan) {
      try {
      const unwatch = publicClient.watchContractEvent({
-       address: contractAddress,
-       abi,
+       address: hashchan.address,
+       abi: hashchan.abi,
        eventName: 'NewThread',
        //fromBlock: blockNumber.data,
        args: {
@@ -140,6 +138,7 @@ export const useThreads = () => {
            creator: logs[0].args.creator,
            threadId: logs[0].args.threadId,
            imgUrl: logs[0].args.imgUrl,
+           imgCID: logs[0].args.imgCID,
            content: logs[0].args.content
          }
          setThreads(old => [...old, thread])
@@ -154,35 +153,30 @@ export const useThreads = () => {
   }, [
     publicClient,
     address,
+    hashchan,
     board,
-    chain,
-    contractAddress,
-    abi,
     blockNumber,
   ])
 
   useEffect(() => {
     setIsInitialized(false)
-  },[boardId])
+  },[board?.boardId])
 
 
   useEffect(() => {
     if (
       isInitialized ||
+      !publicClient ||
       !address ||
-      !chain ||
       !db ||
       !blockNumber ||
-      !abi ||
-      !contractAddress ||
-      !boardId ||
-      !chainId ||
+      !hashchan ||
       !board
    ) return 
 
     const init = async () => {
       await fetchThreads()
-      await watchThreads()
+      //await watchThreads()
       setIsInitialized(true)
     }
 
@@ -190,17 +184,14 @@ export const useThreads = () => {
 
   }, [
     isInitialized,
+    publicClient,
     address,
-    chain,
     db,
     board,
     fetchThreads,
     watchThreads,
+    hashchan,
     blockNumber,
-    abi,
-    contractAddress,
-    boardId,
-    chainId
   ])
 
 

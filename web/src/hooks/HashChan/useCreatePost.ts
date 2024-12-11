@@ -3,7 +3,7 @@ import {
   useState,
   useCallback
 } from 'react'
-
+import { useParams } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 
 import { IDBContext } from '@/provider/IDBProvider'
@@ -13,34 +13,33 @@ import { useBoard } from '@/hooks/HashChan/useBoard'
 import { computeImageCID } from '@/utils/cids'
 
 
-export const useCreateThread = () => {
+export const useCreatePost = () => {
   const { db } = useContext(IDBContext)
   const { board } = useBoard()
   const { hashchan } = useContracts()
   const { address } =  useAccount()
+  const { threadId } = useParams()
 
   const [hash, setHash] = useState(null)
   const [logs, setLogs] = useState([])
-  const [threadId, setThreadId] = useState(null)
-
   const [logErrors, setLogErrors] = useState([])
 
 
-  const createThread = useCallback(async (
-    title: string,
+  const createPost = useCallback(async (
     imageUrl: string,
-    content: string
+    content: string,
+    replyIds: string[]
   )  => {
-    if (db && board && hashchan && address) {
+    if (db && board && hashchan && address && threadId) {
 
       const { cid, error } = await computeImageCID(imageUrl)
       if (error) {
         setLogErrors(old => [...old, error])
       }
       try {
-        const unwatch = hashchan.watchEvent.ThreadCreated(
+        const unwatch = hashchan.watchEvent.NewPost(
           {
-            boardId: board.boardId,
+            threadId: threadId,
             creator: address
           },
           {
@@ -50,17 +49,19 @@ export const useCreateThread = () => {
             },
             onLogs: async (logs) => {
               console.log('onLogs', logs)
-              setLogs(logs)
-              setThreadId(logs[0].args.threadId)
+              setLogs(old => [...old, ...logs])
+              //(logs[0].args.threadId)
               // maybe lastsynced here
-              await db.threads.add(logs[0].args)
+              //await db.threads.add(logs[0].args)
               unwatch()
             }
           }
         )
-        const hash = await hashchan.write.createThread([
+        console.log( board.boardId, threadId, replyIds, imageUrl, cid, content)
+        const hash = await hashchan.write.createPost([
           board.boardId,
-          title,
+          threadId,
+          replyIds,
           imageUrl,
           cid,
           content
@@ -76,6 +77,7 @@ export const useCreateThread = () => {
     db,
     board,
     address,
+    threadId
   ])
 
   return {
@@ -83,6 +85,6 @@ export const useCreateThread = () => {
     logs,
     logErrors,
     threadId,
-    createThread
+    createPost
   }
 }

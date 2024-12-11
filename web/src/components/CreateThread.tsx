@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useForm  } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+
+import MarkdownEditor from '@uiw/react-markdown-editor';
+
 import { useCreateThread } from "@/hooks/HashChan/useCreateThread";
 import { useW3Storage } from '@/hooks/useW3Storage'
-import MarkdownEditor from '@uiw/react-markdown-editor';
-import { useParams } from "react-router-dom";
 import { Modal } from '@/components/Modal'
 export const CreateThread = ({
   board,
@@ -16,16 +17,23 @@ export const CreateThread = ({
   const { chainId, boardId } = useParams()
   const {  account, uploadFile } = useW3Storage()
   const { register, handleSubmit, formState: { errors, isSubmitting  }, setValue  } = useForm();
-  const { createThread, threadId } = useCreateThread()
-  const [rpcError, setRpcError] = useState(null)
+
+  const {
+    createThread,
+    hash,
+    logs,
+    logErrors,
+    threadId
+  } = useCreateThread()
+
   const navigate = useNavigate();
+
+  const [rpcError, setRpcError] = useState(null)
 
   const onSubmit = async (data) => {
     console.log(data)
-    let response;
     if  (data.imageUrl) {
-      response = await createThread(
-        board,
+       await createThread(
         data.title,
         data.imageUrl,
         data.content
@@ -33,31 +41,28 @@ export const CreateThread = ({
     } else if (data.w3Image) {
       const upload = await uploadFile(data.w3Image)
       console.log('upload', upload)
-      response = await createThread(
-        board,
+      await createThread(
         data.title,
         upload,
         data.content
       )
     } else {
-      response = await createThread(
-        board,
+      await createThread(
         data.title,
         '',
         data.content
       )
     }
-    console.log('response', response)
-    if (response.hash) {
-      navigate(`/chains/${chainId}/boards/${boardId}/thread/${response.hash}`)
-    } else {
-      setRpcError(response.error.message)
-      console.log('error')
-    }
-    //go to /boards/:board/thread/:thread using react-router-dom
   }
 
-  //useEffect(() => {}, [threadId])
+  useEffect(() => {
+    if (threadId && chainId && boardId) {
+      setTimeout(() => {
+        handleClose()
+        navigate(`/chains/${chainId}/boards/${boardId}/thread/${threadId}`)
+      }, 618)
+    }
+  }, [chainId, boardId, threadId, navigate])
 
   return (
     <Modal handleClose={handleClose}>
@@ -78,8 +83,8 @@ export const CreateThread = ({
             paddingRight: 0,
             margin: '4px 0',
             width:'100%'
-          }}
-          defaultValue="" {...register("title", { required: true })} />
+            }}
+            defaultValue="" {...register("title", { required: true })} />
           {errors.title && <span>This field is required</span>}
         </div>
         <label htmlFor="imageUrl">Image Url</label>
@@ -92,8 +97,8 @@ export const CreateThread = ({
             paddingRight: 0,
             margin: '4px 0',
             width:'100%'
-          }}
-          defaultValue="" {...register("imageUrl", { required: false })} />
+            }}
+            defaultValue="" {...register("imageUrl", { required: false })} />
         </div>
         <label htmlFor="content">Content</label>
         <div style={{width:`${(100/Math.PHI)+(100/Math.PHI**3)}%`}}>
@@ -110,17 +115,33 @@ export const CreateThread = ({
         <div>
           <button
             disabled={isSubmitting}
-            type="submit">
+            type="submit"
+          >
             {isSubmitting ? (<span>Submitting...</span>): (<span>Make Thread</span>)}
-            </button>
-            {rpcError && (<p style={{
-              wordBreak: 'break-all',
-              whiteSpace: 'pre-wrap',
-              overflowWrap: 'break-word'
-            }}>{rpcError}</p>)}
-            </div>
-            </form>
-            </Modal>
+          </button>
+          </div>
+          <div>
+            {hash && (
+              <p className="break-words">Hash: {hash}</p>
+            )}
+            {logs.map((log, i) => {
+              return (
+              <>
+                <p className="break-words" key={i}>{log.transactionHash ? 'successful' : 'failed'}</p>
+              </>
+              )
+            })}
+            {logErrors.map((log, i) => {
+              return (
+                <p className="break-words" key={i}>{log.toString()}</p>
+              )
+            })}
+            { rpcError && (
+              <p className="break-words">{rpcError}</p>
+            )}
+          </div>
+      </form>
+    </Modal>
   );
 }
 

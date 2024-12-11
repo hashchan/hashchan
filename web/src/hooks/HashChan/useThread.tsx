@@ -36,13 +36,13 @@ export const useThread = () => {
   const [logsObj, setLogsObj] = useState(null)
   const [posts, setPosts] = useState([])
   const [logErrors, setLogErrors] = useState([])
-  const { contractAddress, abi } = useContracts()
+  const { hashchan } = useContracts()
 
   const [isReducedMode, setIsReducedMode] = useState(false)
 
 
   const fetchPosts = useCallback(async () => {
-    if (publicClient && address && threadIdParam && chain && db && boardIdParam && blockNumber.data) {
+    if (publicClient && address && hashchan && threadIdParam && chain && db && boardIdParam && blockNumber.data) {
       const cachedThread = await db.threads.where('threadId').equals(threadIdParam).first()
       let thread;
       if (cachedThread) {
@@ -60,8 +60,8 @@ export const useThread = () => {
       } else {
         //fetching thread from event logs
         const filterArgs = {
-          address: contractAddress,
-          abi,
+          address: hashchan.address,
+          abi: hashchan.abi,
           eventName: 'NewThread',
           args: {
             id: threadIdParam
@@ -77,13 +77,14 @@ export const useThread = () => {
         })
 
 
-        const { creator, content, threadId, imgUrl, replyIds, timestamp } = threadLogs[0].args
+        const { creator, content, threadId, imgUrl, imgCID, replyIds, timestamp } = threadLogs[0].args
 
         thread = {
           lastSynced: 0,
           creator,
           threadId,
           imgUrl,
+          imgCID,
           replyIds,
           replies: [],
           content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
@@ -101,6 +102,7 @@ export const useThread = () => {
           creator: thread.creator,
           threadId: thread.threadId,
           imgUrl: thread.imgUrl,
+          imgCID: thread.imgCID,
           content: thread.content,
           timestamp: thread.timestamp,
           replies: [],
@@ -128,8 +130,8 @@ export const useThread = () => {
           })
         }
         const postFilterArgs = {
-          address: contractAddress,
-          abi,
+          address: hashchan.address,
+          abi: hashchan.abi,
           eventName: 'NewPost',
           args: {
             threadId: threadIdParam
@@ -144,7 +146,7 @@ export const useThread = () => {
         })
 
         logs.forEach(async (log) => {
-          const { creator, postId, imgUrl, content, replyIds, timestamp } = log.args
+          const { creator, postId, imgUrl, imgCID, content, replyIds, timestamp } = log.args
           //const { replyIds } = parseContentTwo(content, localRefsObj)
           //const { replyIds, parsed } = parseContentTwo(content, localRefsObj)
           localRefsObj[postId] = createRef()
@@ -153,6 +155,7 @@ export const useThread = () => {
             creator,
             postId,
             imgUrl,
+            imgCID,
             timestamp: Number(timestamp),
             replies: [],
             content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
@@ -172,6 +175,7 @@ export const useThread = () => {
               postId: postId,
               creator: creator,
               imgUrl: imgUrl,
+              imgCID: imgCID,
               replyIds: replyIds,
               content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
               timestamp: Number(timestamp)
@@ -200,72 +204,9 @@ export const useThread = () => {
     threadIdParam,
     boardIdParam,
     chain,
-    contractAddress,
-    abi,
+    hashchan,
     blockNumber.data,
     db,
-  ])
-
-
-  const createPost = useCallback(async (
-    imgUrl: string,
-    content: string,
-    replyIds: string[]
-  ) => {
-    if (boardIdParam && threadIdParam && publicClient && walletClient && address && chain) {
-
-      const { cid, error } = await computeImageCID(imgUrl)
-      if (error) {
-        return {
-          receipt: null,
-          error
-        }
-      }
-      try {
-        const hash = await writeContract(config, {
-          address: contractAddress as `0x${string}`,
-          abi,
-          functionName: 'createPost',
-          args: [
-            boardIdParam,
-            threadIdParam,
-            replyIds,
-            imgUrl,
-            cid,
-            content 
-          ]
-        })
-
-        const receipt = await waitForTransactionReceipt(config, {hash})
-
-        const logs = parseEventLogs({
-          abi,
-          logs: receipt.logs
-        })
-        console.log('logs', logs)
-
-        return {
-          receipt: receipt,
-          error: null
-        }
-      } catch (e) {
-        console.log('e', e)
-        return {
-          receipt: null,
-          error: e
-        }
-      }
-
-    } 
-  }, [
-    publicClient,
-    walletClient,
-    address,
-    threadIdParam,
-    chain,
-    contractAddress,
-    abi,
-    boardIdParam,
   ])
 
 
@@ -276,8 +217,7 @@ export const useThread = () => {
       !chain ||
       !db ||
       !publicClient ||
-      !contractAddress ||
-      !abi ||
+      !hashchan ||
       !blockNumber.data ||
       !boardIdParam ||
       !threadIdParam
@@ -289,8 +229,8 @@ export const useThread = () => {
       console.log('setting up watch')
       console.log('blockNumber.data', blockNumber.data)
       const unwatch = publicClient.watchContractEvent({
-        address: contractAddress,
-        abi,
+        address: hashchan.address,
+        abi: hashchan.abi,
         eventName: 'NewPost',
         fromBlock: blockNumber.data - 2n,
         args: {
@@ -298,7 +238,7 @@ export const useThread = () => {
         },
         async onLogs(logs) {
           console.log('logs', logs)
-          const { creator, content, postId, imgUrl, timestamp } = logs[0].args
+          const { creator, content, postId, imgUrl, imgCID, timestamp } = logs[0].args
           setRefsObj((oldRefs) => {
             const replyIds  = parseContent(content)
             oldRefs[postId] = createRef()
@@ -314,6 +254,7 @@ export const useThread = () => {
               creator,
               postId,
               imgUrl,
+              imgCID,
               content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
               timestamp: Number(timestamp),
               replies: [],
@@ -338,8 +279,7 @@ export const useThread = () => {
     address,
     threadIdParam,
     chain,
-    contractAddress,
-    abi,
+    hashchan,
     blockNumber.data,
     db,
     boardIdParam
@@ -348,7 +288,6 @@ export const useThread = () => {
   return {
     posts: posts,
     fetchPosts: fetchPosts,
-    createPost: createPost,
     logErrors: logErrors,
     isReducedMode: isReducedMode,
   }
