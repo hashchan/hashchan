@@ -45,7 +45,7 @@ export const useBoard = () => {
         .where('[boardId+chainId]')
         .equals([Number(boardId), Number(chainId)])
         .first()
-      console.log('board', board)
+      console.log('board:48', board)
       } catch (e) {
         console.log('db error, skipping')
       }
@@ -71,8 +71,8 @@ export const useBoard = () => {
           filter: boardFilter
         })
 
-       */
-      console.log('logs', logs)
+         */
+        console.log('logs', logs)
         const log = logs[0]
         if (!log) {return}
 
@@ -92,7 +92,7 @@ export const useBoard = () => {
           console.log('db error, skipping')
         }
       }
-      console.log('board', board)
+      console.log('board:95', board)
       setBoard(board)
     }
 
@@ -121,7 +121,8 @@ export const useBoard = () => {
       !db ||
       !boardId ||
       !chainId ||
-      !publicClient 
+      !publicClient ||
+      !hashchan
     ) return
 
     const init = async () => {
@@ -138,6 +139,7 @@ export const useBoard = () => {
     boardId,
     chainId,
     publicClient,
+    hashchan,
     fetchBoard
   ])
 
