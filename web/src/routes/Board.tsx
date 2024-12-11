@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { useParams, Outlet } from 'react-router-dom'
+import { useParams, Outlet, useLocation } from 'react-router-dom'
 import { CreateThread } from '@/components/CreateThread'
 import { CreatePost } from '@/components/CreatePost'
 import { useAccount } from 'wagmi'
@@ -85,6 +85,7 @@ export const Board = () => {
   const { board } = useBoard()
   const { chainId, boardId, threadId } = useParams()
   const [openMakeContent, setOpenMakeContent] = useState(false)
+  const location = useLocation()
 
   const handleClose = () => {
     setOpenMakeContent(!openMakeContent)
@@ -94,6 +95,8 @@ export const Board = () => {
     console.log('board::board', board)
   }, [board])
 
+  // Check if we're at the exact board route
+  const isExactBoardRoute = location.pathname === `/chains/${chainId}/boards/${boardId}`
 
   return (
     <>
@@ -127,29 +130,29 @@ export const Board = () => {
         )}
         </>)
       }
-      { threadId ? (
+      { isExactBoardRoute ? (
+        <>
+          <div
+            className="flex-wrap-center"
+            style={{
+              flexDirection: 'column',
+            }}
+          >
+            <Banner bannerUrl={board?.bannerUrl} bannerCID={board?.bannerCID} />
+            <div>
+              <h3>Description</h3>
+              <p>{board?.description}</p>
+              <br/>
+              <h3>Rules</h3>
+              {board?.rules.map((rule, i) => {
+                return (<p key={i}> - {rule}</p>)
+              })}
+            </div>
+          </div>
+        </>
+      ) : (
         <Outlet />
-      ): (
-      <>
-      <div
-        className="flex-wrap-center"
-        style={{
-          flexDirection: 'column',
-        }}
-        >
-      <Banner bannerUrl={board?.bannerUrl} bannerCID={board?.bannerCID} />
-      <div>
-        <h3>Description</h3>
-        <p>{board?.description}</p>
-        <br/>
-        <h3>Rules</h3>
-        {board?.rules.map((rule, i) => {
-          return (<p key={i}> - {rule}</p>)
-        })}
-      </div>
-      </div>
-      </>
-      ) }
-      </>
+      )}
+    </>
   )
 }

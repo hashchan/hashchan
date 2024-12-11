@@ -1,112 +1,117 @@
 import {
   useContext,
   useState,
-  useEffect,
   useCallback
 } from 'react'
 
 import { IDBContext } from '@/provider/IDBProvider'
 import { useContracts } from '@/hooks/useContracts'
-import { useWalletClient, useAccount } from 'wagmi'
-import { writeContract, waitForTransactionReceipt } from '@wagmi/core'
 
-import { parseEventLogs } from 'viem'
 import { useBoard } from '@/hooks/HashChan/useBoard'
-import { config } from '@/config'
 import { computeImageCID } from '@/utils/cids'
+
 
 export const useCreateThread = () => {
   const { db } = useContext(IDBContext)
   const { board } = useBoard()
-  const { address, chain } = useAccount()
-  const { contractAddress, abi } = useContracts()
-  const walletClient = useWalletClient()
+  const { hashchan } = useContracts()
+ 
+  const [hash, setHash] = useState(null)
+  const [receipt, setReceipt] = useState(null)
+  const [logs, setLogs] = useState([])
   const [threadId, setThreadId] = useState(null)
 
+  const [logErrors, setLogErrors] = useState([])
+
   const createThread = useCallback(async (
-    boardSymbol: string,
     title: string,
     imageUrl: string,
     content: string
-  ) => {
-    if (walletClient && address && chain && db && board && contractAddress) {
+  )  => {
+    if (db && board && hashchan) {
+      const address = hashchan.client.wallet?.account.address
+      const chainId = hashchan.client.chain?.id
+
+      if (!address || !chainId) {
+        return {
+          success: false,
+          error: "Wallet not connected or chain not available"
+        }
+      }
 
       const { cid, error } = await computeImageCID(imageUrl)
       if (error) {
         return {
-          hash: null,
+          success: false,
           error
         }
       }
       try {
-        const tx = await writeContract(config, {
-          address: contractAddress,
-          abi,
-          functionName: 'createThread',
-          args: [
-            board.boardId,
-            title,
-            imageUrl,
-            cid,
-            content
-          ]
+        const unwatch = hashchan.watchEvent.ThreadCreated(
+          {
+            boardId: board.boardId,
+            creator: address
+          },
+          {
+            onError: (error) => {
+              console.log('error', error)
+              setLogErrors(old => [...old, error.message])
+            },
+            onLogs: async (logs) => {
+              console.log('logs', logs)
+              setLogs(logs)
+              setThreadId(logs[0].args.threadId)
+              // maybe lastsynced here
+              await db.threads.add(logs[0].args)
+              unwatch()
+              return {
+                success: true,
+                error: null
+              }
+            }
+          }
+        )
+        const hash = await hashchan.write.createThread([
+          board.boardId,
+          title,
+          cid,
+          content
+        ])
+        setHash(hash)
+
+        // Wait for the transaction receipt
+        const receipt = await hashchan.client.public.waitForTransactionReceipt({ 
+          hash 
         })
+        setReceipt(receipt)
 
-        console.log('tx', tx)
-        const receipt = await waitForTransactionReceipt(config, {
-          hash: tx
-        })
-        console.log('receipt', receipt)
-        const logs = parseEventLogs({
-          abi,
-          logs: receipt.logs
-        })
-        console.log('logs', logs)
-
-
-        setThreadId(logs[0].args.threadId)
-
-        await db.threads.add(logs[0].args)
-
-        /*
-        await db.threads.add({
-          threadId: logs[0].args.id,
-          boardId: logs[0].args.boardId,
-          creator: logs[0].args.creator,
-          imgUrl: logs[0].args.imgUrl,
-          imgCID: logs[0].args.imgCID,
-          title: logs[0].args.title,
-          content: logs[0].args.content,
-          timestamp: logs[0].args.timestamp
-        })
-       */
-        return  {
-          hash: logs[0].args.threadId,
-          error: null
-        }
-      }  catch (e) {
         return {
-          hash: null,
-          error: e
+          success: true,
+          error: null,
         }
-      }
-    } else {
-      return {
-        hash: null,
-        error: 'initialization error'
+      } catch (e) {
+        console.error(e)
+        return {
+          success: false,
+          error: e.message
+        }
       }
     }
+    return {
+      success: false,
+      error: "Initialization error: required dependencies not available"
+    }
   }, [
-    address,
-    walletClient,
-    chain,
-    contractAddress,
-    abi,
+    hashchan,
     db,
     board
   ])
 
   return {
+    hash,
+    receipt,
+    logs,
+    logErrors,
     threadId,
     createThread
   }
