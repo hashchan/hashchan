@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useForm  } from "react-hook-form";
 import { Modal } from '@/components/Modal'
-import { useEditModerationService } from '@/hooks/ModerationService/useEditModerationService'
-export const EditModerationService = ({instance}:{instance: any}) => {
+import { useJoinModerationService } from '@/hooks/ModerationService/useJoinModerationService'
+export const JoinModerationService = ({instance}:{instance: any}) => {
   const [isOpen, setIsOpen] = useState(false)
   const {
     register,
@@ -19,7 +19,7 @@ export const EditModerationService = ({instance}:{instance: any}) => {
     hash,
     logs,
     logErrors,
-  } = useEditModerationService(instance)
+  } = useJoinModerationService(instance)
 
   const [wait, setWait] = useState(0)
 
@@ -49,7 +49,7 @@ export const EditModerationService = ({instance}:{instance: any}) => {
 
   return (
     <>
-      <button onClick={handleClose}>Edit</button>
+      <button onClick={handleClose}>Subscribe</button>
       { isOpen &&
       <Modal handleClose={handleClose}>
         <form
@@ -89,7 +89,7 @@ export const EditModerationService = ({instance}:{instance: any}) => {
               disabled={isSubmitting}
               type="submit"
             >
-              {isSubmitting ? (<span>Submitting...</span>): (<span>Update URL</span>)}
+              {isSubmitting ? (<span>Submitting...</span>): (<span>Subscribe To Moderation Service</span>)}
             </button>
           </div>
         <div>

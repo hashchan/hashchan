@@ -18,7 +18,7 @@ import {
 } from '@/provider/HeliaProvider'
 
 
-export const useEditModerationService = (instance: any) => {
+export const useJoinModerationService = (instance: any) => {
   const { helia } = useContext(HeliaContext)
   const { address, chain } = useAccount()
   
@@ -26,7 +26,7 @@ export const useEditModerationService = (instance: any) => {
   const [logs, setLogs] = useState([])
   const [logErrors, setLogErrors] = useState([])
 
-  const editUrl = useCallback(async ({
+  const joinModerationService = useCallback(async ({
     uri,
     port
   }:{
@@ -62,40 +62,11 @@ export const useEditModerationService = (instance: any) => {
     }
   },[instance, address])
 
-  const addJanitor = useCallback(async ({janitor}:{janitor:string}) => {
-    if ( instance && address) {
-      try {
-        const unwatch =  instance.watchEvent.NewJanitor(
-          {
-            janitor
-          },
-          {
-            onError: (error) => {
-              console.log('error', error)
-              setLogErrors(old => [...old, error])
-            },
-            onLogs: (logs) => {
-              console.log('logs', logs)
-              setLogs(old => [...old, ...logs])
-              unwatch()
-            }
-          }
-        )
-        setHash(await instance.write.addJanitor([
-          janitor
-        ]))
-      } catch (e) {
-        console.log(e)
-        setLogErrors(old => [...old, e.message])
-      }
-    }
-  }, [])
 
   return {
     hash,
     logs,
     logErrors,
-    editUrl,
-    addJanitor
+    joinModerationService
   }
 }

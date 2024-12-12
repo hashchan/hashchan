@@ -1,7 +1,9 @@
 import { ReactNode } from 'react'
 
-import { CreateModerationService } from '@/components/CreateModerationService'
-import { EditModerationService } from '@/components/EditModerationService'
+import { CreateModerationService } from '@/components/ModerationService/CreateModerationService'
+import { SetURLModerationService } from '@/components/ModerationService/SetURLModerationService'
+import { AddJanitorModerationService } from '@/components/ModerationService/AddJanitorModerationService'
+import { JoinModerationService } from '@/components/ModerationService/JoinModerationService'
 import { useAccount } from 'wagmi'
 import { useModerationServices } from '@/hooks/ModerationService/useModerationServices'
 import { truncateEthAddress } from '@/utils/address'
@@ -57,8 +59,12 @@ const ModServiceTable = () => {
               <TableData content={truncateEthAddress(ms.address)} />
               <TableData content={truncateEthAddress(ms.owner)} />
               <TableData content={`${ms.uri}/${ms.port}`} />
-              {address && (ms.owner === address) && (
-              <TableData content={<EditModerationService instance={ms.instance} />} />)}
+                <TableData content={<>
+                  { address === ms.owner && (<SetURLModerationService instance={ms.instance} />)}
+                  { address === ms.owner && (<AddJanitorModerationService instance={ms.instance} />)}
+
+                  <JoinModerationService instance={ms.instance} />
+                  </>} />
             </tr>
           ))}
         </tbody>
