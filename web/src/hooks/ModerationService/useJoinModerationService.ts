@@ -38,8 +38,9 @@ export const useJoinModerationService = (ms: any) => {
         console.log('dial', dial)
         console.log('ms', ms)
         await db.moderationServices.add({
-          subscribed: true,
+          subscribed: 1,
           uri: ms.uri,
+          name: ms.name,
           port: ms.port,
           address: ms.address,
           chainId: Number(chain.id),
@@ -61,13 +62,12 @@ export const useJoinModerationService = (ms: any) => {
     if ( helia && db && ms && chain?.id ) {  
       try {
         setJoined(false)
-
-        const modService = await db.moderationServices.where('[chainId+address]').equals([Number(chain.id), ms.address]).first()
-
-        if (modService) {
-          await db.moderationServices.delete(modService.id)
+        try {
+          await db.moderationServices.where('[chainId+address]').equals([Number(chain.id), ms.address]).modify({subscribed: 0})
+        } catch (e) {
+          console.log(e)
+          setDialErrors(old => [...old, e.message])
         }
-
       } catch (e) {
         console.log(e)
         setDialErrors(old => [...old, e.message])

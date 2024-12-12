@@ -2,6 +2,7 @@ import {
   useEffect,
   useCallback,
   useState,
+  useContext
 } from 'react'
 
 import {
@@ -19,7 +20,17 @@ import {
   useWalletClient
 } from 'wagmi'
 
-export const useModerationServices = () => {
+import { IDBContext } from '@/provider/IDBProvider'
+
+export const useModerationServices = ({
+  filter = null
+}: {
+  filter?: {
+    where: string,
+    equals: any
+  }
+} = {}) => {
+  const { db } = useContext(IDBContext)
   const [isInitialized, setIsInitialized] = useState(false)
   
   const publicClient = usePublicClient();
@@ -32,8 +43,30 @@ export const useModerationServices = () => {
     if (
       moderationServiceFactory &&
       publicClient &&
-      walletClient?.data
+      walletClient?.data && 
+      db
     ) {
+      if (filter) {
+        const moderationServices = await db.moderationServices
+          .where(filter.where).equals(filter.equals)
+          .toArray()
+        console.log('subbed mod services', moderationServices)
+        const ms = moderationServices.map((modService) => {
+          const instance = getContract({
+            address: modService.address,
+            abi: ModerationService.abi,
+            client: {
+              public: publicClient,
+              wallet: walletClient.data
+            }
+          })
+          return {
+           instance,
+           ...modService 
+          }
+        })
+        setModerationServices(ms)
+      } else {
       const modServiceContracts = await moderationServiceFactory.read.getModerationServices([])
       const moderationServices = await Promise.all(modServiceContracts.map(async (address) => {
         const instance = getContract({
@@ -58,18 +91,21 @@ export const useModerationServices = () => {
         }
       }))
       setModerationServices(moderationServices)
+      }
     }
   }, [
     moderationServiceFactory,
     publicClient,
-    walletClient?.data
+    walletClient?.data,
+    db
   ])
 
   useEffect(() => {
     if (isInitialized ||
       !moderationServiceFactory ||
       !publicClient ||
-      !walletClient?.data
+      !walletClient?.data ||
+      !db
        ) return
 
       const init = async () => {
@@ -83,7 +119,8 @@ export const useModerationServices = () => {
     publicClient,
     walletClient?.data,
     moderationServiceFactory,
-    fetchModerationServices
+    fetchModerationServices,
+    db
   ])
 
   return {

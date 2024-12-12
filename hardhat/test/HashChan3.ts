@@ -129,7 +129,7 @@ describe("HashChan3", function () {
 
     it("should create a moderation service", async () => {
       const name = "Example Moderation Service"
-      const url = "orbit.hashchan.org",
+      const url = "orbit.hashchan.org"
       const port = 81
       const hash = await modServiceFactory.write.createModerationService([name, url, port])
       const receipt =  await publicClient.waitForTransactionReceipt({ hash })

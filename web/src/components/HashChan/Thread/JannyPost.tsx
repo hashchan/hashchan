@@ -3,13 +3,21 @@ import {
 } from 'react'
 import { useForm } from "react-hook-form";
 import { useJannyPost } from '@/hooks/ModerationService/useJannyPost'
+import { useModerationServices } from '@/hooks/ModerationService/useModerationServices'
 import { truncateEthAddress } from '@/utils/address'
 import { Modal } from '@/components/Modal'
 import { useBoard } from '@/hooks/HashChan/useBoard'
 import { GiMagicBroom } from 'react-icons/gi'
+
 export const JannyPost = ({postId}: {postId: string}) => {
   const { board } = useBoard()
   const { jannyPost, signature, response, logErrors } = useJannyPost()
+  const { moderationServices } = useModerationServices({
+    filter: {
+      where: 'subscribed',
+      equals: 1
+    }
+  })
   const [isOpen, setIsOpen] = useState(false)
   const [hovered, setHovered] = useState(false)
   const { register, handleSubmit, formState: { errors  }  } = useForm();
@@ -19,8 +27,9 @@ export const JannyPost = ({postId}: {postId: string}) => {
   }
 
   const onSubmit = async (data) => {
-    await JannyPost(
-      postId,
+    await jannyPost(
+      moderationServices[data.moderationService],
+      postId as `0x${string}`,
       data.rule
     )
   }
@@ -46,6 +55,30 @@ export const JannyPost = ({postId}: {postId: string}) => {
               flexDirection: 'column',
             }}
           >
+            <label htmlFor="amount">Moderation Service</label>
+              <div style={{
+                width:`${100/(Math.PHI)+(100/(Math.PHI**3))}%`, 
+              }}>
+                <select
+                  style={{
+                    width: '100%',
+                    fontSize: '1rem',
+                    backgroundColor: '#090909',
+                    color: '#20c20e'
+                  }}
+                {...register("moderationService", { required: true })}
+                >{ moderationServices.map((modService, i) => {
+                  return (
+                    <option
+                      key={i}
+                      value={i}
+                    >{modService.name}</option>
+                  )
+                })
+
+                  }
+                </select>
+              </div>
             <label htmlFor="amount">Reason: </label>
             <div style={{
               width:`${100/(Math.PHI)+(100/(Math.PHI**3))}%`,
@@ -62,7 +95,6 @@ export const JannyPost = ({postId}: {postId: string}) => {
               >
                 <option value="" disabled>Select a rule</option>
                 {board.rules.map((rule, i) => {
-                  console.log('rule', rule)
                   return (
                     <option
                       key={i}
