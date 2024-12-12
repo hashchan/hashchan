@@ -2,21 +2,16 @@ import { useState,useEffect, forwardRef, useCallback  } from 'react'
 import { useParams, useLocation  } from 'react-router-dom'
 
 import { useThread } from '@/hooks/HashChan/useThread'
-import { CreatePost } from '@/components/CreatePost'
+import { CreatePost } from '@/components/HashChan/CreatePost'
 import { truncateEthAddress } from '@/utils/address'
 import { supportedExtensions } from '@/utils/content'
-import { useTip } from '@/hooks/useTip'
 import { useHelia } from '@/hooks/p2p/useHelia'
-import { useJannyPost } from '@/hooks/ModerationService/useJannyPost'
-
-import { useForm  } from "react-hook-form";
 
 import MarkdownEditor from '@uiw/react-markdown-editor';
-import { FaHandHoldingDollar  } from "react-icons/fa6";
 
 import { ReducedModeWarning } from '@/components/ReducedModeWarning'
-import { Modal } from '@/components/Modal'
-
+import { TipCreator } from '@/components/HashChan/Thread/TipCreator'
+import { JannyPost } from '@/components/HashChan/Thread/JannyPost'
 
 const PostIdSpan = ({postId, handleOpenPost}:{postId:string, handleOpenPost: (postId:string) => void}) => {
   const [hovered, setHovered] = useState(false)
@@ -70,87 +65,6 @@ const ReplySpans = ({replies}: {replies: any}) => {
   return null
 }
 
-const TipCreator = ({creator}: {creator: `0x${string}`}) => {
-  const { createTip, hash, receipt, error } = useTip()
-  const [isOpen, setIsOpen] = useState(false)
-  const [hovered, setHovered] = useState(false)
-  const { register, handleSubmit, formState: { errors  }  } = useForm();
-
-  const handleClose = () => {
-    setIsOpen(old => !old)
-  }
-
-  const onSubmit = async (data) => {
-    const response = await createTip(
-      creator,
-      data.amount
-    )
-    if (response.hash) {
-      console.log('response', response)
-    } else {
-      console.log('error', response.error.message)
-    }
-  }
-
-  return (
-    <>
-      <span
-        onClick={handleClose}
-        style={{
-          paddingLeft: `${1/ Math.PHI}vw`,
-          color: hovered ? '#20c20E': 'white',
-        }}
-      >
-        <FaHandHoldingDollar />
-      </span>
-
-      {isOpen &&
-        <Modal handleClose={handleClose}>
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="flex-wrap-center"
-            style={{
-              flexDirection: 'column',
-            }}
-          >
-            <label htmlFor="amount">Tip Amount</label>
-            <div style={{
-              width:`${100/(Math.PHI)+(100/(Math.PHI**3))}%`
-              }}
-            >
-              <input style={{
-                paddingLeft: 0,
-                paddingRight: 0,
-                margin: '4px 0',
-                width: '100%',
-              }}
-              defaultValue={(Math.PHI)/100} {...register("amount", { required: true })} />
-              {errors.amount && <span>This field is required</span>}
-            </div>
-            <button type="submit">Tip</button>
-          </form>
-          {hash && <p>Transaction hash: {truncateEthAddress(hash)}</p>}
-          {receipt && <p>Transaction receipt: {receipt.status}</p>}
-          {error && <div 
-            style={{ backgroundColor: 'red', position: 'absolute' }}
-          >{error}</div>}
-        </Modal>
-      }
-    </>
-  )
-}
-
-const JannyPost = ({postId}: {postId: `0x${string}`}) => {
-  const {
-    fetchJannyPost,
-
-  } = useJannyPost()
- return (
-   <>
-   </>
- ) 
-}
-
 const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
   //imgUrl = 'bafkreiab6xxyrrnitmrukgeh5kwvnyhidhxsdmuloyeft7omycpk2vauwu'
   const [uri, setUri] = useState(null)
@@ -173,15 +87,20 @@ const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
   const handleFetchCID = useCallback(async (cid) => {
     const {blob, type}  = await fetchCID(cid)
     console.log('blob', blob)
-    setUri(URL.createObjectURL(blob))
+    try {
+      setUri(URL.createObjectURL(blob))
+    } catch (e) {
+      setUri(null)
+    }
   }, [fetchCID])
 
   useEffect(() => {
     const https = /^https?:\/\//;
-      if (!https.test(imgUrl)) {
+    if (!https.test(imgUrl)) {
+      console.log('imgUrl', imgUrl)
       handleFetchCID(imgUrl)
     } else {
-      setUri(imgUrl)
+      setUri(null)
     }
   }, [handleFetchCID, imgUrl])
 
@@ -256,9 +175,9 @@ const Post = forwardRef(({
       }}> 
       <div
       >
-        <span>{truncateEthAddress(creator)}</span>
+        <span>{truncateEthAddress(creator)}</span>&nbsp;
         <TipCreator creator={creator} />&nbsp;
-        <JannyPost postId={postId} />
+        <JannyPost postId={postId} />&nbsp;
         <PostIdSpan postId={postId} handleOpenPost={handleOpenPost} />
         <span>&nbsp;{timestamp && new Date(timestamp * 1000).toLocaleString()}</span>
         <ReplySpans replies={replies} />

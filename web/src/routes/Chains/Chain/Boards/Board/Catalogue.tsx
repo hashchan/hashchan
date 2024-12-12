@@ -30,7 +30,7 @@ const ListItem = ({
         width: "233px",
         height: "377px",
       }}
-      onClick={() => navigate(`/chains/${chainId}/boards/${boardId}/thread/${threadId}`)}
+      onClick={() => navigate(`/chains/${chainId}/boards/${boardId}/threads/${threadId}`)}
     >
       <img
         style={{

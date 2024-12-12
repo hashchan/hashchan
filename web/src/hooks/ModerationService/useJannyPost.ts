@@ -4,26 +4,27 @@ import { parseEther } from 'viem'
 import { sendTransaction } from '@wagmi/core'
 import {config} from '@/config'
 export const useJannyPost = () => {
-  const [hash, setHash] = useState(null)
-  const [receipt, setReceipt] = useState(null)
-  const [error, setError] = useState(null)
+  const [signature, setSignature] = useState(null)
+  const [response, setResponse] = useState(null)
+  const [logErrors, setLogErrors] = useState([])
+  
   const { address } = useAccount()
   const walletClient = useWalletClient()
   const publicClient = usePublicClient();
 
-  const fetchJannyPost = useCallback(async (
-    postId: `0x${string}`
+  const jannyPost = useCallback(async (
+    postId: `0x${string}`,
+    rule: number
   ) => {
-    if (publicClient && walletClient && address) {
-    }
-  }, [walletClient, address,  publicClient])
+
+  }, [])
 
 
   return {
-    fetchJannyPost,
-    hash,
-    receipt,
-    error
+    jannyPost,
+    signature,
+    response,
+    logErrors
   }
 }
 

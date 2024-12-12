@@ -49,10 +49,10 @@ import { TOSPP, TOSPPBanner, TOSProvider } from "@/routes/TOSPP";
 
 import { Janitors } from "@/routes/Janitors/Janitors";
 
-import { Chain } from "@/routes/Chain";
-import { Board } from "@/routes/Board";
-import { Catalogue } from "@/routes/Catalogue";
-import { Thread } from "@/routes/Thread";
+import { Chain } from "@/routes/Chains/Chain/Chain";
+import { Board } from "@/routes/Chains/Chain/Boards/Board/Board";
+import { Catalogue } from "@/routes/Chains/Chain/Boards/Board/Catalogue";
+import { Thread } from "@/routes/Chains/Chain/Boards/Board/Threads/Thread/Thread";
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <WagmiProvider config={config}>
@@ -75,7 +75,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                   <Route path="/chains/:chainId" element={<Chain />}>
                     <Route path="boards/:boardId" element={<Board />}>
                       <Route path="catalogue" element={<Catalogue />} />
-                      <Route path="thread/:threadId" element={<Thread />} />
+                      <Route path="threads/:threadId" element={<Thread />} />
                     </Route>
                   </Route>
                   <Route path="/" element={<Home />} />

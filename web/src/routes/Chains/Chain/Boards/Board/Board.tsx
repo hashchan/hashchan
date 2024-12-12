@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useParams, Outlet, useLocation } from 'react-router-dom'
-import { CreateThread } from '@/components/CreateThread'
-import { CreatePost } from '@/components/CreatePost'
+import { CreateThread } from '@/components/HashChan/CreateThread'
+import { CreatePost } from '@/components/HashChan/CreatePost'
 import { useAccount } from 'wagmi'
 
 import { useHelia } from '@/hooks/p2p/useHelia'

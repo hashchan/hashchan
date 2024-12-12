@@ -4,7 +4,7 @@ import { useBoards } from '@/hooks/HashChan/useBoards'
 import { useCreateBoard } from '@/hooks/HashChan/useCreateBoard'
 import { useAccount } from 'wagmi'
 import { FaRegCheckCircle, FaCheckCircle } from 'react-icons/fa'
-import { CreateBoard } from '@/components/CreateBoard'
+import { CreateBoard } from '@/components/HashChan/CreateBoard'
 
 export const BoardsList = () => {
   const { address } =  useAccount()

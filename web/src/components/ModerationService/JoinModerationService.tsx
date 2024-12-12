@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import { useForm  } from "react-hook-form";
 import { Modal } from '@/components/Modal'
 import { useJoinModerationService } from '@/hooks/ModerationService/useJoinModerationService'
+
 export const JoinModerationService = ({ms}: {ms: any}) => {
   const [isOpen, setIsOpen] = useState(false)
   const {
@@ -15,8 +16,10 @@ export const JoinModerationService = ({ms}: {ms: any}) => {
   } = useForm();
 
   const {
+    joined,
     dial,
     joinModerationService,
+    leaveModerationService,
     dialErrors
   } = useJoinModerationService(ms)
 
@@ -28,7 +31,12 @@ export const JoinModerationService = ({ms}: {ms: any}) => {
 
   const onSubmit = async (data) => {
     setWait(1)
-    await joinModerationService()
+    if (joined) {
+      await leaveModerationService()
+    } else {
+      await joinModerationService()
+
+    }
   }
 
   useEffect(() => {
@@ -38,7 +46,7 @@ export const JoinModerationService = ({ms}: {ms: any}) => {
 
   return (
     <>
-      <button onClick={handleClose}>Subscribe</button>
+      <button onClick={handleClose}>{joined ? 'UnSubscribe' : 'Subscribe'}</button>
       { isOpen &&
       <Modal handleClose={handleClose}>
         <form
@@ -54,12 +62,14 @@ export const JoinModerationService = ({ms}: {ms: any}) => {
               disabled={isSubmitting}
               type="submit"
             >
-              {isSubmitting ? (<span>Submitting...</span>): (<span>Subscribe To Moderation Service</span>)}
+              {isSubmitting ? (<span>Submitting...</span>): (<span>{
+                joined ? 'Unsubscribe' : 'Subscribe'
+              }</span>)}
             </button>
           </div>
         <div>
-        {(wait > 0 ) && <label htmlFor="hash">Dailing:</label>}
-        {(wait > 1) && <label htmlFor="logs">connected!</label>}
+        {(wait > 0 && !joined ) && <label htmlFor="hash">Dailing:</label>}
+        {(wait > 1) && <label htmlFor="logs">{joined ? 'Connected' : 'Disconnected'}!</label>}
         {dialErrors.map((e, i) => <div key={i}>{e}</div>)}
         </div>
       </form>

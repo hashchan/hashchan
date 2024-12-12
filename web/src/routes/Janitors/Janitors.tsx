@@ -62,9 +62,8 @@ const ModServiceTable = () => {
                 <TableData content={<>
                   { address === ms.owner && (<SetURLModerationService instance={ms.instance} />)}
                   { address === ms.owner && (<AddJanitorModerationService instance={ms.instance} />)}
-
                   <JoinModerationService ms={ms} />
-                  </>} />
+                </>} />
             </tr>
           ))}
         </tbody>

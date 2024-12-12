@@ -4,6 +4,7 @@ import Dexie, { type EntityTable } from 'dexie';
 
 interface ModerationService {
   id?: number;
+  subscribed: number; // 0 = false, 1 = true
   uri: string;
   port: number;
   name: string;
@@ -56,7 +57,7 @@ interface Board {
   bannerUrl: string;
   bannerCID: string;
   rules: string[];
-  favourite: number;
+  favourite: number; // 0 = false, 1 = true
 }
 
 interface BoardsSync {
@@ -89,7 +90,7 @@ export const IDBProvider = ({ children }) => {
       threads: '++id, &threadId, [boardId+chainId], timestamp',
       posts: '++id, &postId, threadId, timestamp',
       settings: '++id',
-      moderationServices: '++id, &[chainId+address]'
+      moderationServices: '++id, &[chainId+address], subscribed'
     });
 
     (async () => {
