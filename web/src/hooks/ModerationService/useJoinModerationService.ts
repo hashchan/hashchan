@@ -17,56 +17,39 @@ import {
   HeliaContext
 } from '@/provider/HeliaProvider'
 
+import {
+  IDBContext
+} from '@/provider/IDBProvider'
 
-export const useJoinModerationService = (instance: any) => {
+import { multiaddr  } from '@multiformats/multiaddr'
+
+export const useJoinModerationService = (ms: any) => {
   const { helia } = useContext(HeliaContext)
-  const { address, chain } = useAccount()
-  
-  const [ hash, setHash] = useState(null)
-  const [logs, setLogs] = useState([])
-  const [logErrors, setLogErrors] = useState([])
+  const { db } = useContext(IDBContext)
+  const [dial, setDial] = useState(null)
+  const [dialErrors, setDialErrors] = useState([])
 
-  const joinModerationService = useCallback(async ({
-    uri,
-    port
-  }:{
-    name: string
-    uri: string
-    port: number
-  }) => {
-    if ( instance && address) {
+  const joinModerationService = useCallback(async () => {
+    if ( helia && db && ms ) {  
       try {
-        const unwatch  =  instance.watchEvent.URLUpdated(
-          {
-          },
-          { 
-            onError: (error) => {
-              console.log('error', error)
-              setLogErrors(old => [...old, error])
-            },
-            onLogs: (logs) => {
-             console.log('logs', logs)
-             setLogs(old => [...old, ...logs])
-             unwatch()
-            }
-          }
-        )
-        setHash(await instance.write.setURL([
-          uri, port
-        ]))
+
+        const dial = await helia.libp2p.dial(multiaddr(`/dns4/${ms.uri}/tcp/${ms.port}/wss`))
+        console.log('dial', dial)
+        await db.moderationServices.add(ms)
+
+        setDial(dial)
 
       } catch (e) {
         console.log(e)
-        setLogErrors(old => [...old, e.message])
+        setDialErrors(old => [...old, e.message])
       }
     }
-  },[instance, address])
+  },[helia, db, ms])
 
 
   return {
-    hash,
-    logs,
-    logErrors,
-    joinModerationService
+    joinModerationService,
+    dial,
+    dialErrors
   }
 }

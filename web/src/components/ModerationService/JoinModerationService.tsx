@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useForm  } from "react-hook-form";
 import { Modal } from '@/components/Modal'
 import { useJoinModerationService } from '@/hooks/ModerationService/useJoinModerationService'
-export const JoinModerationService = ({instance}:{instance: any}) => {
+export const JoinModerationService = ({ms}: {ms: any}) => {
   const [isOpen, setIsOpen] = useState(false)
   const {
     register,
@@ -15,11 +15,10 @@ export const JoinModerationService = ({instance}:{instance: any}) => {
   } = useForm();
 
   const {
-    editUrl,
-    hash,
-    logs,
-    logErrors,
-  } = useJoinModerationService(instance)
+    dial,
+    joinModerationService,
+    dialErrors
+  } = useJoinModerationService(ms)
 
   const [wait, setWait] = useState(0)
 
@@ -29,23 +28,13 @@ export const JoinModerationService = ({instance}:{instance: any}) => {
 
   const onSubmit = async (data) => {
     setWait(1)
-    await editUrl({
-      uri: data.uri,
-      port: data.port,
-    })
+    await joinModerationService()
   }
 
   useEffect(() => {
-    if (hash?.length) {
-      setWait(2)
-    }
-  }, [hash])
+    if (dial) setWait(2)
+  }, [dial])
 
-  useEffect(() => {
-    if (logs.length > 0) {
-      setWait(3)
-    }
-  }, [logs])
 
   return (
     <>
@@ -60,30 +49,6 @@ export const JoinModerationService = ({instance}:{instance: any}) => {
             alignItems: 'center',
           }}
         >
-          <label htmlFor="url">Orbit DB URI</label>
-          <div style={{
-            width: `${100/(Math.PHI)+(100/(Math.PHI**3))}%`
-            }}>
-            <input style={{
-              paddingLeft: 0,
-              paddingRight: 0,
-              margin: '4px 0',
-              width: '100%',
-              }}
-              defaultValue="" {...register("uri", { required: true })} />
-          </div>
-          <label htmlFor="url">orbit db port</label>
-          <div style={{
-            width: `${100/(Math.PHI)+(100/(Math.PHI**3))}%`
-            }}>
-            <input style={{
-              paddingLeft: 0,
-              paddingRight: 0,
-              margin: '4px 0',
-              width: '100%',
-              }}
-              defaultValue="" {...register("port", { required: true })} />
-          </div>
           <div>
             <button
               disabled={isSubmitting}
@@ -93,24 +58,9 @@ export const JoinModerationService = ({instance}:{instance: any}) => {
             </button>
           </div>
         <div>
-        {(wait > 0 ) && <label htmlFor="hash">Hash:</label>}
-        {(wait > 0 && !hash ) && <p>waiting for wallet confirmation...</p>}
-          {hash && (
-            <p className="break-words">{hash}</p>
-          )}
-          {(wait > 1) && <label htmlFor="logs">confirmation:</label>}
-          {(wait > 1 && logs.length === 0) && <p>waiting for tx confirmation...</p>}
-          {logs.map((log, i) => {
-            return (
-              <>
-                <p className="break-words" key={i}>{log.transactionHash ? 'successful' : 'failed'}</p>
-              </>
-          )})}
-          {logErrors.map((log, i) => {
-            return (
-              <p className="break-words" key={i}>{log.toString()}</p>
-            )
-          })}
+        {(wait > 0 ) && <label htmlFor="hash">Dailing:</label>}
+        {(wait > 1) && <label htmlFor="logs">connected!</label>}
+        {dialErrors.map((e, i) => <div key={i}>{e}</div>)}
         </div>
       </form>
     </Modal>

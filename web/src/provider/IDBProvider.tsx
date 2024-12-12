@@ -1,6 +1,17 @@
 import { createContext, useEffect, useState } from 'react';
 import Dexie, { type EntityTable } from 'dexie';
 
+
+interface ModerationService {
+  id?: number;
+  uri: string;
+  port: number;
+  name: string;
+  address: `0x${string}`;
+  chainId: number;
+  owner: `0x${string}`;
+}
+
 interface Settings {
   id?: number;
   tosAccepted: boolean;
@@ -60,6 +71,7 @@ type HashchanDB = Dexie & {
   threads: EntityTable<Thread,'threadId'>,
   posts: EntityTable<Post,'postId'>,
   settings: EntityTable<Settings,'id'>
+  moderationServices: EntityTable<ModerationService,'id'>
 }
 
 export const IDBContext = createContext({
@@ -76,7 +88,8 @@ export const IDBProvider = ({ children }) => {
       boards: '++id, boardId, &[boardId+chainId], chainId, [chainId+favourite]',
       threads: '++id, &threadId, [boardId+chainId], timestamp',
       posts: '++id, &postId, threadId, timestamp',
-      settings: '++id'
+      settings: '++id',
+      moderationServices: '++id, &[chainId+address]'
     });
 
     (async () => {

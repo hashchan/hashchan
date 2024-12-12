@@ -63,7 +63,7 @@ const ModServiceTable = () => {
                   { address === ms.owner && (<SetURLModerationService instance={ms.instance} />)}
                   { address === ms.owner && (<AddJanitorModerationService instance={ms.instance} />)}
 
-                  <JoinModerationService instance={ms.instance} />
+                  <JoinModerationService ms={ms} />
                   </>} />
             </tr>
           ))}
