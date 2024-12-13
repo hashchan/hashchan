@@ -17,7 +17,7 @@ import { circuitRelayServer  } from '@libp2p/circuit-relay-v2'
 import * as filters from "@libp2p/websockets/filters";
 import { loadOrCreatePeerId } from  "./src/loadOrCreatePeerId.js"
 
-import { publicClient } from './src/config.js'
+import { publicClient, modServiceInstance } from './src/config.js'
 
 
 const main = async () => {
@@ -81,26 +81,26 @@ const main = async () => {
     console.log(addr.toString())
   })
 
-  helia.libp2p.services.pubsub.subscribe('janitor')
+  helia.libp2p.services.pubsub.subscribe(process.env.MOD_SERVICE_ADDRESS)
 
   helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
     console.log('message', event)
-    let { topic, data } = event.detail
+    const { topic, data } = event.detail
     console.log('topic', topic)
     switch (topic) {
-      case ('janitor'):
+      case (process.env.MOD_SERVICE_ADDRESS):
         console.log('data', new TextDecoder().decode(data))
-        data = JSON.parse(new TextDecoder().decode(data))
-        const valid = await publicClient.verifyTypedData(data)
+        const json = JSON.parse(new TextDecoder().decode(data))
+        const valid = await publicClient.verifyTypedData(json)
         console.log('valid', valid)
         if (valid) {
-          await db.put(data.message.postId, data)
-          helia.libp2p.services.pubsub.publish('janitor', 
+          await db.put(json.message.postId, json)
+          helia.libp2p.services.pubsub.publish(process.env.MOD_SERVICE_ADDRESS, 
             new TextEncoder().encode(
-          JSON.stringify({success: true})
+              JSON.stringify({success: true, typedData: json})
         ))
         } else {
-          helia.libp2p.services.pubsub.publish('janitor',
+          helia.libp2p.services.pubsub.publish(process.env.MOD_SERVICE_ADDRESS,
             new TextEncoder().encode(
               JSON.stringify({success: false})
             )
