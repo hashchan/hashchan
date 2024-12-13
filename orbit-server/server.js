@@ -54,7 +54,7 @@ const main = async () => {
     services: {
       pubsub: gossipsub({
         allowPublishToZeroTopicPeers: true,
-        emitSelf: true,
+        emitSelf: false,
       }),
       relay: circuitRelayServer(),
       identify: identify()
@@ -72,7 +72,8 @@ const main = async () => {
 
   const db = await orbit.open(
     'hashchan',
-    { AccessController: IPFSAccessController({ write: ['*'] })}
+    { type: 'keyvalue',
+      AccessController: IPFSAccessController({ write: ['*'] })}
   )
 
   console.log('serverlistening on: ')
@@ -80,16 +81,38 @@ const main = async () => {
     console.log(addr.toString())
   })
 
-  helia.libp2p.services.pubsub.subscribe('hashchan')
+  helia.libp2p.services.pubsub.subscribe('janitor')
 
   helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
     console.log('message', event)
     let { topic, data } = event.detail
     console.log('topic', topic)
-    data = JSON.parse(new TextDecoder().decode(data))
-    console.log('data', data)
-    const valid = await publicClient.verifyTypedData(data)
-    console.log('valid', valid)
+    switch (topic) {
+      case ('janitor'):
+        console.log('data', new TextDecoder().decode(data))
+        data = JSON.parse(new TextDecoder().decode(data))
+        const valid = await publicClient.verifyTypedData(data)
+        console.log('valid', valid)
+        if (valid) {
+          await db.put(data.message.postId, data)
+          helia.libp2p.services.pubsub.publish('janitor', 
+            new TextEncoder().encode(
+          JSON.stringify({success: true})
+        ))
+        } else {
+          helia.libp2p.services.pubsub.publish('janitor',
+            new TextEncoder().encode(
+              JSON.stringify({success: false})
+            )
+          )
+        }
+      break;
+      default:
+        console.log('topic', topic)
+        console.log('data', data)
+
+
+    }
 
   })
 
