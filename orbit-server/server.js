@@ -17,6 +17,8 @@ import { circuitRelayServer  } from '@libp2p/circuit-relay-v2'
 import * as filters from "@libp2p/websockets/filters";
 import { loadOrCreatePeerId } from  "./src/loadOrCreatePeerId.js"
 
+import { publicClient } from './src/config.js'
+
 
 const main = async () => {
   const peerId = await loadOrCreatePeerId()
@@ -80,8 +82,15 @@ const main = async () => {
 
   helia.libp2p.services.pubsub.subscribe('hashchan')
 
-  helia.libp2p.services.pubsub.addEventListener('message', (event) => {
+  helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
     console.log('message', event)
+    let { topic, data } = event.detail
+    console.log('topic', topic)
+    data = JSON.parse(new TextDecoder().decode(data))
+    console.log('data', data)
+    const valid = await publicClient.verifyTypedData(data)
+    console.log('valid', valid)
+
   })
 
   helia.libp2p.addEventListener('peer:discovery', (event) => {

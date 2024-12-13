@@ -4,7 +4,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon ./server.js"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +27,7 @@
     "datastore-level": "^11.0.1",
     "dotenv": "^16.4.7",
     "helia": "^5.1.1",
-    "libp2p": "^2.4.0"
+    "libp2p": "^2.4.0",
+    "viem": "^2.21.55"
   }
 }
