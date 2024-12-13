@@ -1,10 +1,15 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useContext } from 'react'
 import { useWalletClient, usePublicClient, useAccount } from 'wagmi'
 import { useParams } from 'react-router-dom'
-
+import { multiaddr  } from '@multiformats/multiaddr'
 import { signTypedData } from '@wagmi/core'
 import { config } from '@/config'
+
+import { HeliaContext } from '@/provider/HeliaProvider'
+
+
 export const useJannyPost = () => {
+  const { helia } = useContext(HeliaContext)
   const [signature, setSignature] = useState(null)
   const [response, setResponse] = useState(null)
   const [logErrors, setLogErrors] = useState([])
@@ -12,14 +17,15 @@ export const useJannyPost = () => {
 
   const { address } = useAccount()
   const walletClient = useWalletClient()
-  const publicClient = usePublicClient();
+
+
 
   const jannyPost = useCallback(async (
     moderationService: any,
     postId: `0x${string}`,
     rule: number
   ) => {
-    if (walletClient && boardId && threadId) {
+    if (walletClient && boardId && threadId && helia && address) {
       try {
         console.log('modservice', moderationService)
         const typedData = {
@@ -57,7 +63,29 @@ export const useJannyPost = () => {
 
         const signature = await signTypedData(config, typedData)
         console.log('signature', signature)
+
         setSignature(signature)
+
+        try {
+          const dial = await helia.libp2p.dial(multiaddr(`/dns4/${moderationService.uri}/tcp/${moderationService.port}/wss`))
+          console.log('dial', dial)
+
+          await helia.libp2p.services.pubsub.publish(
+            'hashchan',
+            new TextEncoder().encode(
+              JSON.stringify({
+                address,
+                ...typedData,
+                signature
+              })
+            )
+          )
+        } catch (e) {
+          console.log(e)
+          setLogErrors(old => [...old, e.message])
+        }
+
+
 
       } catch (e) {
         console.log(e)
@@ -67,7 +95,9 @@ export const useJannyPost = () => {
   }, [
     threadId,
     boardId,
-    walletClient
+    walletClient,
+    helia,
+    address
   ])
 
 

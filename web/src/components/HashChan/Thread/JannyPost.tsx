@@ -108,7 +108,7 @@ export const JannyPost = ({postId}: {postId: string}) => {
             </div>
             <button type="submit">Janny Post</button>
           </form>
-          {signature && <p>Transaction hash: {truncateEthAddress(signature)}</p>}
+          {signature && <p>Signature: {truncateEthAddress(signature)}</p>}
           {response && <p>Response: {response}</p>}
           {logErrors.map((error, i) => {
             return <p key={i}>{error}</p>            
