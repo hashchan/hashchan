@@ -55,84 +55,93 @@ export const HeliaProvider = ({ children }) => {
     const datastore = new IDBDatastore('./hashchan/datastore')
     const blockstore = new IDBBlockstore('./hashchan/blockstore')
 
-      try {
-        await datastore.open()
-        await blockstore.open()
-        const libp2p = await createLibp2p({
-          datastore,
-          addresses: {
-            listen: [
-              '/webrtc'
-            ]
-          },
-          transports: [
-            webSockets({
-              filter: filters.all
-            }),
-            webRTC(),
-            circuitRelayTransport()
-          ],
-          connectionEncrypters: [noise()],
-          streamMuxers: [yamux()],
-          connectionGater: {
-            denyDialMultiaddr: () => {
-              return false
-            }
-          },
-          services: {
-            pubsub: gossipsub({
-              allowPublishToZeroTopicPeers: true
-            }),
-            identify: identify(),
+    try {
+      await datastore.open()
+      await blockstore.open()
+      const libp2p = await createLibp2p({
+        datastore,
+        addresses: {
+          listen: [
+            '/webrtc'
+          ]
+        },
+        transports: [
+          webSockets({
+            filter: filters.all
+          }),
+          webRTC(),
+          circuitRelayTransport()
+        ],
+        connectionEncrypters: [noise()],
+        streamMuxers: [yamux()],
+        connectionGater: {
+          denyDialMultiaddr: () => {
+            return false
           }
-        })
+        },
+        services: {
+          pubsub: gossipsub({
+            allowPublishToZeroTopicPeers: true
+          }),
+          identify: identify(),
+        }
+      })
 
 
 
-        const helia = await createHelia({
-          datastore,
-          blockstore,
-          libp2p
-        })
+      const helia = await createHelia({
+        datastore,
+        blockstore,
+        libp2p
+      })
 
-        const orbit = await createOrbitDB({ipfs:helia})
+      const orbit = await createOrbitDB({ipfs:helia})
 
-        const db  = await orbit.open('hashchan')
-        
-        //const dial = await helia.libp2p.dial(multiaddr('/dns4/orbit.hashchan.org/tcp/443/wss'))
-        //console.log('dial', dial)
+      const db  = await orbit.open('hashchan')
 
-        await helia.libp2p.services.pubsub.subscribe('hashchan')
+      //const dial = await helia.libp2p.dial(multiaddr('/dns4/orbit.hashchan.org/tcp/443/wss'))
+      //console.log('dial', dial)
 
-        helia.libp2p.services.pubsub.addEventListener('message', (event) => {
-          console.log('message', event)
-        })
+      await helia.libp2p.services.pubsub.subscribe('janitor')
 
-        helia.libp2p.addEventListener('peer:discovery', (event) => {
-          console.log('Discovered peer:', event.detail.id.toString())
-        })
+      helia.libp2p.services.pubsub.addEventListener('message', (event) => {
+        console.log('message', event)
+        const { topic, data } = event.detail
+        switch (topic) {
+          case 'janitor':
+            console.log('janitor')
+          console.log('data', JSON.parse(new TextDecoder().decode(data)))
+          break
+          default:
+            console.log('unknown topic', topic)
+        }
+      })
 
-        // Listen for peer connection
-        helia.libp2p.addEventListener('peer:connect', (event) => {
-          console.log('Connected to peer:', event.detail.toString())
-        })
+      helia.libp2p.addEventListener('peer:discovery', (event) => {
+        console.log('Discovered peer:', event.detail.id.toString())
+      })
 
-				await new Promise(resolve => setTimeout(resolve, 1000))
+      // Listen for peer connection
+      helia.libp2p.addEventListener('peer:connect', (event) => {
+        console.log('Connected to peer:', event.detail.toString())
+      })
+
+      await new Promise(resolve => setTimeout(resolve, 1000))
 
 
-        await libp2p.services.pubsub.publish('hashchan', new TextEncoder().encode('hello world'))
+      await libp2p.services.pubsub.publish('hashchan', new TextEncoder().encode('hello world'))
 
-        setLibp2p(libp2p)
-        setHelia(helia)
-        setOrbit(orbit)
-        setOrbitDB(db)
-        setDj(dagJson(helia))
-        setFs(unixfs(helia))
-        setStarting(false)
-      } catch (e) {
-        console.error(e)
-        setError(true)
-      }
+      setLibp2p(libp2p)
+      setHelia(helia)
+      setOrbit(orbit)
+      setOrbitDB(db)
+      setDj(dagJson(helia))
+      setFs(unixfs(helia))
+      setStarting(false)
+    } catch (e) {
+      console.error(e)
+      setError(true)
+    }
   }, [])
 
   useEffect(() => {

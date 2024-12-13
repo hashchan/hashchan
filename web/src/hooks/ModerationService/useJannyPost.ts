@@ -26,6 +26,8 @@ export const useJannyPost = () => {
     rule: number
   ) => {
     if (walletClient && boardId && threadId && helia && address) {
+      // this is depending on signing taking enough time to establish a connection, not optimal
+      const dial = await helia.libp2p.dial(multiaddr(`/dns4/${moderationService.uri}/tcp/${moderationService.port}/wss`))
       try {
         console.log('modservice', moderationService)
         const typedData = {
@@ -67,11 +69,9 @@ export const useJannyPost = () => {
         setSignature(signature)
 
         try {
-          const dial = await helia.libp2p.dial(multiaddr(`/dns4/${moderationService.uri}/tcp/${moderationService.port}/wss`))
           console.log('dial', dial)
-
           await helia.libp2p.services.pubsub.publish(
-            'hashchan',
+            'janitor',
             new TextEncoder().encode(
               JSON.stringify({
                 address,
