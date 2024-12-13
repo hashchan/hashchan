@@ -29,7 +29,17 @@ interface Post {
   imgCID: string;
   replyIds: string[];
   content: string;
-  timestamp: number
+  timestamp: number;
+}
+
+interface Janitored {
+  id: number;
+  moderationServiceAddress: number;
+  moderationServiceChainId: number;
+  postId: string;
+  reason: number;
+  signature: string;
+  janny: `0x${string}`;
 }
 
 interface Thread {
@@ -73,6 +83,7 @@ type HashchanDB = Dexie & {
   posts: EntityTable<Post,'postId'>,
   settings: EntityTable<Settings,'id'>
   moderationServices: EntityTable<ModerationService,'id'>
+  janitored: EntityTable<Janitored,'id'>
 }
 
 export const IDBContext = createContext({
@@ -90,7 +101,8 @@ export const IDBProvider = ({ children }) => {
       threads: '++id, &threadId, [boardId+chainId], timestamp',
       posts: '++id, &postId, threadId, timestamp',
       settings: '++id',
-      moderationServices: '++id, &[chainId+address], subscribed'
+      moderationServices: '++id, &[chainId+address], subscribed',
+      janitored: '++id, moderationServiceAddress, postId'
     });
 
     (async () => {

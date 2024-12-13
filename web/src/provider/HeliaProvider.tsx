@@ -101,9 +101,8 @@ export const HeliaProvider = ({ children }) => {
 
       //const dial = await helia.libp2p.dial(multiaddr('/dns4/orbit.hashchan.org/tcp/443/wss'))
       //console.log('dial', dial)
-
+      /*
       await helia.libp2p.services.pubsub.subscribe('janitor')
-
       helia.libp2p.services.pubsub.addEventListener('message', (event) => {
         console.log('message', event)
         const { topic, data } = event.detail
@@ -116,6 +115,7 @@ export const HeliaProvider = ({ children }) => {
             console.log('unknown topic', topic)
         }
       })
+       */
 
       helia.libp2p.addEventListener('peer:discovery', (event) => {
         console.log('Discovered peer:', event.detail.id.toString())

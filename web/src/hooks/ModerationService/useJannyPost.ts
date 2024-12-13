@@ -5,16 +5,16 @@ import { multiaddr  } from '@multiformats/multiaddr'
 import { signTypedData } from '@wagmi/core'
 import { config } from '@/config'
 
+import { ModerationServicesContext } from '@/provider/ModerationServicesProvider'
 import { HeliaContext } from '@/provider/HeliaProvider'
-
-
 export const useJannyPost = () => {
-  const { helia } = useContext(HeliaContext)
   const [signature, setSignature] = useState(null)
   const [response, setResponse] = useState(null)
   const [logErrors, setLogErrors] = useState([])
   const { boardId, threadId } = useParams();
 
+  //const { moderationServices } = useContext(ModerationServicesContext)
+  const { helia } = useContext(HeliaContext)
   const { address } = useAccount()
   const walletClient = useWalletClient()
 
@@ -25,11 +25,9 @@ export const useJannyPost = () => {
     postId: `0x${string}`,
     rule: number
   ) => {
-    if (walletClient && boardId && threadId && helia && address) {
+    if (walletClient && boardId && threadId  && address && helia) {
       // this is depending on signing taking enough time to establish a connection, not optimal
-      const dial = await helia.libp2p.dial(multiaddr(`/dns4/${moderationService.uri}/tcp/${moderationService.port}/wss`))
       try {
-        console.log('modservice', moderationService)
         const typedData = {
           domain: {
             name: moderationService.name,
@@ -69,9 +67,10 @@ export const useJannyPost = () => {
         setSignature(signature)
 
         try {
-          console.log('dial', dial)
+          //probly should be chainId + address to guarantee cross chain uniqueness
+          console.log('publish', moderationService.address)
           await helia.libp2p.services.pubsub.publish(
-            'janitor',
+            moderationService.address,
             new TextEncoder().encode(
               JSON.stringify({
                 address,
@@ -94,9 +93,9 @@ export const useJannyPost = () => {
     }
   }, [
     threadId,
+    helia,
     boardId,
     walletClient,
-    helia,
     address
   ])
 

@@ -35,6 +35,7 @@ import { config } from './config'
 import { IDBProvider } from '@/provider/IDBProvider'
 import { HeliaProvider } from '@/provider/HeliaProvider'
 import { W3UpProvider } from '@/provider/W3UpProvider'
+import { ModerationServicesProvider } from "@/provider/ModerationServicesProvider";
 
 import {NavBar} from '@/components/NavBar'
 import { RouteTracker } from './components/RouteTracker'
@@ -60,30 +61,32 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <HeliaProvider>
         <W3UpProvider>
           <IDBProvider>
-            <TOSProvider>
-              <BrowserRouter>
-                <RouteTracker />
-                <NavBar />
-                <Warnings />
-                <Routes>
-                  <Route path="/tospp" element={<TOSPP />} />
-                  <Route path="/janitors" element={<Janitors />} />
-                  <Route path="/docs/:docversion" element={<Docs />}>
-                    <Route path="intro" element={<Intro />} />
-                    <Route path="instructions" element={<Instructions />} />
-                  </Route>
-                  <Route path="/chains/:chainId" element={<Chain />}>
-                    <Route path="boards/:boardId" element={<Board />}>
-                      <Route path="catalogue" element={<Catalogue />} />
-                      <Route path="threads/:threadId" element={<Thread />} />
+            <ModerationServicesProvider>
+              <TOSProvider>
+                <BrowserRouter>
+                  <RouteTracker />
+                  <NavBar />
+                  <Warnings />
+                  <Routes>
+                    <Route path="/tospp" element={<TOSPP />} />
+                    <Route path="/janitors" element={<Janitors />} />
+                    <Route path="/docs/:docversion" element={<Docs />}>
+                      <Route path="intro" element={<Intro />} />
+                      <Route path="instructions" element={<Instructions />} />
                     </Route>
-                  </Route>
-                  <Route path="/" element={<Home />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <TOSPPBanner />
-              </BrowserRouter>
-            </TOSProvider>
+                    <Route path="/chains/:chainId" element={<Chain />}>
+                      <Route path="boards/:boardId" element={<Board />}>
+                        <Route path="catalogue" element={<Catalogue />} />
+                        <Route path="threads/:threadId" element={<Thread />} />
+                      </Route>
+                    </Route>
+                    <Route path="/" element={<Home />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                  <TOSPPBanner />
+                </BrowserRouter>
+              </TOSProvider>
+            </ModerationServicesProvider>
           </IDBProvider>
         </W3UpProvider>
       </HeliaProvider>
