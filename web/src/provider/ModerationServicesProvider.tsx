@@ -14,13 +14,15 @@ import { HeliaContext } from '@/provider/HeliaProvider'
 import { IDBContext } from '@/provider/IDBProvider'
 
 export const ModerationServicesContext = createContext({
-  moderationServices: [],
+  moderationServices: {} | null,
+  orbitDbs: {} | null,
   addPubsubHandle: () => {},
 })
 
 export const ModerationServicesProvider = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false)
-  const [moderationServices, setModerationServices] = useState([])
+  const [moderationServices, setModerationServices] = useState(null)
+  const [orbitDbs, setOrbitDbs] = useState(null)
   const [messageLog, setMessageLog] = useState([])
   const [logErrors, setLogErrors] = useState([])
   const { helia, orbit } = useContext(HeliaContext)
@@ -30,6 +32,7 @@ export const ModerationServicesProvider = ({ children }) => {
   const walletClient = useWalletClient();
 
   const addPubsubHandle = useCallback(async () => {
+    console.log('adding pubsub handle')
     if (!helia && !db && !orbit) return 
     //const listenerCount = helia.libp2p.services.pubsub.listenerCount('message')
     //console.log('listenerCount', listenerCount)
@@ -37,6 +40,11 @@ export const ModerationServicesProvider = ({ children }) => {
     
     helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
       let { topic, data } = event.detail
+
+      const [addr, route] = topic.split('/')
+      console.log('pubsub::message', topic, data)
+      if (topic.includes('orbitdb')) return
+
       try {
         data = JSON.parse(new TextDecoder().decode(data))
         setMessageLog(old =>[...old, data])
@@ -44,8 +52,8 @@ export const ModerationServicesProvider = ({ children }) => {
         console.log('error', e)
         setLogErrors(old =>[...old, e.message])
       }
-      if (topic == 'ping') {
-        console.log('data')
+      if (route == 'ping') {
+        console.log('ping received', data)
         const orbitdb = await orbit.open(data.orbitDbAddr)
         orbitdb.events.on('ready', async () => {
           console.log(' orbit ready')
@@ -53,6 +61,12 @@ export const ModerationServicesProvider = ({ children }) => {
         orbitdb.events.on('update', async (entry) => {
           console.log('update', entry)
         })
+        setOrbitDbs(old => ({
+          ...old,
+          [addr]: orbitdb
+        }))
+        console.log('pubsub::message', topic, data)
+
       } else {
         if (data.success) {
           console.log('success')
@@ -85,15 +99,16 @@ export const ModerationServicesProvider = ({ children }) => {
         .toArray()
 
       addPubsubHandle()
+      const modServices = {}
 
-      const modServices = subscribedModerationServices.map(async (ms) => {
+      subscribedModerationServices.forEach(async (ms) => {
         try {
           const dial = await helia.libp2p.dial(multiaddr(`/dns4/${ms.uri}/tcp/${ms.port}/wss`))
           console.log('ms.address', ms.address)
           await helia.libp2p.services.pubsub.subscribe(ms.address)
-          await helia.libp2p.services.pubsub.subscribe('ping')
+          await helia.libp2p.services.pubsub.subscribe(`${ms.address}/ping`)
           setTimeout(() => {
-            helia.libp2p.services.pubsub.publish('ping', '')
+            helia.libp2p.services.pubsub.publish(`${ms.address}/ping`, '')
           }, 618)
           const instance = getContract({
             address: ms.address,
@@ -104,7 +119,7 @@ export const ModerationServicesProvider = ({ children }) => {
             }
           })
 
-          return {
+          modServices[ms.address] = {
             ...ms,
             instance,
             dialed: dial
@@ -112,7 +127,8 @@ export const ModerationServicesProvider = ({ children }) => {
 
         } catch (e) {
           console.log('error', e)
-          return {
+
+          modServices[ms.address] = {
             ...ms,
             dailed: false,
             instance: null
@@ -121,7 +137,7 @@ export const ModerationServicesProvider = ({ children }) => {
       })
 
       console.log('adding event listener')
-      setModerationServices(await Promise.all(modServices))
+      setModerationServices(modServices)
     }
   }, [
     addPubsubHandle,
@@ -156,7 +172,8 @@ export const ModerationServicesProvider = ({ children }) => {
     <ModerationServicesContext.Provider
       value={{
         addPubsubHandle,
-        moderationServices
+        moderationServices,
+        orbitDbs
       }}
     >
       {children}

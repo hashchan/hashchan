@@ -22,12 +22,13 @@ import  sanitizeMarkdown  from 'sanitize-markdown'
 import { parseContent } from '@/utils/content'
 import { tryRecurseBlockFilter } from '@/utils/blockchain'
 import { computeImageCID } from '@/utils/cids'
-
+import { ModerationServicesContext } from '@/provider/ModerationServicesProvider'
 
 export const useThread = () => {
   const {chainId:chainIdParam, boardId:boardIdParam, threadId:threadIdParam} = useParams()
   const [isInitialized, setIsInitialized] = useState(false)
   const { db } = useContext(IDBContext)
+  const {moderationServices, orbitDbs} = useContext(ModerationServicesContext)
   const { address, chain } = useAccount()
   const blockNumber = useBlockNumber();
   const publicClient = usePublicClient();
@@ -42,7 +43,20 @@ export const useThread = () => {
 
 
   const fetchPosts = useCallback(async () => {
-    if (publicClient && address && hashchan && threadIdParam && chain && db && boardIdParam && blockNumber.data) {
+    console.log('moderationServices', moderationServices)
+    console.log('orbitDbs', orbitDbs)
+    if (
+      publicClient &&
+      address &&
+      hashchan &&
+      threadIdParam &&
+      chain &&
+      db &&
+      boardIdParam &&
+      blockNumber.data &&
+      moderationServices &&
+      orbitDbs
+    ) {
       const cachedThread = await db.threads.where('threadId').equals(threadIdParam).first()
       let thread;
       if (cachedThread) {
@@ -116,31 +130,46 @@ export const useThread = () => {
 
       try {
         let cachedPosts = await db.posts.where('threadId').equals(threadIdParam).sortBy('timestamp')
+
         const cachedJanitored = await db.janitored.where('threadId').equals(threadIdParam).toArray()
         console.log('cached janitored', cachedJanitored)
         console.log('cached posts', cachedPosts)
-        cachedPosts = cachedPosts.map((p) => {
+        cachedPosts = await Promise.all(cachedPosts.map(async (p) => {
           return {
             ...p,
+            janitoredBy: await Promise.all(
+              Object.values(moderationServices).map(async (ms) => {
+                const orbitDb = orbitDbs[ms.address]
+                if (orbitDb) {
+                  const jannies = await orbitDb.get(p.postId)
+                  return jannies
+                }
+              })
+            )
+            /*
             janitoredBy: cachedJanitored.filter((j) => {
               return j.postId === p.postId
             })
+             */
           }
-        })
+        }))
 
 
         if (cachedPosts.length > 0) {
           cachedPosts.forEach((post) => {
+            console.log('postincachedpsts', post)
             post.replies = []
             localRefsObj[post.postId] = createRef()
             localLogsObj[post.postId] = {
               ...post,
               ref: localRefsObj[post.postId]
             }
+
             post.replyIds.forEach((ri) => {
               localLogsObj[ri].replies.push({ref: localRefsObj[post.postId], id: post.postId})
             })
           })
+          console.log('cachedPosts', cachedPosts)
         }
         const postFilterArgs = {
           address: hashchan.address,
@@ -221,6 +250,8 @@ export const useThread = () => {
     hashchan,
     blockNumber.data,
     db,
+    orbitDbs,
+    moderationServices
   ])
 
 
@@ -234,7 +265,9 @@ export const useThread = () => {
       !hashchan ||
       !blockNumber.data ||
       !boardIdParam ||
-      !threadIdParam
+      !threadIdParam ||
+      !moderationServices ||
+      !orbitDbs
     ) return
 
 
@@ -297,7 +330,9 @@ export const useThread = () => {
     hashchan,
     blockNumber.data,
     db,
-    boardIdParam
+    boardIdParam,
+    moderationServices,
+    orbitDbs
   ])
 
   return {
