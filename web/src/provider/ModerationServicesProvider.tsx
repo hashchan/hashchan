@@ -14,7 +14,8 @@ import { HeliaContext } from '@/provider/HeliaProvider'
 import { IDBContext } from '@/provider/IDBProvider'
 
 export const ModerationServicesContext = createContext({
-  moderationServices: []
+  moderationServices: [],
+  addPubsubHandle: () => {},
 })
 
 export const ModerationServicesProvider = ({ children }) => {
@@ -28,10 +29,43 @@ export const ModerationServicesProvider = ({ children }) => {
   const publicClient = usePublicClient();
   const walletClient = useWalletClient();
 
+  const addPubsubHandle = useCallback(async () => {
+    if (!helia && !db) return 
+    //const listenerCount = helia.libp2p.services.pubsub.listenerCount('message')
+    //console.log('listenerCount', listenerCount)
+    //if (listenerCount > 1) return
+    
+    helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
+      let { topic, data } = event.detail
+      try {
+        data = JSON.parse(new TextDecoder().decode(data))
+        setMessageLog(old =>[...old, data])
+      } catch (e) {
+        console.log('error', e)
+        setLogErrors(old =>[...old, e.message])
+      }
+      if (data.success) {
+        console.log('success')
+        console.log('pubsub::message', topic, data)
+        try {
+          const janitored = await db.janitored.add({
+            moderationServiceAddress: data.typedData.domain.verifyingContract,
+            moderationServiceChainId: data.typedData.message.chainId,
+            threadId: data.typedData.message.threadId,
+            postId: data.typedData.message.postId,
+            reason: data.typedData.message.reason
+          })
+        } catch (e) {
+          console.log('error creating janitor entry', e.message)
+        }
+      }
+    })
+  }, [
+    helia,
+    db
+  ])
+
   const fetchSubscribedModerationServices = useCallback(async () => {
-    console.log('fetching subscribed moderation services')
-    console.log('publicClient', publicClient)
-    console.log(Boolean(helia), Boolean(db), Boolean(publicClient), Boolean(walletClient?.data))
     if (helia && db && publicClient && walletClient?.data) {
       const subscribedModerationServices = await db.moderationServices
         .where('subscribed')
@@ -69,35 +103,11 @@ export const ModerationServicesProvider = ({ children }) => {
       })
 
       console.log('adding event listener')
-      helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
-        let { topic, data } = event.detail
-        try {
-          data = JSON.parse(new TextDecoder().decode(data))
-          setMessageLog([...messageLog, data])
-        } catch (e) {
-          console.log('error', e)
-          setLogErrors([...logErrors, e.message])
-        }
-        if (data.success) {
-          console.log('success')
-          console.log('pubsub::message', topic, data)
-          try {
-            const janitored = await db.janitored.add({
-              moderationServiceAddress: data.typedData.domain.verifyingContract,
-              moderationServiceChainId: data.typedData.message.chainId,
-              threadId: data.typedData.message.threadId,
-              postId: data.typedData.message.postId,
-              reason: data.typedData.message.reason
-            })
-          } catch (e) {
-            console.log('error creating janitor entry', e.message)
-          }
-        }
-      })
-
+      addPubsubHandle()
       setModerationServices(await Promise.all(modServices))
     }
   }, [
+    addPubsubHandle,
     helia,
     db,
     publicClient,
@@ -128,6 +138,7 @@ export const ModerationServicesProvider = ({ children }) => {
   return (
     <ModerationServicesContext.Provider
       value={{
+        addPubsubHandle,
         moderationServices
       }}
     >
