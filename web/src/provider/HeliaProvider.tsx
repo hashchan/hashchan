@@ -34,8 +34,6 @@ import { IDBContext } from './IDBProvider'
 export const HeliaContext = createContext({
   libp2p: null,
   helia: null,
-  orbit: null,
-  orbitDB: null,
   dj: null,
   fs: null,
   error: false,
@@ -48,7 +46,7 @@ export const HeliaProvider = ({ children }) => {
   const [libp2p, setLibp2p] = useState(null)
   const [helia, setHelia] = useState(null)
   const [orbit, setOrbit] = useState(null)
-  const [orbitDB, setOrbitDB] = useState(null)
+  //const [orbitDB, setOrbitDB] = useState(null)
 
   const [fs, setFs] = useState(null)
   const [dj, setDj] = useState(null)
@@ -111,7 +109,7 @@ export const HeliaProvider = ({ children }) => {
       //const storedDbAddress = localStorage.getItem('hashchanDbAddress')
       const settings = await db.settings.get(1)
       console.log('settings', settings)
-      let orbitdb;
+      /*let orbitdb;
       if (settings.orbitDbAddr) {
         // If we have a stored address, try to open the existing database
         try {
@@ -130,7 +128,7 @@ export const HeliaProvider = ({ children }) => {
         await db.settings.where('id').equals(1).modify({orbitDbAddr: orbitdb.address.toString()})
 
       }
-
+       */
       helia.libp2p.addEventListener('peer:discovery', (event) => {
         console.log('Discovered peer:', event.detail.id.toString())
       })
@@ -139,11 +137,21 @@ export const HeliaProvider = ({ children }) => {
       helia.libp2p.addEventListener('peer:connect', (event) => {
         console.log('Connected to peer:', event.detail.toString())
       })
+      /*
+      orbitdb.events.on('ready', () => {
+        console.log('OrbitDB is ready')
+      })
+
+      orbitdb.events.on('update', async (entry) => {
+        console.log('OrbitDB updated', entry)
+      })
+       */
+
+
 
       setLibp2p(libp2p)
       setHelia(helia)
       setOrbit(orbit)
-      setOrbitDB(db)
       setDj(dagJson(helia))
       setFs(unixfs(helia))
       setStarting(false)
@@ -165,7 +173,6 @@ export const HeliaProvider = ({ children }) => {
         libp2p,
         helia,
         orbit,
-        orbitDB,
         dj,
         fs,
         error,

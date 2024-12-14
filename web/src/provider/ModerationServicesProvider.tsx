@@ -23,14 +23,14 @@ export const ModerationServicesProvider = ({ children }) => {
   const [moderationServices, setModerationServices] = useState([])
   const [messageLog, setMessageLog] = useState([])
   const [logErrors, setLogErrors] = useState([])
-  const { helia } = useContext(HeliaContext)
+  const { helia, orbit } = useContext(HeliaContext)
   const { db } = useContext(IDBContext)
 
   const publicClient = usePublicClient();
   const walletClient = useWalletClient();
 
   const addPubsubHandle = useCallback(async () => {
-    if (!helia && !db) return 
+    if (!helia && !db && !orbit) return 
     //const listenerCount = helia.libp2p.services.pubsub.listenerCount('message')
     //console.log('listenerCount', listenerCount)
     //if (listenerCount > 1) return
@@ -44,24 +44,36 @@ export const ModerationServicesProvider = ({ children }) => {
         console.log('error', e)
         setLogErrors(old =>[...old, e.message])
       }
-      if (data.success) {
-        console.log('success')
-        console.log('pubsub::message', topic, data)
-        try {
-          const janitored = await db.janitored.add({
-            moderationServiceAddress: data.typedData.domain.verifyingContract,
-            moderationServiceChainId: data.typedData.message.chainId,
-            threadId: data.typedData.message.threadId,
-            postId: data.typedData.message.postId,
-            reason: data.typedData.message.reason
-          })
-        } catch (e) {
-          console.log('error creating janitor entry', e.message)
+      if (topic == 'ping') {
+        console.log('data')
+        const orbitdb = await orbit.open(data.orbitDbAddr)
+        orbitdb.events.on('ready', async () => {
+          console.log(' orbit ready')
+        })
+        orbitdb.events.on('update', async (entry) => {
+          console.log('update', entry)
+        })
+      } else {
+        if (data.success) {
+          console.log('success')
+          console.log('pubsub::message', topic, data)
+          try {
+            const janitored = await db.janitored.add({
+              moderationServiceAddress: data.typedData.domain.verifyingContract,
+              moderationServiceChainId: data.typedData.message.chainId,
+              threadId: data.typedData.message.threadId,
+              postId: data.typedData.message.postId,
+              reason: data.typedData.message.reason
+            })
+          } catch (e) {
+            console.log('error creating janitor entry', e.message)
+          }
         }
       }
     })
   }, [
     helia,
+    orbit,
     db
   ])
 
@@ -72,11 +84,17 @@ export const ModerationServicesProvider = ({ children }) => {
         .equals(1)
         .toArray()
 
+      addPubsubHandle()
+
       const modServices = subscribedModerationServices.map(async (ms) => {
         try {
           const dial = await helia.libp2p.dial(multiaddr(`/dns4/${ms.uri}/tcp/${ms.port}/wss`))
           console.log('ms.address', ms.address)
           await helia.libp2p.services.pubsub.subscribe(ms.address)
+          await helia.libp2p.services.pubsub.subscribe('ping')
+          setTimeout(() => {
+            helia.libp2p.services.pubsub.publish('ping', '')
+          }, 618)
           const instance = getContract({
             address: ms.address,
             abi: ModerationService.abi,
@@ -103,7 +121,6 @@ export const ModerationServicesProvider = ({ children }) => {
       })
 
       console.log('adding event listener')
-      addPubsubHandle()
       setModerationServices(await Promise.all(modServices))
     }
   }, [
