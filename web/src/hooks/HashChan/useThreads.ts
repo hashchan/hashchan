@@ -34,13 +34,6 @@ export const useThreads = () => {
 
 
   const fetchThreads = useCallback(async () => {
-    console.log('fetching threads')
-    console.log(Boolean(address),
-      Boolean(db),
-      Boolean(blockNumber),
-      Boolean(hashchan),
-      Boolean(board)
-    ) 
     if (
       publicClient &&
       address &&
@@ -49,9 +42,19 @@ export const useThreads = () => {
       hashchan &&
       board
     ) {
-      const threads = await db.threads
+      let threads = await db.threads
         .where(['boardId+chainId'])
         .equals([Number(board.boardId), Number(board.chainId)]).toArray()
+
+        threads = await Promise.all(
+          threads.map(async (thread) => {
+            return {
+              ...thread,
+              janitoredBy: await db.janitored.where('postId').equals(thread.threadId).toArray()
+            }
+          })
+        )
+
       if (blockNumber.data > board.lastSynced) {
           const startingFilterArgs = {
             address: hashchan.address,
@@ -94,6 +97,7 @@ export const useThreads = () => {
                 imgCID,
                 title,
                 content,
+                janitoredBy: [],
                 chainId: chain.id,
                 timestamp: Number(timestamp)
               })
@@ -139,7 +143,8 @@ export const useThreads = () => {
            threadId: logs[0].args.threadId,
            imgUrl: logs[0].args.imgUrl,
            imgCID: logs[0].args.imgCID,
-           content: logs[0].args.content
+           content: logs[0].args.content,
+           janitoredBy: []
          }
          setThreads(old => [...old, thread])
        }

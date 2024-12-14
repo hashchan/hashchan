@@ -5,12 +5,13 @@ import { truncateEthAddress } from '@/utils/address'
 import { ReducedModeWarning } from '@/components/ReducedModeWarning'
 import { useAccount } from 'wagmi'
 const ListItem = ({
-  threadId, title, imgUrl, content
+  threadId, title, imgUrl, content, janitoredBy
 }: {
   threadId: string,
   title: string,
   imgUrl: string,
-  content: string
+  content: string,
+  janitoredBy: object[],
 
 }) => {
   const { chainId, boardId } = useParams()
@@ -24,6 +25,7 @@ const ListItem = ({
   return (
     <div
       style={{
+        filter: janitoredBy.length > 0 ? 'brightness(0%)' : 'none',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start',
@@ -64,8 +66,17 @@ const List = ({threads}: {threads: any}) => {
         gap: '10px',
       }}>
       { threads.length > 0 ? (
-        threads.map(({threadId, title, imgUrl, content}, i) => {
-          return <ListItem key={threadId + i} threadId={threadId} title={title} imgUrl={imgUrl} content={content} />
+        threads.map(({threadId, title, imgUrl, content, janitoredBy}, i) => {
+          return (
+            <ListItem
+              key={threadId + i}
+              threadId={threadId}
+              title={title}
+              imgUrl={imgUrl}
+              content={content}
+              janitoredBy={janitoredBy}
+            />
+          )
         })
       ): (
         <p>Nothing here yet, be the first to post</p>
