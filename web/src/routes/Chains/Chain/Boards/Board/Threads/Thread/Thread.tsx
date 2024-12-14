@@ -90,6 +90,7 @@ const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
     try {
       setUri(URL.createObjectURL(blob))
     } catch (e) {
+      console.log(e)
       setUri(null)
     }
   }, [fetchCID])
@@ -100,7 +101,7 @@ const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
       console.log('imgUrl', imgUrl)
       handleFetchCID(imgUrl)
     } else {
-      setUri(null)
+      setUri(imgUrl)
     }
   }, [handleFetchCID, imgUrl])
 
@@ -147,7 +148,7 @@ const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
 }
 
 const Post = forwardRef(({
-  creator, postId, imgUrl, content, timestamp, replies, handleOpenPost
+  creator, postId, imgUrl, content, timestamp, replies, handleOpenPost, janitoredBy
 }:{
   creator: `0x${string}`,
   postId: string,
@@ -156,6 +157,7 @@ const Post = forwardRef(({
   timestamp: number,
   replies: string[],
   handleOpenPost: (replyId: string) => void,
+  janitoredBy: object[]
 }, ref)  => {
   const location = useLocation()
 
@@ -184,6 +186,7 @@ const Post = forwardRef(({
       </div>
       <a style={{paddingLeft: `${1/ Math.PHI}vw`}} target="_blank" href={imgUrl}>{ imgUrl && imgUrl.substring(0,33)}...</a>
       <div className="flex-wrap-center" style={{
+          filter: janitoredBy.length > 0 ? 'brightness(0%)' : 'none'
         }}>
         <ImageDiv imgUrl={imgUrl} />
         <MarkdownEditor.Markdown
@@ -232,6 +235,7 @@ export const Thread = () => {
             replies={post?.replies}
             handleOpenPost={handleOpenPost}
             ref={post?.ref}
+            janitoredBy={post?.janitoredBy}
           />
         )
       })

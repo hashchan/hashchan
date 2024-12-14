@@ -58,9 +58,9 @@ import { Thread } from "@/routes/Chains/Chain/Boards/Board/Threads/Thread/Thread
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <WagmiProvider config={config}>
     <QueryClientProvider client={new QueryClient()}>
-      <HeliaProvider>
-        <W3UpProvider>
-          <IDBProvider>
+      <W3UpProvider>
+        <IDBProvider>
+          <HeliaProvider>
             <ModerationServicesProvider>
               <TOSProvider>
                 <BrowserRouter>
@@ -87,9 +87,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 </BrowserRouter>
               </TOSProvider>
             </ModerationServicesProvider>
-          </IDBProvider>
-        </W3UpProvider>
-      </HeliaProvider>
+          </HeliaProvider>
+        </IDBProvider>
+      </W3UpProvider>
     </QueryClientProvider>
   </WagmiProvider>
   ,

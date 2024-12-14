@@ -17,6 +17,7 @@ interface Settings {
   id?: number;
   tosAccepted: boolean;
   tosTimestamp: number;
+  orbitDbAddr: string;
 }
 
 interface Post {
@@ -36,6 +37,7 @@ interface Janitored {
   id: number;
   moderationServiceAddress: number;
   moderationServiceChainId: number;
+  threadId: string;
   postId: string;
   reason: number;
   signature: string;
@@ -102,7 +104,7 @@ export const IDBProvider = ({ children }) => {
       posts: '++id, &postId, threadId, timestamp',
       settings: '++id',
       moderationServices: '++id, &[chainId+address], subscribed',
-      janitored: '++id, moderationServiceAddress, postId'
+      janitored: '++id, moderationServiceAddress, postId, threadId'
     });
 
     (async () => {
@@ -111,7 +113,8 @@ export const IDBProvider = ({ children }) => {
       if (settings.length === 0) {
         await db.settings.add({
           tosAccepted: false,
-          tosTimestamp: 0
+          tosTimestamp: 0,
+          orbitDbAddr: ''
         });
       }
       setDb(db);

@@ -25,8 +25,11 @@ import {
   useEffect,
   useState,
   useCallback,
-  createContext
+  createContext,
+  useContext
 } from 'react'
+
+import { IDBContext } from './IDBProvider'
 
 export const HeliaContext = createContext({
   libp2p: null,
@@ -40,6 +43,8 @@ export const HeliaContext = createContext({
 })
 
 export const HeliaProvider = ({ children }) => {
+  const [isInitialized, setIsInitialized] = useState(false)
+  const { db } = useContext(IDBContext)
   const [libp2p, setLibp2p] = useState(null)
   const [helia, setHelia] = useState(null)
   const [orbit, setOrbit] = useState(null)
@@ -52,8 +57,13 @@ export const HeliaProvider = ({ children }) => {
 
   const startHelia = useCallback(async () => {
     console.log('starting Helia')
-    const datastore = new IDBDatastore('./hashchan/datastore')
-    const blockstore = new IDBBlockstore('./hashchan/blockstore')
+    if (!db) return
+    // Use consistent names for the datastores
+    const datastoreName = 'hashchan-datastore'
+    const blockstoreName = 'hashchan-blockstore'
+    
+    const datastore = new IDBDatastore(datastoreName)
+    const blockstore = new IDBBlockstore(blockstoreName)
 
     try {
       await datastore.open()
@@ -97,25 +107,29 @@ export const HeliaProvider = ({ children }) => {
 
       const orbit = await createOrbitDB({ipfs:helia})
 
-      const db  = await orbit.open('hashchan')
+      // Try to get the stored database address from localStorage
+      //const storedDbAddress = localStorage.getItem('hashchanDbAddress')
+      const settings = await db.settings.get(1)
+      console.log('settings', settings)
+      let orbitdb;
+      if (settings.orbitDbAddr) {
+        // If we have a stored address, try to open the existing database
+        try {
+          orbitdb = await orbit.open(settings.orbitDbAddr)
+          console.log('Opened existing database:', settings.orbitDbAddr)
+        } catch (err) {
+          console.warn('Failed to open existing database, creating new one:', err)
+          orbitdb = await orbit.open(settings.orbitDbAddr)
+          // Store the new database address
 
-      //const dial = await helia.libp2p.dial(multiaddr('/dns4/orbit.hashchan.org/tcp/443/wss'))
-      //console.log('dial', dial)
-      /*
-      await helia.libp2p.services.pubsub.subscribe('janitor')
-      helia.libp2p.services.pubsub.addEventListener('message', (event) => {
-        console.log('message', event)
-        const { topic, data } = event.detail
-        switch (topic) {
-          case 'janitor':
-            console.log('janitor')
-          console.log('data', JSON.parse(new TextDecoder().decode(data)))
-          break
-          default:
-            console.log('unknown topic', topic)
         }
-      })
-       */
+      } else {
+        // First time - create new database
+        orbitdb = await orbit.open('hashchan')
+        // Store the database address for future use
+        await db.settings.where('id').equals(1).modify({orbitDbAddr: orbitdb.address.toString()})
+
+      }
 
       helia.libp2p.addEventListener('peer:discovery', (event) => {
         console.log('Discovered peer:', event.detail.id.toString())
@@ -125,11 +139,6 @@ export const HeliaProvider = ({ children }) => {
       helia.libp2p.addEventListener('peer:connect', (event) => {
         console.log('Connected to peer:', event.detail.toString())
       })
-
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-
-      await libp2p.services.pubsub.publish('hashchan', new TextEncoder().encode('hello world'))
 
       setLibp2p(libp2p)
       setHelia(helia)
@@ -142,11 +151,13 @@ export const HeliaProvider = ({ children }) => {
       console.error(e)
       setError(true)
     }
-  }, [])
+  }, [db])
 
   useEffect(() => {
+    if (isInitialized ||
+      !db) return
     startHelia()
-  }, [])
+  }, [db, startHelia, isInitialized])
 
   return (
     <HeliaContext.Provider

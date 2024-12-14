@@ -54,6 +54,7 @@ export const useThread = () => {
           imgUrl: cachedThread.imgUrl,
           content: sanitizeMarkdown(cachedThread.content, { allowedTags: ['p', 'div', 'img'] }),
           replies: [],
+          janitoredBy: [],
           timestamp: Number(cachedThread.timestamp)
         }
         console.log('thread', thread)
@@ -87,6 +88,7 @@ export const useThread = () => {
           imgCID,
           replyIds,
           replies: [],
+          janitoredBy: [],
           content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
           timestamp: Number(timestamp)
         }
@@ -106,15 +108,26 @@ export const useThread = () => {
           content: thread.content,
           timestamp: thread.timestamp,
           replies: [],
+          janitoredBy: thread.janitoredBy,
           replyIds: thread.replyIds,
           ref: localRefsObj[thread.id]
         }
       }
 
       try {
-        const cachedPosts = await db.posts.where('threadId').equals(threadIdParam).sortBy('timestamp')
-
+        let cachedPosts = await db.posts.where('threadId').equals(threadIdParam).sortBy('timestamp')
+        const cachedJanitored = await db.janitored.where('threadId').equals(threadIdParam).toArray()
+        console.log('cached janitored', cachedJanitored)
         console.log('cached posts', cachedPosts)
+        cachedPosts = cachedPosts.map((p) => {
+          return {
+            ...p,
+            janitoredBy: cachedJanitored.filter((j) => {
+              return j.postId === p.postId
+            })
+          }
+        })
+
 
         if (cachedPosts.length > 0) {
           cachedPosts.forEach((post) => {
@@ -158,6 +171,7 @@ export const useThread = () => {
             imgCID,
             timestamp: Number(timestamp),
             replies: [],
+            janitoredBy: [],
             content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
             ref: localRefsObj[postId]
           }
@@ -257,6 +271,7 @@ export const useThread = () => {
               imgCID,
               content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
               timestamp: Number(timestamp),
+              janitoredBy: [],
               replies: [],
               ref: oldRefs[postId]
             }

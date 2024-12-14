@@ -20,6 +20,8 @@ export const ModerationServicesContext = createContext({
 export const ModerationServicesProvider = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false)
   const [moderationServices, setModerationServices] = useState([])
+  const [messageLog, setMessageLog] = useState([])
+  const [logErrors, setLogErrors] = useState([])
   const { helia } = useContext(HeliaContext)
   const { db } = useContext(IDBContext)
 
@@ -27,7 +29,10 @@ export const ModerationServicesProvider = ({ children }) => {
   const walletClient = useWalletClient();
 
   const fetchSubscribedModerationServices = useCallback(async () => {
-    if (helia && db && publicClient && walletClient) {
+    console.log('fetching subscribed moderation services')
+    console.log('publicClient', publicClient)
+    console.log(Boolean(helia), Boolean(db), Boolean(publicClient), Boolean(walletClient?.data))
+    if (helia && db && publicClient && walletClient?.data) {
       const subscribedModerationServices = await db.moderationServices
         .where('subscribed')
         .equals(1)
@@ -47,11 +52,11 @@ export const ModerationServicesProvider = ({ children }) => {
             }
           })
 
-        return {
-          ...ms,
-          instance,
-          dialed: dial
-        }
+          return {
+            ...ms,
+            instance,
+            dialed: dial
+          }
 
         } catch (e) {
           console.log('error', e)
@@ -62,15 +67,25 @@ export const ModerationServicesProvider = ({ children }) => {
           }
         }
       })
+
+      console.log('adding event listener')
       helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
         let { topic, data } = event.detail
-        console.log('pubsub::message', topic, data)
-        data = JSON.parse(new TextDecoder().decode(data))
+        try {
+          data = JSON.parse(new TextDecoder().decode(data))
+          setMessageLog([...messageLog, data])
+        } catch (e) {
+          console.log('error', e)
+          setLogErrors([...logErrors, e.message])
+        }
         if (data.success) {
+          console.log('success')
+          console.log('pubsub::message', topic, data)
           try {
             const janitored = await db.janitored.add({
-              moderationServiceAddress: data.typedData.message.address,
+              moderationServiceAddress: data.typedData.domain.verifyingContract,
               moderationServiceChainId: data.typedData.message.chainId,
+              threadId: data.typedData.message.threadId,
               postId: data.typedData.message.postId,
               reason: data.typedData.message.reason
             })
@@ -80,20 +95,21 @@ export const ModerationServicesProvider = ({ children }) => {
         }
       })
 
-    setModerationServices(await Promise.all(modServices))
+      setModerationServices(await Promise.all(modServices))
     }
   }, [
     helia,
     db,
     publicClient,
-    walletClient
+    walletClient?.data
   ])
 
   useEffect(() => {
     if (isInitialized ||
        !helia ||
+       !db ||
        !publicClient ||
-       !walletClient ) return
+       !walletClient?.data ) return
 
       const init = async () => {
         await fetchSubscribedModerationServices()
@@ -103,8 +119,9 @@ export const ModerationServicesProvider = ({ children }) => {
   } ,[
     isInitialized,
     helia,
+    db,
     publicClient,
-    walletClient,
+    walletClient?.data,
     fetchSubscribedModerationServices
   ])
 

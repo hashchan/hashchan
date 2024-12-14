@@ -65,7 +65,6 @@ export const BoardsList = () => {
                     >
                       {board.symbol}
                     </Link>
-                    <p>{board.description}</p>
                     <button
                       style={{
                         border: 'none',
