@@ -19,6 +19,8 @@ import { loadOrCreatePeerId } from  "./src/loadOrCreatePeerId.js"
 
 import { publicClient, modServiceInstance } from './src/config.js'
 
+import { affirmJanny } from './src/affirmJanny.js'
+
 const addr = process.env.MOD_SERVICE_ADDRESS
 
 const main = async () => {
@@ -97,10 +99,28 @@ const main = async () => {
         const valid = await publicClient.verifyTypedData(json)
         console.log('valid', valid)
         if (valid) {
-          await db.put(json.message.postId, json)
+          console.log('json', json)
+          const {affirmData, affirmSig} = await affirmJanny({
+            janitor: json.address,
+            postId: json.message.postId,
+            signature: json.signature
+          })
+
+          const record = {
+            janny: json,
+            affiramtion: {
+              data: affirmData,
+              signature: affirmSig
+            }
+          }
+
+          await db.put(json.message.postId, record)
           helia.libp2p.services.pubsub.publish(process.env.MOD_SERVICE_ADDRESS, 
             new TextEncoder().encode(
-              JSON.stringify({success: true, typedData: json})
+              JSON.stringify({
+                success: true,
+                record,
+              })
             ))
         } else {
           helia.libp2p.services.pubsub.publish(process.env.MOD_SERVICE_ADDRESS,

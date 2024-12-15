@@ -2,18 +2,24 @@ import {
   publicClient,
   modServiceInstance,
   walletClient
-} from './src/config.js'
+} from './config.js'
 
 export const affirmJanny = async ({
   janitor,
   postId,
   signature
 }) => {
-  const typedData = {
+  console.log('janitor', janitor)
+  console.log('postId', postId)
+  console.log('signature', signature)
+  console.log('name', await modServiceInstance.read.name())
+
+  const affirmData = {
     domain: {
       name: await modServiceInstance.read.name(),
       version: '1',
-      chainId: await publicClient.getChainId()
+      chainId: await publicClient.getChainId(),
+      verifyingContract: process.env.MOD_SERVICE_ADDRESS
     },
     message: {
       janitor,
@@ -35,8 +41,8 @@ export const affirmJanny = async ({
       ]
     }
   }
-
-  const affirmSig =  await walletClient.signTypedData(typedData)
+  console.log('walletClient', walletClient)
+  const affirmSig =  await walletClient.signTypedData(affirmData)
   console.log('affirm Sig', affirmSig)
-  return affirmSig
+  return {affirmData, affirmSig}
 }
