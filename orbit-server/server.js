@@ -84,9 +84,11 @@ const main = async () => {
   helia.libp2p.getMultiaddrs().forEach((addr) => {
     console.log(addr.toString())
   })
+  const chainId = Number(await publicClient.getChainId())
+  const baseUrl = `chainId/${chainId}/address/${addr}`
+  helia.libp2p.services.pubsub.subscribe(baseUrl)
 
-  helia.libp2p.services.pubsub.subscribe(addr)
-  helia.libp2p.services.pubsub.subscribe(`${addr}/ping`)
+  helia.libp2p.services.pubsub.subscribe(`${baseUrl}/ping`)
 
   helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
     console.log('message', event)
@@ -115,7 +117,8 @@ const main = async () => {
           }
 
           await db.put(json.message.postId, record)
-          helia.libp2p.services.pubsub.publish(process.env.MOD_SERVICE_ADDRESS, 
+          helia.libp2p.services.pubsub.publish(
+            baseUrl, 
             new TextEncoder().encode(
               JSON.stringify({
                 success: true,
@@ -123,7 +126,8 @@ const main = async () => {
               })
             ))
         } else {
-          helia.libp2p.services.pubsub.publish(process.env.MOD_SERVICE_ADDRESS,
+          helia.libp2p.services.pubsub.publish(
+            baseUrl,
             new TextEncoder().encode(
               JSON.stringify({success: false})
             )
@@ -133,7 +137,7 @@ const main = async () => {
       case (`${addr}/ping`):
         console.log(db.address.toString())
         helia.libp2p.services.pubsub.publish(
-          `${addr}/ping`,
+          `${baseUrl}/ping`,
           new TextEncoder().encode(JSON.stringify({
             orbitDbAddr: db.address.toString()
           }))
