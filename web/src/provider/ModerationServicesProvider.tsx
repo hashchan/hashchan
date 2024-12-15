@@ -71,10 +71,12 @@ export const ModerationServicesProvider = ({ children }) => {
         if (data.success) {
           console.log('success')
           console.log('pubsub::message', topic, data)
+          /*
+           * Ideally now handled by orbit db replication
           try {
             const janitored = await db.janitored.add({
-              moderationServiceAddress: data.typedData.domain.verifyingContract,
-              moderationServiceChainId: data.typedData.message.chainId,
+              moderationServiceAddress: data.record.janny.domain.verifyingContract,
+              moderationServiceChainId: data.record.janny.message.chainId,
               threadId: data.typedData.message.threadId,
               postId: data.typedData.message.postId,
               reason: data.typedData.message.reason
@@ -82,6 +84,7 @@ export const ModerationServicesProvider = ({ children }) => {
           } catch (e) {
             console.log('error creating janitor entry', e.message)
           }
+           */
         }
       }
     })
