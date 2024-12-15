@@ -19,17 +19,18 @@ import { loadOrCreatePeerId } from  "./src/loadOrCreatePeerId.js"
 
 import { publicClient, modServiceInstance } from './src/config.js'
 
+const addr = process.env.MOD_SERVICE_ADDRESS
 
 const main = async () => {
   const peerId = await loadOrCreatePeerId()
-	//console.log(peerId.toJSON())	
+  //console.log(peerId.toJSON())	
 
   const blockstore = new LevelBlockstore("./hashchan/blockstore")
   const datastore = new LevelDatastore("./hashchan/datastore")
 
   await datastore.open()
   await blockstore.open()
-  console.log('peerId', peerId)
+  //console.log('peerId', peerId)
   const libp2p = await createLibp2p({
     peerId,
     datastore,
@@ -45,8 +46,8 @@ const main = async () => {
     },
     transports: [
       webSockets({
-      filter: filters.all
-    }),
+        filter: filters.all
+      }),
       //tcp()
     ],
     connectionEncrypters: [noise()],
@@ -75,20 +76,22 @@ const main = async () => {
     { type: 'keyvalue',
       AccessController: IPFSAccessController({ write: ['*'] })}
   )
+  console.log('db addr', db.address.toString())
 
   console.log('serverlistening on: ')
   helia.libp2p.getMultiaddrs().forEach((addr) => {
     console.log(addr.toString())
   })
 
-  helia.libp2p.services.pubsub.subscribe(process.env.MOD_SERVICE_ADDRESS)
+  helia.libp2p.services.pubsub.subscribe(addr)
+  helia.libp2p.services.pubsub.subscribe(`${addr}/ping`)
 
   helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
     console.log('message', event)
     const { topic, data } = event.detail
     console.log('topic', topic)
     switch (topic) {
-      case (process.env.MOD_SERVICE_ADDRESS):
+      case (addr):
         console.log('data', new TextDecoder().decode(data))
         const json = JSON.parse(new TextDecoder().decode(data))
         const valid = await publicClient.verifyTypedData(json)
@@ -98,7 +101,7 @@ const main = async () => {
           helia.libp2p.services.pubsub.publish(process.env.MOD_SERVICE_ADDRESS, 
             new TextEncoder().encode(
               JSON.stringify({success: true, typedData: json})
-        ))
+            ))
         } else {
           helia.libp2p.services.pubsub.publish(process.env.MOD_SERVICE_ADDRESS,
             new TextEncoder().encode(
@@ -106,7 +109,16 @@ const main = async () => {
             )
           )
         }
-      break;
+        break;
+      case (`${addr}/ping`):
+        console.log(db.address.toString())
+        helia.libp2p.services.pubsub.publish(
+          `${addr}/ping`,
+          new TextEncoder().encode(JSON.stringify({
+            orbitDbAddr: db.address.toString()
+          }))
+        )
+        break;
       default:
         console.log('topic', topic)
         console.log('data', data)
@@ -133,7 +145,7 @@ const main = async () => {
   })
 
   db.events.on('join', (peerId, heads) => {
-    console.log("join", entry)
+    console.log("join", peerId, heads)
   })
 
   process.on('SIGINT', async () => {
