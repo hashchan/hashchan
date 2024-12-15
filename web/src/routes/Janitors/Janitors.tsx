@@ -4,6 +4,7 @@ import { CreateModerationService } from '@/components/ModerationService/CreateMo
 import { SetURLModerationService } from '@/components/ModerationService/SetURLModerationService'
 import { AddJanitorModerationService } from '@/components/ModerationService/AddJanitorModerationService'
 import { JoinModerationService } from '@/components/ModerationService/JoinModerationService'
+import { TransferOwnershipModerationService } from '@/components/ModerationService/TransferOwnershipModerationService'
 import { useAccount } from 'wagmi'
 import { useModerationServices } from '@/hooks/ModerationService/useModerationServices'
 import { truncateEthAddress } from '@/utils/address'
@@ -62,6 +63,7 @@ const ModServiceTable = () => {
                 <TableData content={<>
                   { address === ms.owner && (<SetURLModerationService instance={ms.instance} />)}
                   { address === ms.owner && (<AddJanitorModerationService instance={ms.instance} />)}
+                  { address === ms.owner && (<TransferOwnershipModerationService instance={ms.instance} />)}
                   <JoinModerationService ms={ms} />
                 </>} />
             </tr>

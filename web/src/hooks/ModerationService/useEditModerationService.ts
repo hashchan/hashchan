@@ -89,13 +89,44 @@ export const useEditModerationService = (instance: any) => {
         setLogErrors(old => [...old, e.message])
       }
     }
-  }, [])
+  }, [instance, address])
+
+  const transferOwnership = useCallback(async ({newOwner}:{newOwner:string}) => {
+    if ( instance && address) {
+      try {
+        const unwatch =  instance.watchEvent.OwnershipTransferred(
+          {
+            newOwner
+          },
+          {
+            onError: (error) => {
+              console.log('error', error)
+              setLogErrors(old => [...old, error])
+            },
+            onLogs: (logs) => {
+              console.log('logs', logs)
+              setLogs(old => [...old, ...logs])
+              unwatch()
+            }
+          }
+        )
+        setHash(await instance.write.transferOwnership([
+          newOwner
+        ]))
+      } catch (e) {
+        console.log(e)
+        setLogErrors(old => [...old, e.message])
+      }
+    }
+  }, [instance, address])
+
 
   return {
     hash,
     logs,
     logErrors,
     editUrl,
-    addJanitor
+    addJanitor,
+    transferOwnership
   }
 }
