@@ -167,7 +167,12 @@ const Post = forwardRef(({
     }
 
   }, [location, postId,ref])
-  return (
+  console.log('janitored by', janitoredBy)
+  return (<>{(janitoredBy.length > 0) ? (
+    <div>
+      <p>hi</p>
+    </div>
+  ) : (
     <div
       ref={ref}
       style={{
@@ -185,9 +190,7 @@ const Post = forwardRef(({
         <ReplySpans replies={replies} />
       </div>
       <a style={{paddingLeft: `${1/ Math.PHI}vw`}} target="_blank" href={imgUrl}>{ imgUrl && imgUrl.substring(0,33)}...</a>
-      <div className="flex-wrap-center" style={{
-          filter: janitoredBy.length > 0 ? 'brightness(0%)' : 'none'
-        }}>
+      <div className="flex-wrap-center">
         <ImageDiv imgUrl={imgUrl} />
         <MarkdownEditor.Markdown
           style={{
@@ -199,7 +202,9 @@ const Post = forwardRef(({
         /> 
       </div>
     </div>
-  )
+
+  )}
+  </>)
 })
 
 

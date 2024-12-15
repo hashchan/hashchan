@@ -11,13 +11,13 @@ interface ModerationService {
   address: `0x${string}`;
   chainId: number;
   owner: `0x${string}`;
+  orbitDbAddr: string;
 }
 
 interface Settings {
   id?: number;
   tosAccepted: boolean;
   tosTimestamp: number;
-  orbitDbAddr: string;
 }
 
 interface Post {
@@ -103,7 +103,7 @@ export const IDBProvider = ({ children }) => {
       threads: '++id, &threadId, [boardId+chainId], timestamp',
       posts: '++id, &postId, threadId, timestamp',
       settings: '++id',
-      moderationServices: '++id, &[chainId+address], subscribed',
+      moderationServices: '++id, &[address+chainId], subscribed',
       janitored: '++id, moderationServiceAddress, postId, threadId'
     });
 
@@ -114,7 +114,6 @@ export const IDBProvider = ({ children }) => {
         await db.settings.add({
           tosAccepted: false,
           tosTimestamp: 0,
-          orbitDbAddr: ''
         });
       }
       setDb(db);
