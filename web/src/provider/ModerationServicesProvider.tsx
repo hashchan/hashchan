@@ -41,7 +41,7 @@ export const ModerationServicesProvider = ({ children }) => {
     helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
       let { topic, data } = event.detail
 
-      const [addr, route] = topic.split('/')
+      const [ , , chainId, , addr, route ] = topic.split('/')
       console.log('pubsub::message', topic, data)
       if (topic.includes('orbitdb')) return
 
@@ -54,7 +54,13 @@ export const ModerationServicesProvider = ({ children }) => {
       }
       if (route == 'ping') {
         console.log('ping received', data)
+        await db.moderationServices
+          .where('[address+chainId]')
+          .equals([addr, chainId]).modify({orbitDbAddr: data.orbitDbAddr})
+        
         const orbitdb = await orbit.open(data.orbitDbAddr)
+
+
         orbitdb.events.on('ready', async () => {
           console.log(' orbit ready')
         })
@@ -71,10 +77,12 @@ export const ModerationServicesProvider = ({ children }) => {
         if (data.success) {
           console.log('success')
           console.log('pubsub::message', topic, data)
+          /*
+           * Ideally now handled by orbit db replication
           try {
             const janitored = await db.janitored.add({
-              moderationServiceAddress: data.typedData.domain.verifyingContract,
-              moderationServiceChainId: data.typedData.message.chainId,
+              moderationServiceAddress: data.record.janny.domain.verifyingContract,
+              moderationServiceChainId: data.record.janny.message.chainId,
               threadId: data.typedData.message.threadId,
               postId: data.typedData.message.postId,
               reason: data.typedData.message.reason
@@ -82,6 +90,7 @@ export const ModerationServicesProvider = ({ children }) => {
           } catch (e) {
             console.log('error creating janitor entry', e.message)
           }
+           */
         }
       }
     })
@@ -92,7 +101,7 @@ export const ModerationServicesProvider = ({ children }) => {
   ])
 
   const fetchSubscribedModerationServices = useCallback(async () => {
-    if (helia && db && publicClient && walletClient?.data) {
+    if (helia && db && publicClient && walletClient?.data && orbit) {
       const subscribedModerationServices = await db.moderationServices
         .where('subscribed')
         .equals(1)
@@ -125,6 +134,11 @@ export const ModerationServicesProvider = ({ children }) => {
             dialed: dial
           }
 
+          setOrbitDbs(async (old) => ({
+            ...old,
+            [ms.address]: await orbit.open(ms.orbitDbAddr)
+          }))
+
         } catch (e) {
           console.log('error', e)
 
@@ -142,6 +156,7 @@ export const ModerationServicesProvider = ({ children }) => {
   }, [
     addPubsubHandle,
     helia,
+    orbit,
     db,
     publicClient,
     walletClient?.data
@@ -152,7 +167,9 @@ export const ModerationServicesProvider = ({ children }) => {
        !helia ||
        !db ||
        !publicClient ||
-       !walletClient?.data ) return
+       !walletClient?.data ||
+       !orbit
+       ) return
 
       const init = async () => {
         await fetchSubscribedModerationServices()
@@ -162,6 +179,7 @@ export const ModerationServicesProvider = ({ children }) => {
   } ,[
     isInitialized,
     helia,
+    orbit,
     db,
     publicClient,
     walletClient?.data,

@@ -256,6 +256,17 @@ export const useThread = () => {
 
 
   useEffect(() => {
+    console.log('isInitialized', Boolean(isInitialized))
+    console.log('address', Boolean(address))
+    console.log('chain', Boolean(chain))
+    console.log('db', Boolean(db))
+    console.log('publicClient', Boolean(publicClient))
+    console.log('hashchan', Boolean(hashchan))
+    console.log('blockNumber.data', Boolean(blockNumber.data))
+    console.log('boardIdParam', Boolean(boardIdParam))
+    console.log('threadIdParam', Boolean(threadIdParam))
+    console.log('moderationServices', Boolean(moderationServices))
+    console.log('orbitDbs', Boolean(orbitDbs))
     if (
       isInitialized ||
       !address ||

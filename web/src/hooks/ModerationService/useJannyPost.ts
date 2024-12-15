@@ -70,7 +70,7 @@ export const useJannyPost = () => {
           //probly should be chainId + address to guarantee cross chain uniqueness
           console.log('publish', moderationService.address)
           await helia.libp2p.services.pubsub.publish(
-            moderationService.address,
+            `/chainId/${moderationService.chainId}/address/${moderationService.address}`,
             new TextEncoder().encode(
               JSON.stringify({
                 address,
