@@ -17,7 +17,7 @@ export default async function ({viem}) {
     }
   )
 
-  //console.log(hashChan3.address);
+  console.log('hashchan 3 addr:', hashChan3.address);
 
   const modServiceFactory = await viem.deployContract(
     "ModerationServiceFactory",
@@ -30,7 +30,7 @@ export default async function ({viem}) {
     }
   );
 
-  //console.log(modServiceFactory.address);
+  console.log('modServiceFactory addr: ',modServiceFactory.address);
 
   const instance = await viem.getContractAt(
     "ModerationServiceFactory",
@@ -45,8 +45,9 @@ export default async function ({viem}) {
    "orbit.hashchan.org",
    "443"
   ])
-
+  console.log('createServiceHash', createServiceHash);
   const tx = await publicClient.waitForTransactionReceipt({ hash: createServiceHash });
+  console.log('tx', tx);
 
   const [modServiceEvent] = await instance.getEvents.NewModerationService()
   
@@ -64,8 +65,10 @@ export default async function ({viem}) {
   const addJanitorHash = await modService.write.addJanitor([
     deployer.account.address
   ])
-  console.log('janitor', deployer.account.address);
+
+  console.log('addJanitorHash', addJanitorHash);
   const tx2 = await publicClient.waitForTransactionReceipt({ hash: addJanitorHash });
+  console.log('tx2', tx2);
 
   return {
     hashChan3,

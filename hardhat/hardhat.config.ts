@@ -6,30 +6,30 @@ import "@nomicfoundation/hardhat-verify";
 import "@nomicfoundation/hardhat-ignition-viem";
 import "hardhat-deploy";
 const config: HardhatUserConfig = {
-	solidity: {
-			compilers: [
-				{
-					version: "0.8.26",
-					settings: {
-						optimizer: {
-							enabled: true,
-							runs: 200,
-						},
-						evmVersion: "paris",
-					},
-				},
-				{
-					version: "0.8.28",
-					settings: {
-						optimizer: {
-							enabled: true,
-							runs: 200,
-						},
-						evmVersion: "paris",
-					},
-				},
-			],
-		},
+  solidity: {
+    compilers: [
+      {
+        version: "0.8.26",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          evmVersion: "paris",
+        },
+      },
+      {
+        version: "0.8.28",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          evmVersion: "paris",
+        },
+      },
+    ],
+  },
   networks: {
     hardhat:{
       chainId: 31337,
@@ -60,18 +60,18 @@ const config: HardhatUserConfig = {
     },
     avalanche: {
       url: `https://avax-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-        chainId: 43114,
+      chainId: 43114,
       accounts: {
         mnemonic: process.env.MNEMONIC
       }
     },
     sepolia: {
       url: `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-        chainId: 11155111,
+      chainId: 11155111,
       accounts: {
         mnemonic: process.env.MNEMONIC
       },
-      gas: 'auto',
+      saveDeployments: true
     },
     'optimism-sepolia': {
       url: `https://optimism-sepolia.infura.io/v3/${process.env.INFURA}`,
