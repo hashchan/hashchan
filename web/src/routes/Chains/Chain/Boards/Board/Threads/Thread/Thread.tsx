@@ -1,18 +1,25 @@
-import { useState,useEffect, forwardRef, useCallback  } from 'react'
+import { useState, useEffect, forwardRef, useCallback  } from 'react'
 import { useParams, useLocation  } from 'react-router-dom'
 
 import { useThread } from '@/hooks/HashChan/useThread'
 import { CreatePost } from '@/components/HashChan/CreatePost'
 import { truncateEthAddress } from '@/utils/address'
-import { supportedExtensions } from '@/utils/content'
-import { useHelia } from '@/hooks/p2p/useHelia'
 
 import MarkdownEditor from '@uiw/react-markdown-editor';
+import { TbFlagExclamation  } from "react-icons/tb";
 
 import { ReducedModeWarning } from '@/components/ReducedModeWarning'
 import { TipCreator } from '@/components/HashChan/Thread/TipCreator'
 import { JannyPost } from '@/components/HashChan/Thread/JannyPost'
+import { ImageDiv } from '@/components/ImageDiv'
 import { useBoard } from '@/hooks/HashChan/useBoard'
+import { ReviewJanny } from '@/components/HashChan/Thread/ReviewJanny'
+import {
+  Table,
+  TableHeader,
+  TableData
+} from '@/components/Table'
+
 const PostIdSpan = ({postId, handleOpenPost}:{postId:string, handleOpenPost: (postId:string) => void}) => {
   const [hovered, setHovered] = useState(false)
   return (
@@ -65,87 +72,6 @@ const ReplySpans = ({replies}: {replies: any}) => {
   return null
 }
 
-const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
-  //imgUrl = 'bafkreiab6xxyrrnitmrukgeh5kwvnyhidhxsdmuloyeft7omycpk2vauwu'
-  const [uri, setUri] = useState(null)
-  const { fetchCID, logErrors:heliaLogErrors } = useHelia()
-  const [protocol, setProtocol] = useState(null)
-  const [expanded, setExpanded] = useState(false)
-  const [isVideo, setIsVideo] = useState(false)
-  const [videoError, setVideoError] = useState(false)
-  const [imgError, setImgError] = useState(false)
-
-  const handleImageError = () => {
-    setImgError(true)
-    setIsVideo(true)
-  }
-  const handleVideoError = () => {
-    setIsVideo(false);
-    setVideoError(true);
-  };
-
-  const handleFetchCID = useCallback(async (cid) => {
-    const {blob, type}  = await fetchCID(cid)
-    console.log('blob', blob)
-    try {
-      setUri(URL.createObjectURL(blob))
-    } catch (e) {
-      console.log(e)
-      setUri(null)
-    }
-  }, [fetchCID])
-
-  useEffect(() => {
-    const https = /^https?:\/\//;
-    if (!https.test(imgUrl)) {
-      console.log('imgUrl', imgUrl)
-      handleFetchCID(imgUrl)
-    } else {
-      setUri(imgUrl)
-    }
-  }, [handleFetchCID, imgUrl])
-
-  if (videoError && imgError) {
-    return (<></>)
-  }
-
-  if (isVideo || imgError) {
-    return (
-      <video
-        src={uri}
-        style={{
-          float: 'left',
-          justifyContent: 'center',
-          objectFit: 'contain',
-          paddingRight: `${1/ Math.PHI}vw`,
-          minHeight: `${100*(Math.PHI - 1)}px`,
-          maxWidth: `${100*(Math.PHI + 1)}px`,
-          maxHeight: `${1000/(Math.PHI**3)}px`,
-        }}
-        preload="metadata"
-        controls
-        playsInline
-        onError={handleVideoError}
-      />
-    )
-  }
-  return (
-    <img 
-      onClick={() => setExpanded(!expanded)}
-      style={{
-        float: 'left',
-        justifyContent: 'center',
-        objectFit: 'contain',
-        paddingRight: `${1/ Math.PHI}vw`,
-        minHeight: `${100*(Math.PHI - 1)}px`,
-        maxWidth: expanded ? `${(100/(Math.PHI))+(100/(Math.PHI**3))+(100/(Math.PHI**5))}vw` : `${100*(Math.PHI + 1)}px`,
-        maxHeight: expanded ? `${(100/(Math.PHI))+(100/(Math.PHI**3))+(100/(Math.PHI**5))}vh` : `${1000/(Math.PHI**3)}px`,
-      }}
-      src={uri}
-      onError={handleImageError}
-    />
-  )
-}
 
 const Post = forwardRef(({
   creator, postId, imgUrl, content, timestamp, replies, handleOpenPost, janitoredBy
@@ -161,6 +87,16 @@ const Post = forwardRef(({
 }, ref)  => {
   const location = useLocation()
   const { board } = useBoard()
+  const [viewSwitch, setViewSwitch] = useState(false)
+
+  const handleViewSwitch = () => {
+    setViewSwitch(old => !old)
+  }
+  useEffect(() => {
+    if (janitoredBy.length > 0) {
+      handleViewSwitch()
+    }
+  }, [janitoredBy])
 
   useEffect(() => {
     if (ref && location.hash.includes(`#${postId}`)) {
@@ -169,19 +105,36 @@ const Post = forwardRef(({
 
   }, [location, postId,ref])
   console.log('janitored by', janitoredBy)
-  return (<>{(janitoredBy.length > 0) ? (
-    <div
-      className="flex-wrap-center"
-    >
-      { janitoredBy.map((janny, i) => {
+  return (<>{(viewSwitch) ? (
+    <div style={{overflowX: 'auto'}}>
+    <Table>
+      <thead>
+        <tr>
+          <TableHeader title={"Service"}/>
+          <TableHeader title={"Janitor"}/>
+          <TableHeader title={"Reason"}/>
+          <TableHeader title={"Actions"}/>
+        </tr>
+      </thead>
+      <tbody>
+      {janitoredBy.map((janny, i) => {
         return (
-          <div key={i}>
-            <p>Post Flagged By: {truncateEthAddress(janny.affirmation.data.message.janitor)}</p>
-            <p>From: {janny.affirmation.data.domain.name}</p>
-            <p>Reason: {board?.rules[janny.janny.message.reason]}</p>
-          </div>
+          <tr key={i} style={{borderBottom: '1px solid #20c20E'}}>
+            <TableData content={janny.affirmation.data.domain.name}/>
+            <TableData content={truncateEthAddress(janny.affirmation.data.message.janitor)}/>
+            <TableData content={board?.rules[janny.janny.message.reason]}/>
+            <TableData content={
+              <>
+                <button onClick={() => handleViewSwitch()}>View Anyway</button>
+                <ReviewJanny jannyTypedData={janny.janny} />
+
+              </>
+              } />
+          </tr>
         )
       })}
+      </tbody>
+    </Table>
     </div>
   ) : (
     <div
@@ -196,6 +149,17 @@ const Post = forwardRef(({
         <span>{truncateEthAddress(creator)}</span>&nbsp;
         <TipCreator creator={creator} />&nbsp;
         <JannyPost postId={postId} />&nbsp;
+        {janitoredBy.length > 0 && (<>
+          <span
+            onClick={() => handleViewSwitch()}
+            style={{
+              paddingLeft: `${1/ Math.PHI}vw`,
+              color: 'white'
+            }}
+          >
+            <TbFlagExclamation />
+          </span>&nbsp;
+        </>)}
         <PostIdSpan postId={postId} handleOpenPost={handleOpenPost} />
         <span>&nbsp;{timestamp && new Date(timestamp * 1000).toLocaleString()}</span>
         <ReplySpans replies={replies} />

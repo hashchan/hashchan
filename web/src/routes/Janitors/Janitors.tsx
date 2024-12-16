@@ -8,28 +8,7 @@ import { TransferOwnershipModerationService } from '@/components/ModerationServi
 import { useAccount } from 'wagmi'
 import { useModerationServices } from '@/hooks/ModerationService/useModerationServices'
 import { truncateEthAddress } from '@/utils/address'
-const TableHeader = ({title}:{title:string}) => {
-
-  return (
-    <th style={{
-      padding: '13px 21px',
-      textAlign: 'left',
-      fontWeight: Math.PHI*100,
-      color: '#df3df1',
-      textTransform: 'uppercase',
-      borderBottom: '1px solid #20c20E'
-    }}>{title}</th>
-  )
-}
-
-const TableData = ({content}:{content:string | ReactNode}) => {
-  return (
-    <td style={{
-      padding: '13px 21px',
-      whiteSpace: 'nowrap',
-      }}>{content}</td>
-  )
-}
+import { Table, TableHeader, TableData } from '@/components/Table'
 
 const ModServiceTable = () => {
   const { moderationServices } = useModerationServices()
@@ -37,11 +16,7 @@ const ModServiceTable = () => {
 
   return (
     <div style={{ overflowX: 'auto' }}>
-      <table style={{ 
-        minWidth: `${(100/Math.PHI)+(100/(Math.PHI**3))+(100/(Math.PHI**5))}vw`, 
-        margin: '0 auto',
-        border: '1px solid #20c20E'
-      }}>
+      <Table>
         <thead>
           <tr>
             <TableHeader title="Name" />
@@ -69,7 +44,7 @@ const ModServiceTable = () => {
             </tr>
           ))}
         </tbody>
-      </table>
+      </Table>
       {moderationServices.length === 0 && (
         <div style={{
           textAlign: 'center',
