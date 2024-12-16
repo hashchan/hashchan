@@ -14,6 +14,9 @@ contract ModerationService is Ownable, EIP712 {
   string public uri;
   uint256 public port;
 
+  uint256 public totalPositiveReviews;
+  uint256 public totalNegativeReviews;
+
   event URLUpdated(string uri, uint256 port);
 
   struct FlagData {
@@ -82,6 +85,11 @@ contract ModerationService is Ownable, EIP712 {
     emit URLUpdated(_uri, _port);
   }
 
+  function getServiceData() public view returns (
+    string memory, string memory, uint256, uint256, uint256) {
+    return (name, uri, port, totalPositiveReviews, totalNegativeReviews);
+  }
+
 
   function getJanitor(address _janitor) public view returns (Janitor memory) {
     return janitors[_janitor];
@@ -126,11 +134,15 @@ contract ModerationService is Ownable, EIP712 {
 
     if (isPositive) {
       janitor.positiveReviews++;
+      totalPositiveReviews++;
     } else {
       janitor.negativeReviews++;
+      totalNegativeReviews++;
     }
 
     janitor.claimedWages += msg.value;
+    (bool success,) = _janitor.call{value: msg.value}("");
+    require(success, "Failed to send ETH");
 
     emit ReviewAdded(
       _janitor,
