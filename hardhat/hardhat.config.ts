@@ -4,7 +4,7 @@ import type { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox-viem";
 import "@nomicfoundation/hardhat-verify";
 import "@nomicfoundation/hardhat-ignition-viem";
-
+import "hardhat-deploy";
 const config: HardhatUserConfig = {
 	solidity: {
 			compilers: [
