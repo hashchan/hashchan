@@ -54,8 +54,8 @@ export const useThread = () => {
       db &&
       boardIdParam &&
       blockNumber.data &&
-      moderationServices &&
-      orbitDbs
+      moderationServices
+      //orbitDbs
     ) {
       const cachedThread = await db.threads.where('threadId').equals(threadIdParam).first()
       let thread;
@@ -255,8 +255,16 @@ export const useThread = () => {
     moderationServices
   ])
 
+  useEffect(() => {
+    if (orbitDbs) {
+      setIsInitialized(false)
+    }
+  },[
+    orbitDbs
+  ])
 
   useEffect(() => {
+    console.log('orbitdbs', orbitDbs)
     if (
       isInitialized ||
       !address ||
@@ -267,8 +275,8 @@ export const useThread = () => {
       !blockNumber.data ||
       !boardIdParam ||
       !threadIdParam ||
-      !moderationServices ||
-      !orbitDbs
+      !moderationServices 
+      //!orbitDbs
     ) return
 
 
@@ -333,7 +341,7 @@ export const useThread = () => {
     db,
     boardIdParam,
     moderationServices,
-    orbitDbs
+    //orbitDbs
   ])
 
   return {

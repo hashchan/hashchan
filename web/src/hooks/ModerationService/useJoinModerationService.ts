@@ -101,7 +101,9 @@ export const useJoinModerationService = (ms: any) => {
         setDial(null)
         helia.libp2p.services.pubsub.unsubscribe(ms.address)
         try {
-          await db.moderationServices.where('[chainId+address]').equals([Number(chain.id), ms.address]).modify({subscribed: 0})
+          await db.moderationServices
+            .where('[address+chainId]')
+            .equals([ms.address,Number(chain.id)]).modify({subscribed: 0})
         } catch (e) {
           console.log(e)
           setDialErrors(old => [...old, e.message])

@@ -40,7 +40,8 @@ export const useThreads = () => {
       db &&
       blockNumber &&
       hashchan &&
-      board
+      board &&
+      chain?.id
     ) {
       let threads = await db.threads
         .where(['boardId+chainId'])
@@ -120,6 +121,7 @@ export const useThreads = () => {
     address,
     board,
     hashchan,
+    chain?.id,
     blockNumber,
     db,
   ])
@@ -176,7 +178,8 @@ export const useThreads = () => {
       !db ||
       !blockNumber ||
       !hashchan ||
-      !board
+      !board ||
+      !chain?.id
    ) return 
 
     const init = async () => {
@@ -197,6 +200,7 @@ export const useThreads = () => {
     watchThreads,
     hashchan,
     blockNumber,
+    chain?.id
   ])
 
 
