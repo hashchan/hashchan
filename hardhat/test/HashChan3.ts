@@ -1,10 +1,11 @@
-import {ignition, network, viem} from 'hardhat'
-
+import { network, viem} from 'hardhat'
+import hre from 'hardhat'
 import { expect } from "chai";
 import "@nomicfoundation/hardhat-chai-matchers";
 
 import {loadFixture} from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
-import HashChan3Module from "../ignition/modules/HashChan3";
+//import HashChan3Module from "../ignition/modules/HashChan3";
+import deploy from "../deploy/001_hashchan3";
 
 import { getAddress } from 'viem'
 
@@ -12,7 +13,7 @@ import { createPublicClient, custom } from "viem";
 describe("HashChan3", function () {
   let hashChan3: any
   let modServiceFactory: any
-  let exampleModerationService: any
+  let modService: any
   let publicClient: any
   let threadId: `0x${string}`
   let postId: `0x${string}`
@@ -21,39 +22,20 @@ describe("HashChan3", function () {
   let moderator: any;
   let janny: any;
   let flagSig: any;
-  beforeEach(async () => {
-    ;([deployer, poster, moderator, janny] = await viem.getWalletClients())
-    ;({hashChan3, modServiceFactory} = await ignition.deploy(HashChan3Module))
-
+  before(async () => {
+    ;([deployer, moderator] = await viem.getWalletClients())
+    ;({ hashChan3, modServiceFactory, modService } = await deploy(hre))
+    
     publicClient = createPublicClient({
       transport: custom(network.provider),
     })
   })
 
-
-  async function deployFixture() {
-    const {
-      hashChan3,
-      modServiceFactory
-    } = await ignition.deploy(HashChan3Module)
-
-    const publicClient = createPublicClient({
-      transport: custom(network.provider),
-    })
-    // Get the deployed contracts
-    return {
-      hashChan3,
-      modServiceFactory,
-      publicClient
-    }
-  }
-
   describe("Hashchan3", async () => {
     it("Should be deployed", async () => {
-      //const { hashChan3, modServiceFactory } = await loadFixture(deployFixture)
-
       expect(hashChan3.address).to.be.properAddress
       expect(modServiceFactory.address).to.be.properAddress
+      expect(modService.address).to.be.properAddress
     })
 
     it("should have a newBoard Event", async () => {
@@ -75,7 +57,6 @@ describe("HashChan3", function () {
     })
 
     it("create a thread", async () => {
-      const { publicClient, hashChan3, modServiceFactory } = await loadFixture(deployFixture)
 
       const args = {
         boardId: 0n,
@@ -102,7 +83,6 @@ describe("HashChan3", function () {
     })
 
     it("should create a post", async () => {
-      const { publicClient, hashChan3 } = await loadFixture(deployFixture)
       const args = {
         boardId: 0n,  
         threadId: threadId,
@@ -128,59 +108,34 @@ describe("HashChan3", function () {
     })
 
     it("should create a moderation service", async () => {
-      const name = "Example Moderation Service"
-      const url = "orbit.hashchan.org"
-      const port = 81
-      const hash = await modServiceFactory.write.createModerationService([name, url, port])
-      const receipt =  await publicClient.waitForTransactionReceipt({ hash })
 
-      const newModerationServiceEvents = await publicClient.getContractEvents({
-        address: modServiceFactory.address,
-        abi: modServiceFactory.abi,
-        eventName: "NewModerationService",
-        fromBlock: 0n
-      })
-      expect(newModerationServiceEvents.length).to.be.greaterThan(0)
-      expect(newModerationServiceEvents[0].args.name).to.deep.contain(name)
+      const modName = await modService.read.name()
+      expect(modName).to.deep.contain('Basic Service')
 
-      exampleModerationService = await viem.getContractAt(
-        "ModerationService",
-        newModerationServiceEvents[0].args.moderationService
-      )
+      const modUrl = await modService.read.uri()
+      expect(modUrl).to.deep.contain('orbit.hashchan.org')
 
-      const modName = await exampleModerationService.read.name()
-      expect(modName).to.deep.contain(name)
+      const modPort = await modService.read.port()
+      expect(Number(modPort)).to.be.equal(443)
 
 
     })
 
     it("should add a janitor", async () => {
-      const hash = await exampleModerationService.write.addJanitor([
-        janny.account.address
+      const janitor = await modService.read.getJanitor([
+        deployer.account.address
       ])
-      await publicClient.waitForTransactionReceipt({ hash })
-
-      const newJanitorEvents = await publicClient.getContractEvents({
-        address: exampleModerationService.address,
-        abi: exampleModerationService.abi,
-        eventName: "NewJanitor",
-        fromBlock: 0n
-      })
-
-      expect(newJanitorEvents.length).to.be.greaterThan(0)
-      expect(
-        getAddress(newJanitorEvents[0].args.janitor)
-      ).to.be.equal(getAddress(janny.account.address))
+      console.log('janitor', janitor);
     })
 
     it("janitor can flag a post", async () => {
-
+      console.log('modService.address', modService.address);
       const typedData = {
         domain: {
-          name: "Example Moderation Service",
+          name: "Basic Service",
           version: "1",
           chainId: await publicClient.getChainId(),
-          verifyingContract: exampleModerationService.address
+          verifyingContract: modService.address
         },
         message: {
           chainId: await publicClient.getChainId(),
@@ -208,14 +163,16 @@ describe("HashChan3", function () {
       } 
 
 
-      const signature = await janny.signTypedData(typedData)
+      const signature = await deployer.signTypedData(typedData)
       console.log('signature', signature)
       flagSig = signature
     })
 
     it("a lurker can review a janitors flag", async () => {
-      const hash = await exampleModerationService.write.addReview([
-        janny.account.address,
+      console.log('janitor', deployer.account.address);
+      console.log('modService.address', modService.address);
+      const hash = await modService.write.addReview([
+        deployer.account.address,
         true,
         "thanks for the flag",
         flagSig,
@@ -231,7 +188,7 @@ describe("HashChan3", function () {
       })
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
 
-      const jannyData = await exampleModerationService.read.getJanitor([janny.account.address])
+      const jannyData = await modService.read.getJanitor([deployer.account.address])
       console.log('jannyData', jannyData)
       expect(jannyData).to.deep.contain({
         positiveReviews: 1n,

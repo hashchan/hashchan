@@ -1,26 +1,40 @@
 
 export default async function ({viem}) {
-  console.log(viem);
+  //console.log(viem);
   const [deployer, modServiceOwner] = await viem.getWalletClients()
   const publicClient = await viem.getPublicClient();
 
   console.log(deployer.account.address, modServiceOwner.account.address); 
 
-  const hashChan3 = await viem.deployContract("HashChan3", [
-    
-  ]);
+  const hashChan3 = await viem.deployContract(
+    "HashChan3",
+    [],
+    {
+      client: {
+        wallet: deployer,
+        public: publicClient
+      }
+    }
+  )
 
-  console.log(hashChan3.address);
+  //console.log(hashChan3.address);
 
-  const moderationServiceFactory = await viem.deployContract("ModerationServiceFactory", [
-    hashChan3.address
-  ]);
+  const modServiceFactory = await viem.deployContract(
+    "ModerationServiceFactory",
+    [hashChan3.address],
+    {
+      client: {
+        wallet: deployer,
+        public: publicClient
+      }
+    }
+  );
 
-  console.log(moderationServiceFactory.address);
+  //console.log(modServiceFactory.address);
 
   const instance = await viem.getContractAt(
     "ModerationServiceFactory",
-    moderationServiceFactory.address,
+    modServiceFactory.address,
     {
       client: { wallet: modServiceOwner }
     }
@@ -33,7 +47,31 @@ export default async function ({viem}) {
   ])
 
   const tx = await publicClient.waitForTransactionReceipt({ hash: createServiceHash });
-  console.log(tx);
+
+  const [modServiceEvent] = await instance.getEvents.NewModerationService()
+  
+  const modService = await viem.getContractAt(
+    "ModerationService",
+    modServiceEvent.args.moderationService,
+    {
+      client: {
+        wallet: modServiceOwner,
+        public: publicClient
+     }
+    }
+  );
+
+  const addJanitorHash = await modService.write.addJanitor([
+    deployer.account.address
+  ])
+  console.log('janitor', deployer.account.address);
+  const tx2 = await publicClient.waitForTransactionReceipt({ hash: addJanitorHash });
+
+  return {
+    hashChan3,
+    modServiceFactory,
+    modService
+  }
 
 
 
