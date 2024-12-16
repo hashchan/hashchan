@@ -12,7 +12,7 @@ import MarkdownEditor from '@uiw/react-markdown-editor';
 import { ReducedModeWarning } from '@/components/ReducedModeWarning'
 import { TipCreator } from '@/components/HashChan/Thread/TipCreator'
 import { JannyPost } from '@/components/HashChan/Thread/JannyPost'
-
+import { useBoard } from '@/hooks/HashChan/useBoard'
 const PostIdSpan = ({postId, handleOpenPost}:{postId:string, handleOpenPost: (postId:string) => void}) => {
   const [hovered, setHovered] = useState(false)
   return (
@@ -160,6 +160,7 @@ const Post = forwardRef(({
   janitoredBy: object[]
 }, ref)  => {
   const location = useLocation()
+  const { board } = useBoard()
 
   useEffect(() => {
     if (ref && location.hash.includes(`#${postId}`)) {
@@ -169,8 +170,18 @@ const Post = forwardRef(({
   }, [location, postId,ref])
   console.log('janitored by', janitoredBy)
   return (<>{(janitoredBy.length > 0) ? (
-    <div>
-      <p>hi</p>
+    <div
+      className="flex-wrap-center"
+    >
+      { janitoredBy.map((janny, i) => {
+        return (
+          <div key={i}>
+            <p>Post Flagged By: {truncateEthAddress(janny.affirmation.data.message.janitor)}</p>
+            <p>From: {janny.affirmation.data.domain.name}</p>
+            <p>Reason: {board?.rules[janny.janny.message.reason]}</p>
+          </div>
+        )
+      })}
     </div>
   ) : (
     <div
@@ -189,7 +200,7 @@ const Post = forwardRef(({
         <span>&nbsp;{timestamp && new Date(timestamp * 1000).toLocaleString()}</span>
         <ReplySpans replies={replies} />
       </div>
-      <a style={{paddingLeft: `${1/ Math.PHI}vw`}} target="_blank" href={imgUrl}>{ imgUrl && imgUrl.substring(0,33)}...</a>
+      <a style={{paddingLeft: `${1/ Math.PHI}vw`}} target="_blank" href={imgUrl}>{ imgUrl && imgUrl.substring(0,34)}...</a>
       <div className="flex-wrap-center">
         <ImageDiv imgUrl={imgUrl} />
         <MarkdownEditor.Markdown

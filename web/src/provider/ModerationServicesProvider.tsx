@@ -114,8 +114,9 @@ export const ModerationServicesProvider = ({ children }) => {
         try {
           const dial = await helia.libp2p.dial(multiaddr(`/dns4/${ms.uri}/tcp/${ms.port}/wss`))
           console.log('ms.address', ms.address)
-          await helia.libp2p.services.pubsub.subscribe(ms.address)
-          await helia.libp2p.services.pubsub.subscribe(`${ms.address}/ping`)
+          const baseUrl = `/chainId/${ms.chainId}/address/${ms.address}`
+          await helia.libp2p.services.pubsub.subscribe(baseUrl)
+          await helia.libp2p.services.pubsub.subscribe(`${baseUrl}/ping`)
           setTimeout(() => {
             helia.libp2p.services.pubsub.publish(`${ms.address}/ping`, '')
           }, 618)
@@ -133,11 +134,14 @@ export const ModerationServicesProvider = ({ children }) => {
             instance,
             dialed: dial
           }
-
-          setOrbitDbs(async (old) => ({
-            ...old,
-            [ms.address]: await orbit.open(ms.orbitDbAddr)
-          }))
+          console.log('ms.orbitDbAddr', ms.orbitDbAddr)
+          const orbitDb = await orbit.open(ms.orbitDbAddr)
+          setOrbitDbs((old) => {
+            return {
+              ...old,
+              [ms.address]: orbitDb
+            }
+          }) 
 
         } catch (e) {
           console.log('error', e)
