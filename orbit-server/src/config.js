@@ -10,7 +10,7 @@ import { privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
 import  ModerationService from './abi/ModerationService.json' with {type: "json"}
 
-const account = privateKeyToAccount(process.env.OWNER_KEY)
+export const account = privateKeyToAccount(process.env.OWNER_KEY)
 
 
 export const publicClient = createPublicClient({

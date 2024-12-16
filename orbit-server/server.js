@@ -85,7 +85,8 @@ const main = async () => {
     console.log(addr.toString())
   })
   const chainId = Number(await publicClient.getChainId())
-  const baseUrl = `chainId/${chainId}/address/${addr}`
+  const baseUrl = `/chainId/${chainId}/address/${addr}`
+  console.log('baseUrl', baseUrl)
   helia.libp2p.services.pubsub.subscribe(baseUrl)
 
   helia.libp2p.services.pubsub.subscribe(`${baseUrl}/ping`)
@@ -95,7 +96,7 @@ const main = async () => {
     const { topic, data } = event.detail
     console.log('topic', topic)
     switch (topic) {
-      case (addr):
+      case (baseUrl):
         console.log('data', new TextDecoder().decode(data))
         const json = JSON.parse(new TextDecoder().decode(data))
         const valid = await publicClient.verifyTypedData(json)
@@ -110,7 +111,7 @@ const main = async () => {
 
           const record = {
             janny: json,
-            affiramtion: {
+            affirmation: {
               data: affirmData,
               signature: affirmSig
             }
@@ -134,7 +135,7 @@ const main = async () => {
           )
         }
         break;
-      case (`${addr}/ping`):
+      case (`${baseUrl}/ping`):
         console.log(db.address.toString())
         helia.libp2p.services.pubsub.publish(
           `${baseUrl}/ping`,

@@ -1,9 +1,9 @@
 import {
+  account,
   publicClient,
   modServiceInstance,
   walletClient
 } from './config.js'
-
 export const affirmJanny = async ({
   janitor,
   postId,
@@ -22,6 +22,7 @@ export const affirmJanny = async ({
       verifyingContract: process.env.MOD_SERVICE_ADDRESS
     },
     message: {
+      moderator: account.address,
       janitor,
       postId,
       signature
@@ -35,6 +36,7 @@ export const affirmJanny = async ({
         {name: "verifyingContract", type: "address"},
       ],
       Affirmation: [
+        {name: "moderator", type: "address"},
         {name: "janitor", type: "address"},
         {name: "postId", type: "bytes32"},
         {name: "signature", type: "bytes"},
