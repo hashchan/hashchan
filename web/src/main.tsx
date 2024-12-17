@@ -71,7 +71,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                   <Routes>
                     <Route path="/tospp" element={<TOSPP />} />
                     <Route path="/janitors" element={<Janitors />} />
-                    <Route path="/janitors/:janitorId" element={<Janitor />} />
+                    <Route path="/janitors/:janitorAddress" element={<Janitor />} />
                     <Route path="/docs/:docversion" element={<Docs />}>
                       <Route path="intro" element={<Intro />} />
                       <Route path="instructions" element={<Instructions />} />

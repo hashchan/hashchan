@@ -32,7 +32,7 @@ const ModServiceTable = () => {
               borderBottom: '1px solid #20c20E'
             }}>
               <TableData content={`${ms.positives}/${ms.negatives}`} />
-              <TableData content={<Link to={`/janitors/${ms.address}`}>{truncateEthAddress(ms.address)}</Link>} />
+              <TableData content={<Link to={`/janitors/${ms.address}`}>{ms.name}</Link>} />
               <TableData content={truncateEthAddress(ms.address)} />
               <TableData content={truncateEthAddress(ms.owner)} />
                 <TableData content={<>

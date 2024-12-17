@@ -21,15 +21,8 @@ import {
 } from 'wagmi'
 
 import { IDBContext } from '@/provider/IDBProvider'
-import { config } from '@/config'
-export const useModerationServices = ({
-  filter = null
-}: {
-  filter?: {
-    where: string,
-    equals: any
-  }
-} = {}) => {
+
+export const useModerationService = ({address}:{address:`0x${string}`}) => {
   const { db } = useContext(IDBContext)
   const [isInitialized, setIsInitialized] = useState(false)
 
@@ -38,10 +31,10 @@ export const useModerationServices = ({
   const walletClient = useWalletClient();
 
   const { moderationServiceFactory } = useContracts()
-  const [moderationServices, setModerationServices] = useState([])
+  const [moderationService, setModerationService] = useState()
 
 
-  const fetchModerationService = useCallback(async (address) => {
+  const fetchModerationService = useCallback(async () => {
     if (
       moderationServiceFactory &&
       publicClient &&
@@ -81,9 +74,7 @@ export const useModerationServices = ({
       }))
       console.log('janitors', janitors)
 
-
-
-      setModerationServices([{
+      setModerationService({
         owner,
         address,
         instance,
@@ -93,74 +84,14 @@ export const useModerationServices = ({
         positives,
         negatives,
         janitors
-      }])
+      })
     }
   }, [
+    address,
     moderationServiceFactory,
     publicClient,
     walletClient?.data,
     chain?.id
-  ])
-  const fetchModerationServices = useCallback(async () => {
-    if (
-      moderationServiceFactory &&
-      publicClient &&
-      walletClient?.data && 
-      db
-    ) {
-      if (filter) {
-        const moderationServices = await db.moderationServices
-          .where(filter.where).equals(filter.equals)
-          .toArray()
-        const ms = moderationServices.map((modService) => {
-          const instance = getContract({
-            address: modService.address,
-            abi: ModerationService.abi,
-            client: {
-              public: publicClient,
-              wallet: walletClient.data
-            }
-          })
-          return {
-           instance,
-           ...modService 
-          }
-        })
-        setModerationServices(ms)
-      } else {
-      const modServiceContracts = await moderationServiceFactory.read.getModerationServices([])
-      const moderationServices = await Promise.all(modServiceContracts.map(async (address) => {
-        const instance = getContract({
-          address,
-          abi: ModerationService.abi,
-          client: {
-            public: publicClient,
-            wallet: walletClient.data
-          }
-        })
-        const owner = await instance.read.owner()
-        const [name, uri, port, positives, negatives] =
-          await instance.read.getServiceData()
-        return {
-          owner,
-          address,
-          instance,
-          name,
-          uri,
-          port,
-          positives,
-          negatives
-        }
-      }))
-      setModerationServices(moderationServices)
-      }
-    }
-  }, [
-    filter,
-    moderationServiceFactory,
-    publicClient,
-    walletClient?.data,
-    db
   ])
 
   useEffect(() => {
@@ -172,7 +103,7 @@ export const useModerationServices = ({
        ) return
 
       const init = async () => {
-        await fetchModerationServices()
+        await fetchModerationService()
         setIsInitialized(true)
       }
       init()
@@ -182,12 +113,12 @@ export const useModerationServices = ({
     publicClient,
     walletClient?.data,
     moderationServiceFactory,
-    fetchModerationServices,
+    fetchModerationService,
     db
   ])
 
   return {
-    moderationServices,
+    moderationService,
     fetchModerationService
   }
 

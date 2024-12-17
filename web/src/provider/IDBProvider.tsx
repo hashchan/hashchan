@@ -103,7 +103,7 @@ export const IDBProvider = ({ children }) => {
       threads: '++id, &threadId, [boardId+chainId], timestamp',
       posts: '++id, &postId, threadId, timestamp',
       settings: '++id',
-      moderationServices: '++id, &[address+chainId], subscribed',
+      moderationServices: '++id, &[address+chainId], subscribed, address',
       janitored: '++id, moderationServiceAddress, postId, threadId'
     });
 

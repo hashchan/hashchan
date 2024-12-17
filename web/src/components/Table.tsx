@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 
-export const TableHeader = ({title}:{title:string}) => {
+export const TableHeader = ({title}:{title:string | ReactNode}) => {
 
   return (
     <th style={{
