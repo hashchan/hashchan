@@ -94,6 +94,7 @@ const Post = forwardRef(({
   }
   useEffect(() => {
     if (janitoredBy.length > 0) {
+      if (typeof janitoredBy[0] === 'undefined') return
       handleViewSwitch()
     }
   }, [janitoredBy])
@@ -118,15 +119,16 @@ const Post = forwardRef(({
       </thead>
       <tbody>
       {janitoredBy.map((janny, i) => {
+        if (!janny) return (<></>)
         return (
           <tr key={i} style={{borderBottom: '1px solid #20c20E'}}>
-            <TableData content={janny.affirmation.data.domain.name}/>
-            <TableData content={truncateEthAddress(janny.affirmation.data.message.janitor)}/>
-            <TableData content={board?.rules[janny.janny.message.reason]}/>
+            <TableData content={janny?.affirmation.data.domain.name}/>
+            <TableData content={truncateEthAddress(janny?.affirmation.data.message.janitor)}/>
+            <TableData content={board?.rules[janny?.janny.message.reason]}/>
             <TableData content={
               <>
                 <button onClick={() => handleViewSwitch()}>View Anyway</button>
-                <ReviewJanny jannyTypedData={janny.janny} />
+                <ReviewJanny jannyTypedData={janny?.janny} />
 
               </>
               } />

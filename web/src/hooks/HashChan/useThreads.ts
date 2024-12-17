@@ -34,6 +34,7 @@ export const useThreads = () => {
 
 
   const fetchThreads = useCallback(async () => {
+    console.log('fetching threads')
     if (
       publicClient &&
       address &&
@@ -51,7 +52,7 @@ export const useThreads = () => {
           threads.map(async (thread) => {
             return {
               ...thread,
-              janitoredBy: await db.janitored.where('postId').equals(thread.threadId).toArray()
+              janitoredBy: []
             }
           })
         )
@@ -62,7 +63,7 @@ export const useThreads = () => {
             abi: hashchan.abi,
             eventName: 'NewThread',
             args: {
-              'board': `0x${BigInt(board.boardId).toString(16)}`
+              'boardId': `0x${BigInt(board.boardId).toString(16)}`
             },
             fromBlock: BigInt(board.lastSynced ? board.lastSynced : 0),
             toBlock: blockNumber.data
@@ -135,7 +136,7 @@ export const useThreads = () => {
        eventName: 'NewThread',
        //fromBlock: blockNumber.data,
        args: {
-         board: board.boardId
+         boardId: board.boardId
        },
        onLogs(logs) {
          console.log("watch Threads:", logs)
