@@ -59,7 +59,7 @@ export const CreateThread = ({
     if (threadId && chainId && boardId) {
       setTimeout(() => {
         handleClose()
-        navigate(`/chains/${chainId}/boards/${boardId}/thread/${threadId}`)
+        navigate(`/chains/${chainId}/boards/${boardId}/threads/${threadId}`)
       }, 618)
     }
   }, [chainId, boardId, threadId, navigate])

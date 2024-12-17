@@ -142,8 +142,7 @@ export const useThread = () => {
                 const orbitDb = await orbitDbs[ms.address]
                 console.log('orbitDb', orbitDb)
                 if (orbitDb) {
-                  const jannies = await orbitDb.get(p.postId)
-                  return jannies
+                  return await orbitDb.get(p.postId)
                 }
               })
             )
