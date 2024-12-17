@@ -24,7 +24,8 @@ export const ReviewJanny = ({
   const { register, handleSubmit, formState: { errors  }  } = useForm({
     defaultValues: {
       isPositive: '',
-      review: ''
+      review: '',
+      tip: 1/(Math.PHI * 10)
     }
   });
 
@@ -97,6 +98,20 @@ export const ReviewJanny = ({
                 width: '100%',
               }}
               {...register("review", { required: false })}
+            /> 
+          </div>
+          <div style={{
+            width:`${100/(Math.PHI)+(100/(Math.PHI**3))}%`,
+            }}
+          >
+            <input
+              style={{
+                paddingLeft: 0,
+                paddingRight: 0,
+                margin: '4px 0',
+                width: '100%',
+              }}
+              {...register("tip", { required: false })}
             /> 
           </div>
           <button type="submit">Review Janitor</button>
