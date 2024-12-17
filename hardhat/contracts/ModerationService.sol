@@ -16,6 +16,11 @@ contract ModerationService is Ownable, EIP712 {
 
   uint256 public totalPositiveReviews;
   uint256 public totalNegativeReviews;
+  uint256 public totalWages;
+
+  uint256 ownerFeeRate = 500; // 5%
+  uint256 maxOwnerFee = 200; // 20%
+  event OwnerFeeRateUpdated(address indexed owner, uint256 ownerFeeRate);
 
   event URLUpdated(string uri, uint256 port);
 
@@ -54,6 +59,7 @@ contract ModerationService is Ownable, EIP712 {
     bytes32 indexed postId,
     bool indexed positive,
     uint256 tip,
+    uint256 ownerFee,
     string review
   );
 
@@ -86,10 +92,17 @@ contract ModerationService is Ownable, EIP712 {
   }
 
   function getServiceData() public view returns (
-    string memory, string memory, uint256, uint256, uint256) {
-    return (name, uri, port, totalPositiveReviews, totalNegativeReviews);
+    address, string memory, string memory, uint256, uint256, uint256) {
+    return (owner, name, uri, port, totalPositiveReviews, totalNegativeReviews);
   }
 
+  function setOwnerFeeRate(uint256 _ownerFeeRate) public onlyOwner {
+    require(_ownerFeeRate <= maxOwnerFee, "owner fee rate too high");
+    ownerFeeRate = _ownerFeeRate;
+
+    emit OwnerFeeRateUpdated(owner, _ownerFeeRate);
+    
+  }
 
   function getJanitor(address _janitor) public view returns (Janitor memory) {
     return janitors[_janitor];
@@ -140,15 +153,21 @@ contract ModerationService is Ownable, EIP712 {
       totalNegativeReviews++;
     }
 
-    janitor.claimedWages += msg.value;
-    (bool success,) = _janitor.call{value: msg.value}("");
+    uint256 ownerFee = ownerFeeRate * msg.value / 10000;
+    uint256 tip = msg.value - ownerFee;
+    janitor.claimedWages += tip;
+    totalWages += msg.value;
+    (bool success,) = _janitor.call{value: tip}("");
+    require(success, "Failed to send ETH");
+    (success,) = owner.call{value: ownerFee}("");
     require(success, "Failed to send ETH");
 
     emit ReviewAdded(
       _janitor,
       flagData.postId,
       isPositive,
-      msg.value,
+      tip,
+      ownerFee,
       review
     );
   }

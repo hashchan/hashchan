@@ -9,7 +9,7 @@ import { useAccount } from 'wagmi'
 import { useModerationServices } from '@/hooks/ModerationService/useModerationServices'
 import { truncateEthAddress } from '@/utils/address'
 import { Table, TableHeader, TableData } from '@/components/Table'
-
+import { Link } from 'react-router-dom'
 const ModServiceTable = () => {
   const { moderationServices } = useModerationServices()
   const { address } = useAccount()
@@ -19,10 +19,10 @@ const ModServiceTable = () => {
       <Table>
         <thead>
           <tr>
+            <TableHeader title="+/-" />
             <TableHeader title="Name" />
             <TableHeader title="Address" />
             <TableHeader title="Owner" />
-            <TableHeader title="URL" />
             <TableHeader title="Actions" />
           </tr>
         </thead>
@@ -31,10 +31,10 @@ const ModServiceTable = () => {
             <tr key={i} style={{ 
               borderBottom: '1px solid #20c20E'
             }}>
-              <TableData content={ms.name} />
+              <TableData content={`${ms.positives}/${ms.negatives}`} />
+              <TableData content={<Link to={`/janitors/${ms.address}`}>{truncateEthAddress(ms.address)}</Link>} />
               <TableData content={truncateEthAddress(ms.address)} />
               <TableData content={truncateEthAddress(ms.owner)} />
-              <TableData content={`${ms.uri}/${ms.port}`} />
                 <TableData content={<>
                   { address === ms.owner && (<SetURLModerationService instance={ms.instance} />)}
                   { address === ms.owner && (<AddJanitorModerationService instance={ms.instance} />)}

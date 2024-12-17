@@ -78,22 +78,24 @@ export const useModerationServices = ({
           }
         })
         const owner = await instance.read.owner()
-        const name = await instance.read.name()
-        const uri = await instance.read.uri()
-        const port = await instance.read.port()
+        const [name, uri, port, positives, negatives] =
+          await instance.read.getServiceData()
         return {
           owner,
           address,
           instance,
           name,
           uri,
-          port
+          port,
+          positives,
+          negatives
         }
       }))
       setModerationServices(moderationServices)
       }
     }
   }, [
+    filter,
     moderationServiceFactory,
     publicClient,
     walletClient?.data,

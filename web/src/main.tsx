@@ -49,6 +49,7 @@ import { Instructions } from "@/routes/Docs/Instructions";
 import { TOSPP, TOSPPBanner, TOSProvider } from "@/routes/TOSPP";
 
 import { Janitors } from "@/routes/Janitors/Janitors";
+import { Janitor } from "@/routes/Janitors/Janitor/Janitor";
 
 import { Chain } from "@/routes/Chains/Chain/Chain";
 import { Board } from "@/routes/Chains/Chain/Boards/Board/Board";
@@ -70,6 +71,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                   <Routes>
                     <Route path="/tospp" element={<TOSPP />} />
                     <Route path="/janitors" element={<Janitors />} />
+                    <Route path="/janitors/:janitorId" element={<Janitor />} />
                     <Route path="/docs/:docversion" element={<Docs />}>
                       <Route path="intro" element={<Intro />} />
                       <Route path="instructions" element={<Instructions />} />
