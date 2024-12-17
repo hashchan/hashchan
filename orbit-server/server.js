@@ -21,7 +21,9 @@ import { publicClient, modServiceInstance } from './src/config.js'
 
 import { affirmJanny } from './src/affirmJanny.js'
 
-const addr = process.env.MOD_SERVICE_ADDRESS
+import  ModerationService from './src/abi/ModerationService.json' with {type: "json"}
+
+const addr = ModerationService[11155111].address
 
 const main = async () => {
   const peerId = await loadOrCreatePeerId()

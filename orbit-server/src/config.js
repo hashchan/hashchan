@@ -24,9 +24,8 @@ export const walletClient = createWalletClient({
   transport: http(process.env.SEPOLIA_RPC_URL)
 })
 
-
 export const modServiceInstance = getContract({
-  address: process.env.MOD_SERVICE_ADDRESS,
+  address: ModerationService["11155111"].address,
   abi: ModerationService.abi,
   client: {
     public: publicClient,

@@ -4,6 +4,8 @@ import {
   modServiceInstance,
   walletClient
 } from './config.js'
+import  ModerationService from './abi/ModerationService.json' with {type: "json"}
+
 export const affirmJanny = async ({
   janitor,
   postId,
@@ -19,7 +21,7 @@ export const affirmJanny = async ({
       name: await modServiceInstance.read.name(),
       version: '1',
       chainId: await publicClient.getChainId(),
-      verifyingContract: process.env.MOD_SERVICE_ADDRESS
+      verifyingContract: ModerationService[11155111].address
     },
     message: {
       moderator: account.address,
