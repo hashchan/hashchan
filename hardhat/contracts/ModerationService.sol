@@ -17,9 +17,10 @@ contract ModerationService is Ownable, EIP712 {
   uint256 public totalPositiveReviews;
   uint256 public totalNegativeReviews;
   uint256 public totalWages;
+  uint256 public ownerWages;
 
   uint256 ownerFeeRate = 500; // 5%
-  uint256 maxOwnerFee = 200; // 20%
+  uint256 maxOwnerFee = 2000; // 20%
   event OwnerFeeRateUpdated(address indexed owner, uint256 ownerFeeRate);
 
   event URLUpdated(string uri, uint256 port);
@@ -92,15 +93,15 @@ contract ModerationService is Ownable, EIP712 {
   }
 
   function getServiceData() public view returns (
-    address, string memory, string memory, uint256, uint256, uint256) {
-    return (owner, name, uri, port, totalPositiveReviews, totalNegativeReviews);
+    address, string memory, string memory, uint256, uint256, uint256, uint256) {
+    return (owner(), name, uri, port, totalPositiveReviews, totalNegativeReviews, totalWages);
   }
 
   function setOwnerFeeRate(uint256 _ownerFeeRate) public onlyOwner {
     require(_ownerFeeRate <= maxOwnerFee, "owner fee rate too high");
     ownerFeeRate = _ownerFeeRate;
 
-    emit OwnerFeeRateUpdated(owner, _ownerFeeRate);
+    emit OwnerFeeRateUpdated(owner(), _ownerFeeRate);
     
   }
 
@@ -156,10 +157,11 @@ contract ModerationService is Ownable, EIP712 {
     uint256 ownerFee = ownerFeeRate * msg.value / 10000;
     uint256 tip = msg.value - ownerFee;
     janitor.claimedWages += tip;
+    ownerWages += ownerFee;
     totalWages += msg.value;
     (bool success,) = _janitor.call{value: tip}("");
     require(success, "Failed to send ETH");
-    (success,) = owner.call{value: ownerFee}("");
+    (success,) = owner().call{value: ownerFee}("");
     require(success, "Failed to send ETH");
 
     emit ReviewAdded(

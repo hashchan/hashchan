@@ -69,6 +69,7 @@ export const useJoinModerationService = (ms: any) => {
                 orbitDbAddr: json.orbitDbAddr
               })
             }
+            setJoined(true)
           }
           await helia.libp2p.services.pubsub.removeEventListener("message", async () => {
             console.log('removed listener')
@@ -85,7 +86,6 @@ export const useJoinModerationService = (ms: any) => {
 
         setDial(dial)
 
-        setJoined(true)
 
       } catch (e) {
         console.log(e)

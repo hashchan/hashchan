@@ -184,7 +184,7 @@ describe("HashChan3", function () {
           reason: 0n
         }
       ], {
-        value: 10n
+        value: 100n
       })
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
 
@@ -193,8 +193,21 @@ describe("HashChan3", function () {
       expect(jannyData).to.deep.contain({
         positiveReviews: 1n,
         negativeReviews: 0n,
-        claimedWages: 10n
+        claimedWages: 95n
       })
+
+      const totalWages = await modService.read.totalWages()
+      expect(totalWages).to.be.equal(100n)
+      const ownerWages = await modService.read.ownerWages()
+      expect(ownerWages).to.be.equal(5n)
+    })
+
+    it("owner can not change past 20%", async () => {
+      try {
+        await modService.write.changeWage(2001)
+      } catch (e) {
+        expect(e).to.be.instanceOf(Error)
+      }
     })
   })
 })

@@ -34,8 +34,6 @@ export const useReviewJanny = ({
     isPositive: boolean
     review: string
   }) => {
-    console.log('reviewJanny', isPositive, review)
-    console.log(moderationServices)
     if (moderationServices.length === 0) return
     const instance = moderationServices[0].instance
     const unwatch = instance.watchEvent.ReviewAdded(

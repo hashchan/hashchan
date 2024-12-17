@@ -43,8 +43,6 @@ export const useThread = () => {
 
 
   const fetchPosts = useCallback(async () => {
-    console.log('moderationServices', moderationServices)
-    console.log('orbitDbs', orbitDbs)
     if (
       publicClient &&
       address &&
@@ -57,6 +55,7 @@ export const useThread = () => {
       moderationServices
       //orbitDbs
     ) {
+      console.log('fetchingPosts posts')
       const cachedThread = await db.threads.where('threadId').equals(threadIdParam).first()
       let thread;
       if (cachedThread) {
