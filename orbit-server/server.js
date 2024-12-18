@@ -10,22 +10,31 @@ import { createLibp2p } from 'libp2p'
 import { createHelia } from 'helia'
 import { webSockets } from '@libp2p/websockets'
 import { tcp } from '@libp2p/tcp'
-import { createOrbitDB, IPFSAccessController  } from '@orbitdb/core'
+import { createOrbitDB, IPFSAccessController, useIdentityProvider  } from '@orbitdb/core'
 import { identify } from "@libp2p/identify";
 import { circuitRelayServer  } from '@libp2p/circuit-relay-v2'
 
 import * as filters from "@libp2p/websockets/filters";
 import { loadOrCreatePeerId } from  "./src/loadOrCreatePeerId.js"
 
-import { publicClient, modServiceInstance } from './src/config.js'
+import { account, publicClient, modServiceInstance } from './src/config.js'
 
 import { affirmJanny } from './src/affirmJanny.js'
 
 import  ModerationService from './src/abi/ModerationService.json' with {type: "json"}
 
+import * as OrbitDBIdentityProviderEthereum from '@orbitdb/identity-provider-ethereum'
+import { Wallet } from '@ethersproject/wallet'
+
+
 const addr = ModerationService[11155111].address
 
 const main = async () => {
+  const ethersWallet = new Wallet(process.env.OWNER_KEY)
+  console.log(OrbitDBIdentityProviderEthereum)
+  useIdentityProvider(OrbitDBIdentityProviderEthereum.default)
+  const provider = OrbitDBIdentityProviderEthereum.default({ wallet: ethersWallet })
+
   const peerId = await loadOrCreatePeerId()
   //console.log(peerId.toJSON())	
 
@@ -72,13 +81,14 @@ const main = async () => {
   })
   const orbit = await createOrbitDB({
     ipfs:helia,
-    directory: './hashchan/orbitdb'
+    directory: './hashchan/orbitdb',
+    identity: { provider }
   })
 
   const db = await orbit.open(
     'hashchan',
     { type: 'keyvalue',
-      AccessController: IPFSAccessController({ write: ['*'] })}
+      AccessController: IPFSAccessController({ write: [account.address.toLowerCase()] })}
   )
   console.log('db addr', db.address.toString())
 
