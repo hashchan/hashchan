@@ -103,9 +103,14 @@ export const useThreads = () => {
                 chainId: chain.id,
                 timestamp: Number(timestamp)
               })
-              await db.threads.add(threads[threads.length - 1])
+              try {
+                await db.threads.add(threads[threads.length - 1])
+              } catch (e) {
+                console.log('duplicate, skipping')
+              }
           })
-          await db.boards.where('[boardId+chainId]').equals([board.boardId, board.chainId]).modify({'lastSynced': blockNumber.data})
+          await db.boards.where('[boardId+chainId]')
+            .equals([board.boardId, board.chainId]).modify({'lastSynced': Number(blockNumber.data)})
 
           } catch (e) {
             console.log('log error', e)

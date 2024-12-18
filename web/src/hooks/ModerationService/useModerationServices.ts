@@ -41,66 +41,6 @@ export const useModerationServices = ({
   const [moderationServices, setModerationServices] = useState([])
 
 
-  const fetchModerationService = useCallback(async (address) => {
-    if (
-      moderationServiceFactory &&
-      publicClient &&
-      walletClient?.data &&
-      chain?.id
-    ) {
-      const instance = getContract({
-        address,
-        abi: ModerationService.abi,
-        client: {
-          public: publicClient,
-          wallet: walletClient.data
-        }
-      })
-      const owner = await instance.read.owner()
-      const [name, uri, port, positives, negatives] =
-        await instance.read.getServiceData()
-      console.log(name, uri, port, positives, negatives)
-
-      const filter = await publicClient.createContractEventFilter({
-        address,
-        abi: ModerationService.abi,
-        eventName: 'NewJanitor',
-        fromBlock: 0n,
-        toBlock: 'latest'
-      })
-      const newJanitorEvents = await publicClient.getFilterLogs({filter})
-      console.log('newJanitorEvent', newJanitorEvents)
-      const janitors = await Promise.all(
-        newJanitorEvents.map(async (event) => {
-          const janitor = event.args.janitor
-          const data = await instance.read.getJanitor([janitor])
-          return {
-            janitor,
-            ...data
-          }
-      }))
-      console.log('janitors', janitors)
-
-
-
-      setModerationServices([{
-        owner,
-        address,
-        instance,
-        name,
-        uri,
-        port,
-        positives,
-        negatives,
-        janitors
-      }])
-    }
-  }, [
-    moderationServiceFactory,
-    publicClient,
-    walletClient?.data,
-    chain?.id
-  ])
   const fetchModerationServices = useCallback(async () => {
     if (
       moderationServiceFactory &&
@@ -138,8 +78,7 @@ export const useModerationServices = ({
             wallet: walletClient.data
           }
         })
-        const owner = await instance.read.owner()
-        const [name, uri, port, positives, negatives] =
+        const [owner, name, uri, port, positives, negatives, totalWages] =
           await instance.read.getServiceData()
         return {
           owner,
@@ -149,7 +88,8 @@ export const useModerationServices = ({
           uri,
           port,
           positives,
-          negatives
+          negatives,
+          totalWages
         }
       }))
       setModerationServices(moderationServices)
@@ -187,8 +127,7 @@ export const useModerationServices = ({
   ])
 
   return {
-    moderationServices,
-    fetchModerationService
+    moderationServices
   }
 
 }

@@ -48,7 +48,7 @@ export const useThread = () => {
       address &&
       hashchan &&
       threadIdParam &&
-      chain &&
+      chain?.id &&
       db &&
       boardIdParam &&
       blockNumber.data &&
@@ -245,7 +245,7 @@ export const useThread = () => {
     address,
     threadIdParam,
     boardIdParam,
-    chain,
+    chain?.id,
     hashchan,
     blockNumber.data,
     db,
@@ -262,7 +262,6 @@ export const useThread = () => {
   ])
 
   useEffect(() => {
-    console.log('orbitdbs', orbitDbs)
     if (
       isInitialized ||
       !address ||
@@ -317,7 +316,7 @@ export const useThread = () => {
             }
             console.log('hi inside watch')
             setPosts(old => [...old, post])
-            db.posts.add(post)
+            //db.posts.add(post)
 
             return oldRefs
           })
@@ -338,8 +337,7 @@ export const useThread = () => {
     blockNumber.data,
     db,
     boardIdParam,
-    moderationServices,
-    //orbitDbs
+    moderationServices
   ])
 
   return {

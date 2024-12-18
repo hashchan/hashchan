@@ -46,6 +46,7 @@ export const Janitor = () => {
                 <TableHeader title={"Name"}/>
                 <TableHeader title={<MdOutlineThumbsUpDown />}/>
                 <TableHeader title={<FaEthereum />}/>
+                <TableHeader title={"Address"}/>
                 <TableHeader title={"Owner"}/>
                 <TableHeader title={"url"}/>
                 <TableHeader title={"Actions"}/>
@@ -56,7 +57,8 @@ export const Janitor = () => {
                 <tr>
                   <TableData content={ms.name} />
                   <TableData content={`${ms.positives}/${ms.negatives}`} />
-                  <TableData content={""}/>
+                  <TableData content={Number(ms.totalWages)}/>
+                  <TableData content={truncateEthAddress(ms.address)} />
                   <TableData content={truncateEthAddress(ms.owner)} />
                   <TableData content={`${ms.uri}:${ms.port}`} />
                 <TableData content={<>
@@ -89,7 +91,7 @@ export const Janitor = () => {
                     <TableData content={truncateEthAddress(j.janitor)} />
                     <TableData content={`${j.positiveReviews}/${j.negativeReviews}`} />
                     <TableData content={Number(j.claimedWages)}/>
-                    <TableData content={new Date(Number(j.started) * 1000).toLocaleString()} />
+                    <TableData content={Number(j.started)} />
                   </tr>
                 )
               })}

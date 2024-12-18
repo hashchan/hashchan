@@ -49,8 +49,7 @@ export const useModerationService = ({address}:{address:`0x${string}`}) => {
           wallet: walletClient.data
         }
       })
-      const owner = await instance.read.owner()
-      const [name, uri, port, positives, negatives] =
+      const [owner, name, uri, port, positives, negatives, totalWages] =
         await instance.read.getServiceData()
       console.log(name, uri, port, positives, negatives)
 
@@ -83,7 +82,8 @@ export const useModerationService = ({address}:{address:`0x${string}`}) => {
         port,
         positives,
         negatives,
-        janitors
+        janitors,
+        totalWages
       })
     }
   }, [

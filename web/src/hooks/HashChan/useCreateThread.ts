@@ -53,7 +53,7 @@ export const useCreateThread = () => {
               setLogs(logs)
               setThreadId(logs[0].args.threadId)
               // maybe lastsynced here
-              await db.threads.add(logs[0].args)
+              //await db.threads.add(logs[0].args)
               unwatch()
             }
           }
