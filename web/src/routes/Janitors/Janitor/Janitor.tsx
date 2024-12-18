@@ -7,13 +7,17 @@ import {
 import {
   useParams
 } from 'react-router-dom'
-
+import {
+  formatEther
+} from 'viem'
 import { 
   useModerationService,
 } from '@/hooks/ModerationService/useModerationService'
 
 import { MdOutlineThumbsUpDown  } from "react-icons/md";
 import { FaEthereum  } from "react-icons/fa";
+
+import { formatNumberWithSubscriptZeros as fmtZero  } from '@haqq/format-number-with-subscript-zeros' 
 
 import { Table, TableHeader, TableData } from '@/components/Table'
 import { truncateEthAddress } from '@/utils/address'
@@ -57,7 +61,7 @@ export const Janitor = () => {
                 <tr>
                   <TableData content={ms.name} />
                   <TableData content={`${ms.positives}/${ms.negatives}`} />
-                  <TableData content={Number(ms.totalWages)}/>
+                  <TableData content={fmtZero(formatEther(ms.totalWages))}/>
                   <TableData content={truncateEthAddress(ms.address)} />
                   <TableData content={truncateEthAddress(ms.owner)} />
                   <TableData content={`${ms.uri}:${ms.port}`} />
@@ -90,7 +94,7 @@ export const Janitor = () => {
                   <tr key={i}>
                     <TableData content={truncateEthAddress(j.janitor)} />
                     <TableData content={`${j.positiveReviews}/${j.negativeReviews}`} />
-                    <TableData content={Number(j.claimedWages)}/>
+                    <TableData content={fmtZero(formatEther(j.claimedWages))}/>
                     <TableData content={Number(j.started)} />
                   </tr>
                 )

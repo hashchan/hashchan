@@ -42,7 +42,6 @@ export const useBoard = () => {
         .where('[boardId+chainId]')
         .equals([Number(boardId), Number(chainId)])
         .first()
-        console.log('board', board)
       } catch (e) {
         console.log('db error, skipping')
       }

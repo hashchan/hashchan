@@ -39,13 +39,11 @@ export const useJoinModerationService = (ms: any) => {
     if ( helia && db && ms && chain?.id ) {  
       try {
         const baseUrl = `/chainId/${chain.id}/address/${ms.address}`
-        console.log('baseUrl', baseUrl)
         await helia.libp2p.services.pubsub.addEventListener("message", async (event) => {
-          console.log('gotpubsubmessage', event)
+          console.log('topic', event.detail.topic)
           const {topic ,data} = event.detail
-          const json = JSON.parse(new TextDecoder().decode(data))
-          console.log('topic', topic, json)
           if (topic === `${baseUrl}/ping`) {
+            const json = JSON.parse(new TextDecoder().decode(data))
             const exists = await db.moderationServices.where({
               chainId: Number(chain.id),
               address: ms.address

@@ -5,9 +5,9 @@ import {
   useContext
 } from 'react'
 
+import { parseEther } from 'viem'
 
 import { useModerationServices } from '@/hooks/ModerationService/useModerationServices'
-
 export const useReviewJanny = ({
   jannyTypedData,
 }: {
@@ -30,9 +30,11 @@ export const useReviewJanny = ({
   const reviewJanny = useCallback(async ({
     isPositive,
     review,
+    tip
   }:{
     isPositive: boolean
     review: string
+    tip: string
   }) => {
     if (moderationServices.length === 0) return
     const instance = moderationServices[0].instance
@@ -55,12 +57,14 @@ export const useReviewJanny = ({
     )
 
     const hash = await instance.write.addReview([
-    jannyTypedData.address,
-    isPositive,
-    review,
-    jannyTypedData.signature,
-    jannyTypedData.message
-    ])
+      jannyTypedData.address,
+      isPositive,
+      review,
+      jannyTypedData.signature,
+      jannyTypedData.message
+    ], {
+      value: parseEther(tip.toString())
+    })
     setHash(hash)
 
   }, [

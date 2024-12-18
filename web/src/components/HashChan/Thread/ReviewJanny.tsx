@@ -36,7 +36,8 @@ export const ReviewJanny = ({
   const onSubmit = async (data) => {
     await reviewJanny({
       isPositive: data.isPositive == 'positive' ? true : false,
-      review: data.review
+      review: data.review,
+      tip: data.tip
     })
   }
   
@@ -124,12 +125,9 @@ export const ReviewJanny = ({
             )}
             {(wait > 1) && <label htmlFor="logs">confirmation:</label>}
             {(wait > 1 && logs.length === 0) && <p>waiting for tx confirmation...</p>}
-            {logs.map((log, i) => {
-              return (
-                <>
-                  <p className="break-words" key={i}>{log.transactionHash ? 'successful' : 'failed'}</p>
-                </>
-              )})}
+            { logs.length > 0 &&
+              <p className="break-words">{logs[0].transactionHash ? 'successful' : 'failed'}</p>
+            }
             {logErrors.map((log, i) => {
               return (
                 <p className="break-words" key={i}>{log.toString()}</p>

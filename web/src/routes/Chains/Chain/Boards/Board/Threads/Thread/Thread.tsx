@@ -105,7 +105,6 @@ const Post = forwardRef(({
     }
 
   }, [location, postId,ref])
-  console.log('janitored by', janitoredBy)
   return (<>{(viewSwitch) ? (
     <div style={{overflowX: 'auto'}}>
     <Table>

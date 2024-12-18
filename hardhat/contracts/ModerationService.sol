@@ -110,7 +110,7 @@ contract ModerationService is Ownable, EIP712 {
   }
 
   function addJanitor(address _janitor) public onlyOwner {
-    janitors[_janitor] = Janitor({positiveReviews: 0, negativeReviews: 0, started: block.number, claimedWages: 0});
+    janitors[_janitor] = Janitor({positiveReviews: 0, negativeReviews: 0, started: block.timestamp, claimedWages: 0});
 
     emit NewJanitor(_janitor);
   }

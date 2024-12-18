@@ -9,7 +9,7 @@ export const TableHeader = ({title}:{title:string | ReactNode}) => {
       fontWeight: Math.PHI*100,
       color: '#df3df1',
       textTransform: 'uppercase',
-      borderBottom: '1px solid #20c20E'
+      //borderBottom: '1px solid #20c20E'
       }}>{title}</th>
   )
 }
@@ -28,7 +28,7 @@ export const Table = ({children}:{children:ReactNode}) => {
       <table style={{ 
         minWidth: `${(100/Math.PHI)+(100/(Math.PHI**3))+(100/(Math.PHI**5))}vw`, 
         margin: '0 auto',
-        border: '1px solid #20c20E'
+        //border: '1px solid #20c20E'
         }}>
         {children}
       </table>
