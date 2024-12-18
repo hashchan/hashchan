@@ -4,7 +4,10 @@ import { IDBBlockstore } from 'blockstore-idb'
 import { IDBDatastore } from 'datastore-idb'
 import { createLibp2p  } from 'libp2p'
 import { createHelia } from 'helia'
-import { createOrbitDB  } from '@orbitdb/core'
+
+import { createOrbitDB, useIdentityProvider } from '@orbitdb/core'
+import * as OrbitDBIdentityProviderEthereum from '@orbitdb/identity-provider-ethereum'
+
 import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 
 import { yamux  } from '@chainsafe/libp2p-yamux'
@@ -30,17 +33,23 @@ import {
 } from 'react'
 
 import { IDBContext } from './IDBProvider'
+import { useAccount } from 'wagmi'
+import { useWalletClient } from 'wagmi'
 
 export const HeliaContext = createContext({
   libp2p: null,
   helia: null,
   dj: null,
   fs: null,
+  orbit: null,
   error: false,
   starting: true
 })
 
 export const HeliaProvider = ({ children }) => {
+  useIdentityProvider(OrbitDBIdentityProviderEthereum.default)
+  const {address} = useAccount()
+  const walletClient = useWalletClient()
   const [isInitialized, setIsInitialized] = useState(false)
   const { db } = useContext(IDBContext)
   const [libp2p, setLibp2p] = useState(null)
@@ -56,6 +65,28 @@ export const HeliaProvider = ({ children }) => {
   const startHelia = useCallback(async () => {
     console.log('starting Helia')
     if (!db) return
+    if (!address) return
+    if (!walletClient?.data) return
+
+      const walletInterface = {
+        address: address,
+        getAddress: () => address,
+        signMessage: async (message: string) => {
+          const signature = await walletClient.data.signMessage({
+            message,
+            account: address
+
+          })
+          return signature
+
+        }
+
+      }
+
+    const ethProvider = OrbitDBIdentityProviderEthereum.default({ wallet: walletInterface  })
+
+
+
     // Use consistent names for the datastores
     const datastoreName = 'hashchan-datastore'
     const blockstoreName = 'hashchan-blockstore'
@@ -103,7 +134,10 @@ export const HeliaProvider = ({ children }) => {
         libp2p
       })
 
-      const orbit = await createOrbitDB({ipfs:helia})
+      const orbit = await createOrbitDB({
+        ipfs:helia,
+        identity: {provider: ethProvider}
+      })
 
       // Try to get the stored database address from localStorage
       //const storedDbAddress = localStorage.getItem('hashchanDbAddress')
@@ -159,13 +193,21 @@ export const HeliaProvider = ({ children }) => {
       console.error(e)
       setError(true)
     }
-  }, [db])
+  }, [
+    db,
+    address,
+    walletClient?.data
+  ])
 
   useEffect(() => {
     if (isInitialized ||
-      !db) return
+        !address ||
+        !walletClient?.data ||
+        !db) return
     startHelia()
-  }, [db, startHelia, isInitialized])
+  }, [
+    walletClient?.data,
+    address, db, startHelia, isInitialized])
 
   return (
     <HeliaContext.Provider
