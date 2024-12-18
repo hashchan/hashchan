@@ -41,16 +41,16 @@ export default async function ({viem}) {
   );
 
   const createServiceHash = await instance.write.createModerationService([
-   "Basic Service",
-   "orbit.hashchan.org",
-   "443"
+    "Basic Service",
+    "orbit.hashchan.org",
+    "443"
   ])
   console.log('createServiceHash', createServiceHash);
   const tx = await publicClient.waitForTransactionReceipt({ hash: createServiceHash });
-  console.log('tx', tx);
+  console.log('tx', tx.transactionHash);
 
   const [modServiceEvent] = await instance.getEvents.NewModerationService()
-  
+  console.log('mod Service addr', modServiceEvent.args.moderationService); 
   const modService = await viem.getContractAt(
     "ModerationService",
     modServiceEvent.args.moderationService,
@@ -58,7 +58,7 @@ export default async function ({viem}) {
       client: {
         wallet: modServiceOwner,
         public: publicClient
-     }
+      }
     }
   );
 
@@ -68,7 +68,7 @@ export default async function ({viem}) {
 
   console.log('addJanitorHash', addJanitorHash);
   const tx2 = await publicClient.waitForTransactionReceipt({ hash: addJanitorHash });
-  console.log('tx2', tx2);
+  console.log('tx2', tx2.transactionHash);
 
   return {
     hashChan3,

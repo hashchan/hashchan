@@ -99,7 +99,8 @@ const config: HardhatUserConfig = {
         chainId: 8453,
       accounts: {
         mnemonic: process.env.MNEMONIC
-      }
+      },
+      saveDeployments: true
     },
     filecoin: {
       url: `https://rpc.ankr.com/filecoin/${process.env.ANKR}`,

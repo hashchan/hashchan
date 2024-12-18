@@ -1,6 +1,9 @@
 {
+  "8453": {
+    "address": "0xd696047b3e92d9188bff402253bb1a99eceb3de1"
+  },
   "11155111": {
-    "address" : "0x411a773eb08FE710D48ca3B82B51f5ED86B9Ab8F"
+    "address": "0x458c27d5a6421afaff435e27e870584fe03a938f"
   },
   "_format": "hh-sol-artifact-1",
   "contractName": "HashChan3",
