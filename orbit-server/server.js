@@ -88,7 +88,7 @@ const main = async () => {
   const db = await orbit.open(
     'hashchan',
     { type: 'keyvalue',
-      AccessController: IPFSAccessController({ write: [account.address.toLowerCase()] })}
+      AccessController: IPFSAccessController({ write: [orbit.identity.id] })}
   )
   console.log('db addr', db.address.toString())
 
