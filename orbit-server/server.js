@@ -17,7 +17,7 @@ import { circuitRelayServer  } from '@libp2p/circuit-relay-v2'
 import * as filters from "@libp2p/websockets/filters";
 import { loadOrCreatePeerId } from  "./src/loadOrCreatePeerId.js"
 
-import { account, publicClient, modServiceInstance } from './src/config.js'
+import { account, publicClients, instances, chains } from './src/config.js'
 
 import { affirmJanny } from './src/affirmJanny.js'
 
@@ -27,11 +27,11 @@ import * as OrbitDBIdentityProviderEthereum from '@orbitdb/identity-provider-eth
 import { Wallet } from '@ethersproject/wallet'
 
 
-const addr = ModerationService[11155111].address
+//const addr = ModerationService[11155111].address
 
 const main = async () => {
+
   const ethersWallet = new Wallet(process.env.OWNER_KEY)
-  console.log(OrbitDBIdentityProviderEthereum)
   useIdentityProvider(OrbitDBIdentityProviderEthereum.default)
   const provider = OrbitDBIdentityProviderEthereum.default({ wallet: ethersWallet })
 
@@ -44,6 +44,7 @@ const main = async () => {
   await datastore.open()
   await blockstore.open()
   //console.log('peerId', peerId)
+  //
   const libp2p = await createLibp2p({
     peerId,
     datastore,
@@ -96,29 +97,39 @@ const main = async () => {
   helia.libp2p.getMultiaddrs().forEach((addr) => {
     console.log(addr.toString())
   })
-  const chainId = Number(await publicClient.getChainId())
-  const baseUrl = `/chainId/${chainId}/address/${addr}`
-  console.log('baseUrl', baseUrl)
-  helia.libp2p.services.pubsub.subscribe(baseUrl)
 
-  helia.libp2p.services.pubsub.subscribe(`${baseUrl}/ping`)
+  //const baseUrl = `/chainId/${chainId}/address/${addr}`
+  //console.log('baseUrl', baseUrl)
+  const baseUrls = []
+
+  for (const instance in instances) {
+    console.log(instances[instance])
+    const baseUrl =`/chainId/${(await publicClients[instance].getChainId())}/address/${instances[instance].address}`
+    helia.libp2p.services.pubsub.subscribe(baseUrl)
+
+    helia.libp2p.services.pubsub.subscribe(`${baseUrl}/ping`)
+
+  }
+
 
   helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
     console.log('message', event)
     const { topic, data } = event.detail
     console.log('topic', topic)
-    switch (topic) {
-      case (baseUrl):
+    const [, , chainId, , address , action] = topic.split('/')
+    switch (action) {
+      case (""):
         console.log('data', new TextDecoder().decode(data))
         const json = JSON.parse(new TextDecoder().decode(data))
-        const valid = await publicClient.verifyTypedData(json)
+        const valid = await publicClients[chainId].verifyTypedData(json)
         console.log('valid', valid)
         if (valid) {
           console.log('json', json)
           const {affirmData, affirmSig} = await affirmJanny({
             janitor: json.address,
             postId: json.message.postId,
-            signature: json.signature
+            signature: json.signature,
+            chainId: chainId
           })
 
           const record = {
@@ -131,7 +142,7 @@ const main = async () => {
 
           await db.put(json.message.postId, record)
           helia.libp2p.services.pubsub.publish(
-            baseUrl, 
+            topic, 
             new TextEncoder().encode(
               JSON.stringify({
                 success: true,
@@ -140,17 +151,17 @@ const main = async () => {
             ))
         } else {
           helia.libp2p.services.pubsub.publish(
-            baseUrl,
+            topic,
             new TextEncoder().encode(
               JSON.stringify({success: false})
             )
           )
         }
         break;
-      case (`${baseUrl}/ping`):
+      case (`ping`):
         console.log(db.address.toString())
         helia.libp2p.services.pubsub.publish(
-          `${baseUrl}/ping`,
+          topic,
           new TextEncoder().encode(JSON.stringify({
             orbitDbAddr: db.address.toString()
           }))

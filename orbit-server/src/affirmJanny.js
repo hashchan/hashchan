@@ -1,27 +1,26 @@
 import {
   account,
-  publicClient,
-  modServiceInstance,
-  walletClient
+  publicClients,
+  instances,
+  walletClients,
 } from './config.js'
 import  ModerationService from './abi/ModerationService.json' with {type: "json"}
 
 export const affirmJanny = async ({
   janitor,
   postId,
-  signature
+  signature,
+  chainId
 }) => {
   console.log('janitor', janitor)
   console.log('postId', postId)
   console.log('signature', signature)
-  console.log('name', await modServiceInstance.read.name())
-
   const affirmData = {
     domain: {
-      name: await modServiceInstance.read.name(),
+      name: await instances[chainId].read.name(),
       version: '1',
-      chainId: await publicClient.getChainId(),
-      verifyingContract: ModerationService[11155111].address
+      chainId: chainId,
+      verifyingContract: ModerationService[Number(chainId)].address
     },
     message: {
       moderator: account.address,
@@ -45,8 +44,7 @@ export const affirmJanny = async ({
       ]
     }
   }
-  console.log('walletClient', walletClient)
-  const affirmSig =  await walletClient.signTypedData(affirmData)
+  const affirmSig =  await walletClients[chain].signTypedData(affirmData)
   console.log('affirm Sig', affirmSig)
   return {affirmData, affirmSig}
 }
