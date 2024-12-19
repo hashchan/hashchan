@@ -8,14 +8,17 @@ import { truncateEthAddress } from '@/utils/address'
 import { Modal } from '@/components/Modal'
 import { useBoard } from '@/hooks/HashChan/useBoard'
 import { GiMagicBroom } from 'react-icons/gi'
-
+import { useParams } from 'react-router-dom'
 export const JannyPost = ({postId}: {postId: string}) => {
   const { board } = useBoard()
+  const { chainId } = useParams()
   const { jannyPost, signature, response, logErrors } = useJannyPost()
   const { moderationServices } = useModerationServices({
     filter: {
-      where: 'subscribed',
-      equals: 1
+      where: {
+        subscribed: 1,
+        chainId: Number(chainId)
+      }
     }
   })
   const [isOpen, setIsOpen] = useState(false)

@@ -12,7 +12,7 @@ import { multiaddr  } from '@multiformats/multiaddr'
 import ModerationService from '@/assets/abi/ModerationService.json'
 import { HeliaContext } from '@/provider/HeliaProvider'
 import { IDBContext } from '@/provider/IDBProvider'
-
+import { useAccount } from 'wagmi'
 export const ModerationServicesContext = createContext({
   moderationServices: {} | null,
   orbitDbs: {} | null,
@@ -27,6 +27,7 @@ export const ModerationServicesProvider = ({ children }) => {
   const [logErrors, setLogErrors] = useState([])
   const { helia, orbit } = useContext(HeliaContext)
   const { db } = useContext(IDBContext)
+  const {chain} = useAccount()
 
   const publicClient = usePublicClient();
   const walletClient = useWalletClient();
@@ -101,11 +102,12 @@ export const ModerationServicesProvider = ({ children }) => {
   ])
 
   const fetchSubscribedModerationServices = useCallback(async () => {
-    if (helia && db && publicClient && walletClient?.data && orbit) {
+    if (helia && db && publicClient && walletClient?.data && orbit && chain?.id) {
       const subscribedModerationServices = await db.moderationServices
-        .where('subscribed')
-        .equals(1)
-        .toArray()
+      .where({
+        subscribed: 1,
+        chainId: Number(chain.id)
+      }).toArray()
 
       addPubsubHandle()
       const modServices = {}
@@ -163,7 +165,8 @@ export const ModerationServicesProvider = ({ children }) => {
     orbit,
     db,
     publicClient,
-    walletClient?.data
+    walletClient?.data,
+    chain?.id
   ])
 
   useEffect(() => {
@@ -172,7 +175,8 @@ export const ModerationServicesProvider = ({ children }) => {
        !db ||
        !publicClient ||
        !walletClient?.data ||
-       !orbit
+       !orbit ||
+       !chain?.id
        ) return
 
       const init = async () => {
@@ -187,7 +191,8 @@ export const ModerationServicesProvider = ({ children }) => {
     db,
     publicClient,
     walletClient?.data,
-    fetchSubscribedModerationServices
+    fetchSubscribedModerationServices,
+    chain?.id
   ])
 
   return (

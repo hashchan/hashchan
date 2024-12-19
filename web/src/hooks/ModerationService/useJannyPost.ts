@@ -12,7 +12,7 @@ export const useJannyPost = () => {
   const [response, setResponse] = useState(null)
   const [logErrors, setLogErrors] = useState([])
   const { boardId, threadId } = useParams();
-
+  const { chain } = useAccount()
   //const { moderationServices } = useContext(ModerationServicesContext)
   const { helia } = useContext(HeliaContext)
   const { address } = useAccount()
@@ -25,18 +25,18 @@ export const useJannyPost = () => {
     postId: `0x${string}`,
     rule: number
   ) => {
-    if (walletClient && boardId && threadId  && address && helia) {
+    if (walletClient && boardId && threadId  && address && helia && chain?.id) {
       // this is depending on signing taking enough time to establish a connection, not optimal
       try {
         const typedData = {
           domain: {
             name: moderationService.name,
             version: "1",
-            chainId: moderationService.chainId,
+            chainId: chain.id,
             verifyingContract: moderationService.address
           },
           message: {
-            chainId: moderationService.chainId,
+            chainId: chain.id,
             boardId: boardId,
             threadId: threadId,
             postId: postId,
