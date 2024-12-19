@@ -44,6 +44,7 @@ export const About = () => {
       </div>
       <div>
         <h3>Supported Chains</h3>
+        {/*
         <p>
           <img src={Classic} className="emoji" />
           <a target="_blank" href="https://etc.blockscout.com/address/0xca0296EFC305ba8f2A3035e2846d389A8617c4cf"> Classic</a>
@@ -69,10 +70,6 @@ export const About = () => {
           <a target="_blank" href="https://ftmscan.com/address/0xca0296EFC305ba8f2A3035e2846d389A8617c4cf"> Fantom</a>
         </p>
         <p>
-          <img src={Base} className="emoji" />
-          <a target="_blank" href="https://basescan.org/address/0x51edDE7B206F30eD3e4AaD8914fA585011f628Ef"> Base</a>
-        </p>
-        <p>
           <img src={ArbitrumOne} className="emoji" />
           <a target="_blank" href="https://arbiscan.io/address/0xca0296EFC305ba8f2A3035e2846d389A8617c4cf"> Arbitrum One</a>
         </p>
@@ -84,9 +81,14 @@ export const About = () => {
           <img src={Flow} className="emoji" />
           <a target="_blank" href="https://evm.flowscan.io/address/0x49b98EAB13247E786BEd0bb5780728db8d24b5e0"> Flow</a>
         </p>
+            */}
+        <p>
+          <img src={Base} className="emoji" />
+          <a target="_blank" href="https://basescan.org/address/0xd696047b3e92d9188bff402253bb1a99eceb3de1"> Base</a>
+        </p>
         <p>
           <img src={Sepolia} className="emoji" />
-          <a target="_blank" href="https://sepolia.etherscan.io/address/0xEEe8276AEA42f61399Abe7235c015a6cAb1372AC"> Sepolia Testnet</a>
+          <a target="_blank" href="https://sepolia.etherscan.io/address/0x458c27d5a6421afaff435e27e870584fe03a938f"> Sepolia Testnet</a>
         </p>
       </div>
       <div>

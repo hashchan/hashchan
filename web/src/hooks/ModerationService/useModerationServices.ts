@@ -26,14 +26,12 @@ export const useModerationServices = ({
   filter = null
 }: {
   filter?: {
-    where: string,
-    equals: any
+    where: object,
   }
 } = {}) => {
   const { db } = useContext(IDBContext)
   const [isInitialized, setIsInitialized] = useState(false)
 
-  const { chain } = useAccount() 
   const publicClient = usePublicClient();
   const walletClient = useWalletClient();
 
@@ -46,11 +44,11 @@ export const useModerationServices = ({
       moderationServiceFactory &&
       publicClient &&
       walletClient?.data && 
-      db
+      db 
     ) {
       if (filter) {
         const moderationServices = await db.moderationServices
-          .where(filter.where).equals(filter.equals)
+          .where(filter.where)
           .toArray()
         const ms = moderationServices.map((modService) => {
           const instance = getContract({
@@ -110,8 +108,8 @@ export const useModerationServices = ({
       !walletClient?.data ||
       !db
        ) return
-
       const init = async () => {
+        console.log('fetching mode services')
         await fetchModerationServices()
         setIsInitialized(true)
       }
@@ -123,7 +121,7 @@ export const useModerationServices = ({
     walletClient?.data,
     moderationServiceFactory,
     fetchModerationServices,
-    db
+    db,
   ])
 
   return {

@@ -13,14 +13,11 @@ export const useReviewJanny = ({
 }: {
   jannyTypedData: object,
 }) => {
-  console.log('jannyTypedData', jannyTypedData)
   const { moderationServices } = useModerationServices({
     filter: {
-      where: '[address+chainId]',
-      equals: [
-        jannyTypedData.domain.verifyingContract,
-        jannyTypedData.domain.chainId
-      ]
+      where: {
+        '[address+chainId]': [jannyTypedData.domain.verifyingContract, jannyTypedData.domain.chainId]
+      }
     }
   })
   const [hash, setHash] = useState(null)
