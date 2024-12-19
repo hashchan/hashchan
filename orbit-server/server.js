@@ -103,7 +103,6 @@ const main = async () => {
   const baseUrls = []
 
   for (const instance in instances) {
-    console.log(instances[instance])
     const baseUrl =`/chainId/${(await publicClients[instance].getChainId())}/address/${instances[instance].address}`
     helia.libp2p.services.pubsub.subscribe(baseUrl)
 
@@ -113,12 +112,14 @@ const main = async () => {
 
 
   helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
-    console.log('message', event)
     const { topic, data } = event.detail
     console.log('topic', topic)
     const [, , chainId, , address , action] = topic.split('/')
+    console.log('chainId', chainId)
+    console.log('address', address)
+    console.log('action', action)
     switch (action) {
-      case (""):
+      case (undefined):
         console.log('data', new TextDecoder().decode(data))
         const json = JSON.parse(new TextDecoder().decode(data))
         const valid = await publicClients[chainId].verifyTypedData(json)

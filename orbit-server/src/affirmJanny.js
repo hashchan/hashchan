@@ -44,7 +44,7 @@ export const affirmJanny = async ({
       ]
     }
   }
-  const affirmSig =  await walletClients[chain].signTypedData(affirmData)
+  const affirmSig =  await walletClients[chainId].signTypedData(affirmData)
   console.log('affirm Sig', affirmSig)
   return {affirmData, affirmSig}
 }
