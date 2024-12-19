@@ -35,54 +35,63 @@ import { config } from './config'
 import { IDBProvider } from '@/provider/IDBProvider'
 import { HeliaProvider } from '@/provider/HeliaProvider'
 import { W3UpProvider } from '@/provider/W3UpProvider'
+import { ModerationServicesProvider } from "@/provider/ModerationServicesProvider";
 
 import {NavBar} from '@/components/NavBar'
 import { RouteTracker } from './components/RouteTracker'
 
 import { NotFound } from "@/components/NotFound";
+import { Warnings } from "@/components/Warnings";
 import { Home } from "@/routes/Home";
 import { Docs } from "@/routes/Docs/Docs";
 import { Intro } from "@/routes/Docs/Intro";
 import { Instructions } from "@/routes/Docs/Instructions";
 import { TOSPP, TOSPPBanner, TOSProvider } from "@/routes/TOSPP";
 
-import { Chain } from "@/routes/Chain";
-import { Board } from "@/routes/Board";
-import { Catalogue } from "@/routes/Catalogue";
-import { Thread } from "@/routes/Thread";
+import { Janitors } from "@/routes/Janitors/Janitors";
+import { Janitor } from "@/routes/Janitors/Janitor/Janitor";
+
+import { Chain } from "@/routes/Chains/Chain/Chain";
+import { Board } from "@/routes/Chains/Chain/Boards/Board/Board";
+import { Catalogue } from "@/routes/Chains/Chain/Boards/Board/Catalogue";
+import { Thread } from "@/routes/Chains/Chain/Boards/Board/Threads/Thread/Thread";
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <WagmiProvider config={config}>
     <QueryClientProvider client={new QueryClient()}>
-      <HeliaProvider>
-        <W3UpProvider>
-          <IDBProvider>
-            <TOSProvider>
-              <BrowserRouter>
-                <RouteTracker />
-                <NavBar />
-                <Routes>
-                  <Route path="/tospp" element={<TOSPP />} />
-                  <Route path="/" element={<Home />}>
-                    <Route path="docs/:docversion" element={<Docs />}>
+      <W3UpProvider>
+        <IDBProvider>
+          <HeliaProvider>
+            <ModerationServicesProvider>
+              <TOSProvider>
+                <BrowserRouter>
+                  <RouteTracker />
+                  <NavBar />
+                  <Warnings />
+                  <Routes>
+                    <Route path="/tospp" element={<TOSPP />} />
+                    <Route path="/janitors" element={<Janitors />} />
+                    <Route path="/janitors/:janitorAddress" element={<Janitor />} />
+                    <Route path="/docs/:docversion" element={<Docs />}>
                       <Route path="intro" element={<Intro />} />
                       <Route path="instructions" element={<Instructions />} />
                     </Route>
-                    <Route path="chains/:chainId" element={<Chain />}>
+                    <Route path="/chains/:chainId" element={<Chain />}>
                       <Route path="boards/:boardId" element={<Board />}>
                         <Route path="catalogue" element={<Catalogue />} />
-                        <Route path="thread/:threadId" element={<Thread />} />
+                        <Route path="threads/:threadId" element={<Thread />} />
                       </Route>
                     </Route>
-                  </Route>
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <TOSPPBanner />
-              </BrowserRouter>
-            </TOSProvider>
-          </IDBProvider>
-        </W3UpProvider>
-      </HeliaProvider>
+                    <Route path="/" element={<Home />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                  <TOSPPBanner />
+                </BrowserRouter>
+              </TOSProvider>
+            </ModerationServicesProvider>
+          </HeliaProvider>
+        </IDBProvider>
+      </W3UpProvider>
     </QueryClientProvider>
   </WagmiProvider>
   ,

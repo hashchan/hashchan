@@ -1,0 +1,35 @@
+{
+  "name": "orbit-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon ./server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@chainsafe/libp2p-gossipsub": "^14.1.0",
+    "@chainsafe/libp2p-noise": "^16.0.0",
+    "@chainsafe/libp2p-yamux": "^7.0.1",
+    "@ethersproject/wallet": "^5.7.0",
+    "@libp2p/circuit-relay-v2": "^3.1.4",
+    "@libp2p/crypto": "^5.0.8",
+    "@libp2p/identify": "^3.0.13",
+    "@libp2p/peer-id": "^5.0.9",
+    "@libp2p/peer-id-factory": "^4.2.4",
+    "@libp2p/tcp": "^10.0.14",
+    "@libp2p/websockets": "^9.1.0",
+    "@orbitdb/core": "^2.4.3",
+    "@orbitdb/identity-provider-ethereum": "^1.0.3",
+    "blockstore-level": "^2.0.1",
+    "datastore-level": "^11.0.1",
+    "dotenv": "^16.4.7",
+    "helia": "^5.1.1",
+    "libp2p": "^2.4.0",
+    "viem": "^2.21.55"
+  }
+}

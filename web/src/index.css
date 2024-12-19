@@ -22,11 +22,11 @@ html {
 
 a {
   font-weight: 685;
-  color: #ffffff;
+  color: #fff;
   text-decoration: inherit;
 }
 a:hover {
-  color: #1cf604;
+  color: #19e377;
 }
 
 
@@ -90,10 +90,8 @@ button:focus-visible {
 input {
   background-color: #161B22;
   color: #fff;
-  border: 1px solid #20C20E;
   padding: 0.618vh 0.618vw;
   margin: 0.618vh 0.618vw;
-  border-radius: 40px;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
@@ -151,4 +149,10 @@ input {
 
 .modal-container::-webkit-scrollbar-thumb:hover {
   background: #27e811;
+}
+
+.break-words {
+  word-break: break-all;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }

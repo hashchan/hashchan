@@ -9,11 +9,14 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.8",
     "@nomicfoundation/hardhat-ignition-viem": "^0.15.7",
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
-    "@nomicfoundation/hardhat-verify": "^2.0.9"
+    "@nomicfoundation/hardhat-verify": "^2.0.9",
+    "hardhat-deploy": "^0.14.0"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "^5.1.0",
     "@starboardventures/hardhat-verify": "^1.0.1",
     "dotenv": "^16.4.5"
   }

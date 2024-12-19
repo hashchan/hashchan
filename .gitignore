@@ -40,3 +40,10 @@ hardhat/artifacts
 
 # Hardhat Ignition default folder for deployments against a local node
 hardhat/ignition/deployments/chain-31337
+
+
+keystore
+datastore
+blockstore
+orbit-server/hashchan/orbitdb/orbitdb
+peer-id.json

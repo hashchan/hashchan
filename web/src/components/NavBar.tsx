@@ -1,22 +1,24 @@
 import { Fragment, useState, useEffect, ReactNode } from 'react'
 import HashchanLogo from '@/assets/logo-4.png'
 import HashchanLogoGif from '@/assets/animated-banner.gif'
+import HashchanBanner from '@/assets/animated-banner-2.gif'
+import HashchanBannerNoRepeat from '@/assets/hashchan-banner-no-repeat.gif'
 import HashchanLogoGlitchGif from '@/assets/glitched-logo.gif'
 import {FaGithub, FaSquareXTwitter, FaDiscord, FaBook, FaYoutube} from 'react-icons/fa6'
+import { GiMagicBroom, GiBookshelf } from 'react-icons/gi'
 import { Link } from 'react-router-dom'
 import { ConnectWallet } from './ConnectWallet'
 import { ConnectW3Storage } from './ConnectW3Storage'
-import { BoardsList } from '@/components/BoardsList'
+import { BoardsList } from '@/components/HashChan/BoardsList'
 
 const HomeButton = () => {
   const [homeHover, setHomeHover] = useState(false)
-  const [logo, setLogo] = useState(HashchanLogoGif)
+  const [logo, setLogo] = useState(HashchanBannerNoRepeat)
   const handleHomeHover = (inside:boolean) => {
     if (inside) {
-      const roll = Math.random()
-      setLogo(roll > 1 / (Math.PHI ** 2) ? HashchanLogoGif : HashchanLogoGlitchGif)
+      setLogo(HashchanBanner)
     } else {
-      setLogo(HashchanLogo)
+      setLogo(HashchanBannerNoRepeat)
     }
   }
 
@@ -69,9 +71,15 @@ export const NavBar = () => {
       >
         <Link
           className="nav-icon"
+          to="janitors"
+        >
+          <GiMagicBroom size={pxSize} />
+        </Link>
+        <Link
+          className="nav-icon"
           to="docs/v1/intro"
         >
-          <FaBook size={pxSize} />
+          <GiBookshelf size={pxSize} />
         </Link>
         <IconLink href="https://github.com/hashchan/hashchan" Logo={<FaGithub size={pxSize} />} />
         <IconLink href="https://twitter.com/0xhashchan" Logo={<FaSquareXTwitter size={pxSize}   />} />
