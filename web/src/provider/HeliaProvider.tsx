@@ -134,10 +134,16 @@ export const HeliaProvider = ({ children }) => {
         libp2p
       })
 
-      const orbit = await createOrbitDB({
-        ipfs:helia,
-        identity: {provider: ethProvider}
-      })
+      let orbit = null
+      try  {
+        orbit = await createOrbitDB({
+          ipfs:helia,
+          identity: {provider: ethProvider}
+        })
+
+      } catch (e) {
+        console.log('orbit signature reject janny service offline')
+      }
 
       // Try to get the stored database address from localStorage
       //const storedDbAddress = localStorage.getItem('hashchanDbAddress')

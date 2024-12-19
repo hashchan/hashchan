@@ -136,15 +136,16 @@ export const useThread = () => {
         cachedPosts = await Promise.all(cachedPosts.map(async (p) => {
           return {
             ...p,
-            janitoredBy: await Promise.all(
+            janitoredBy: (await Promise.all(
               Object.values(moderationServices).map(async (ms) => {
                 const orbitDb = await orbitDbs[ms.address]
                 console.log('orbitDb', orbitDb)
+                console.log('record', await orbitDb.get(p.postId))
                 if (orbitDb) {
                   return await orbitDb.get(p.postId)
                 }
               })
-            )
+            )).filter(item => item)
             /*
             janitoredBy: cachedJanitored.filter((j) => {
               return j.postId === p.postId
