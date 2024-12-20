@@ -20,7 +20,7 @@ import { tryRecurseBlockFilter } from '@/utils/blockchain'
 
 export const useThreads = () => {
   const { board } = useBoard()
-  const {boardId:boardIdParam} = useParams()
+  const {boardId:boardIdParam, chainId:chainIdParam} = useParams()
   const { db } = useContext(IDBContext)
   const [isInitialized, setIsInitialized] = useState(false)
   const { address, chain } = useAccount()
@@ -60,7 +60,7 @@ export const useThreads = () => {
             }
           })
         )
-
+        console.log('last synced', board.lastSynced)
       if (blockNumber.data > board.lastSynced) {
           const startingFilterArgs = {
             address: hashchan.address,
@@ -94,27 +94,27 @@ export const useThreads = () => {
                 content,
                 timestamp
               } = log.args
-              threads.push({
-                lastSynced: 0,
-                boardId: Number(boardId),
-                threadId,
-                creator,
-                imgUrl,
-                imgCID,
-                title,
-                content,
-                janitoredBy: [],
-                chainId: chain.id,
-                timestamp: Number(timestamp)
-              })
               try {
                 await db.threads.add(threads[threads.length - 1])
+                threads.push({
+                  lastSynced: 0,
+                  boardId: Number(boardId),
+                  threadId,
+                  creator,
+                  imgUrl,
+                  imgCID,
+                  title,
+                  content,
+                  janitoredBy: [],
+                  chainId: chain.id,
+                  timestamp: Number(timestamp)
+                })
               } catch (e) {
                 console.log('duplicate, skipping')
               }
           })
           await db.boards.where('[boardId+chainId]')
-            .equals([boardIdParam, board.chainId]).modify({'lastSynced': Number(blockNumber.data)})
+            .equals([Number(boardIdParam), Number(chainIdParam)]).modify({'lastSynced': Number(blockNumber.data)})
 
           } catch (e) {
             console.log('log error', e)
@@ -132,6 +132,7 @@ export const useThreads = () => {
     board,
     boardIdParam,
     hashchan,
+    chainIdParam,
     chain?.id,
     blockNumber,
     db,
