@@ -35,22 +35,22 @@ const connectors = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID ?
   [walletConnect({ projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID, metadata })] : []
 export const config = createConfig({
   chains: [
-    classic,
-    mainnet,
-    sepolia,
+    //classic,
+    //mainnet,
     base,
-    baseSepolia,
-    localhost,
-    optimismSepolia,
-    optimism,
-    fantom,
-    arbitrumSepolia,
-    arbitrum,
-    arbitrumNova,
-    flowMainnet,
-    flowTestnet,
-    avalanche,
-    polygon
+    sepolia,
+    //baseSepolia,
+    //localhost,
+    //optimismSepolia,
+    //optimism,
+    //fantom,
+    //arbitrumSepolia,
+    //arbitrum,
+    //arbitrumNova,
+    //flowMainnet,
+    //flowTestnet,
+    //avalanche,
+    //polygon
   ],
   connectors,
   transports: {

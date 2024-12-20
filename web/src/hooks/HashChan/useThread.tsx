@@ -3,7 +3,8 @@ import {
   useState,
   useEffect,
   useCallback,
-  createRef
+  createRef,
+  useRef
 } from 'react'
 import { IDBContext } from '@/provider/IDBProvider'
 import { parseEventLogs } from 'viem'
@@ -40,6 +41,7 @@ export const useThread = () => {
   const { hashchan } = useContracts()
 
   const [isReducedMode, setIsReducedMode] = useState(false)
+  const unwatchRef = useRef<(() => void) | null>(null)
 
 
   const fetchPosts = useCallback(async () => {
@@ -323,6 +325,7 @@ export const useThread = () => {
           })
         }
       })
+      unwatchRef.current = unwatch
       setIsInitialized(true)
     }
     init()
@@ -340,6 +343,14 @@ export const useThread = () => {
     boardIdParam,
     moderationServices
   ])
+
+  useEffect(() => {
+    return () => {
+      if (unwatchRef.current) {
+        unwatchRef.current()
+      }
+    }
+  },[])
 
   return {
     posts: posts,

@@ -2,7 +2,8 @@ import {
   useContext,
   useState,
   useEffect,
-  useCallback
+  useCallback,
+  useRef
 } from 'react'
 import {
   useAccount,
@@ -31,6 +32,8 @@ export const useThreads = () => {
   //const walletClient = useWalletClient()
   const [threads, setThreads] = useState([])
   const [isReducedMode, setIsReducedMode] = useState(false)
+  
+  const unwatchRef = useRef<(() => void) | null>(null)
 
 
 
@@ -160,6 +163,8 @@ export const useThreads = () => {
        }
      })
 
+     unwatchRef.current = unwatch
+
      } catch (e) {
         console.log('log error', e)
        setLogErrors(old => [...old, e.toString()])
@@ -194,7 +199,7 @@ export const useThreads = () => {
 
     const init = async () => {
       await fetchThreads()
-      //await watchThreads()
+      await watchThreads()
       setIsInitialized(true)
     }
 
@@ -213,6 +218,15 @@ export const useThreads = () => {
     chain?.id
   ])
 
+
+  useEffect(() => {
+    return () => {
+      if (unwatchRef.current) {
+        console.log('unwatching threads')
+        unwatchRef.current()
+      }
+    }
+  },[])
 
   return {
     threads,
