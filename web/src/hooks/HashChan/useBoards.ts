@@ -48,7 +48,7 @@ import {
 
 
     const fetchBoards = useCallback(async (cacheOnly: boolean) => {
-      if ( db && hashchan && chain && blockNumber) {
+      if ( db && hashchan && chain?.id && blockNumber) {
         let boards = []
         let boardsSync = await db.boardsSync.where('chainId').equals(chain.id).first()
 
@@ -107,10 +107,10 @@ import {
           }
         }
       }, [
-        chain,
+        chain?.id,
         db,
         hashchan,
-        blockNumber.data,
+        blockNumber,
       ])
 
       const toggleFavourite = useCallback(async (board) => {
@@ -128,6 +128,7 @@ import {
 
 
       useEffect(() => {
+        console.log('new chain detected, refetching boards')
         setIsInitialized(false)
       }, [chain?.id])
 
@@ -137,7 +138,8 @@ import {
           !chain ||
           !address ||
           !db ||
-          !blockNumber.data
+          !blockNumber.data ||
+          !hashchan
         ) return
           const init = async () => {
             await fetchBoards(false)
@@ -153,7 +155,8 @@ import {
         db,
         fetchBoards,
         fetchFavouriteBoards,
-        blockNumber.data
+        blockNumber.data,
+        hashchan
       ])
 
       return {

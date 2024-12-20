@@ -32,8 +32,17 @@ export const BoardsList = () => {
         })}
         ]
         <button
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'row',
+          }}
           onClick={() => setExpandBoardList(old => !old)}
-        >+ ▿</button>
+        >
+          <p>{expandBoardList ? "▾" : "▸"}&nbsp;</p>
+          Boards
+        </button>
         {expandBoardList && (
           <div style={{
             backgroundColor: '#090909',
