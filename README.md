@@ -20,16 +20,14 @@ An imageboard inside ethereum event logs
 | --- | ---- |
 | Base | [0xd696047b3e92d9188bff402253bb1a99eceb3de1](https://basescan.org/address/0xd696047b3e92d9188bff402253bb1a99eceb3de1)
 | Testnet| --- |
-| --- | --- |
-| Sepolia | (0x458c27D5a6421AfAFF435e27E870584Fe03a938F)[https://sepolia.etherscan.io/address/0x458c27d5a6421afaff435e27e870584fe03a938f]
+| Sepolia | [0x458c27D5a6421AfAFF435e27E870584Fe03a938F](https://sepolia.etherscan.io/address/0x458c27d5a6421afaff435e27e870584fe03a938f)
 
 ## Moderation Service Factory
 |Chain| Address |
 | --- | ---- |
 | Base | [0xC525AF851Fa283190d6e13d0f164c06Ab51C266A](https://basescan.org/address/0xc525af851fa283190d6e13d0f164c06ab51c266a)
 | Testnet| --- |
-| --- | --- |
-| Sepolia | (0x147211461D47C8A4f5712cba079C521cacEDB16B)[https://sepolia.etherscan.io/address/0x147211461d47c8a4f5712cba079c521cacedb16b]
+| Sepolia | [0x147211461D47C8A4f5712cba079C521cacEDB16B](https://sepolia.etherscan.io/address/0x147211461d47c8a4f5712cba079c521cacedb16b)
 
 
 ## Moderation Services
@@ -37,8 +35,7 @@ An imageboard inside ethereum event logs
 | --- | ---- |
 | Base | [0x838D3e6752f156C658ABA2F55Cb084bB684f5067](https://basescan.org/address/0x838D3e6752f156C658ABA2F55Cb084bB684f5067)
 | Testnet| --- |
-| --- | --- |
-| Sepolia | (0x8456B34cd626E2F1c6761fe408d82189b991E88e)[https://sepolia.etherscan.io/address/0x8456B34cd626E2F1c6761fe408d82189b991E88e]
+| Sepolia | [0x8456B34cd626E2F1c6761fe408d82189b991E88e](https://sepolia.etherscan.io/address/0x8456B34cd626E2F1c6761fe408d82189b991E88e)
 
 
 ## Running Locally
@@ -61,6 +58,7 @@ npm run dev # or  pm2 start 'server.js'
 # you can expose the server to the internet with nginx
 # A moderation service can be deployed through the web interface at /janitors create moderation service button
 ```
+![Moderation-Service drawio (1)](https://github.com/user-attachments/assets/9fccb724-af12-46c1-8b7c-6978890d32c5)
 
 
 
