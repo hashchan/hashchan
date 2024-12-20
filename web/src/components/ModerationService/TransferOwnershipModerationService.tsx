@@ -50,7 +50,7 @@ export const TransferOwnershipModerationService = ({instance}:{instance: any}) =
     <>
       <button onClick={handleClose}>Δ Owner</button>
       { isOpen &&
-      <Modal handleClose={handleClose}>
+      <Modal name="Transfer Ownership" handleClose={handleClose}>
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex-wrap-center"

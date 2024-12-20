@@ -52,7 +52,7 @@ export const JoinModerationService = ({ms}: {ms: any}) => {
     <>
       <button onClick={handleClose}>{joined ? 'UnSubscribe' : 'Subscribe'}</button>
       { isOpen &&
-      <Modal handleClose={handleClose}>
+      <Modal name="Join Moderation Service" handleClose={handleClose}>
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex-wrap-center"

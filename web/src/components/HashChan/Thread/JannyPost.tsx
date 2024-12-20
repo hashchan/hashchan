@@ -50,7 +50,7 @@ export const JannyPost = ({postId}: {postId: string}) => {
       </span>
 
       {isOpen &&
-        <Modal handleClose={handleClose}>
+        <Modal name="Janitor Post" handleClose={handleClose}>
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="flex-wrap-center"

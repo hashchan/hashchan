@@ -50,7 +50,7 @@ export const AddJanitorModerationService = ({instance}:{instance: any}) => {
     <>
       <button onClick={handleClose}>+ Janitor</button>
       { isOpen &&
-      <Modal handleClose={handleClose}>
+      <Modal name="Add Janitor" handleClose={handleClose}>
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex-wrap-center"

@@ -51,7 +51,7 @@ export const SetURLModerationService = ({instance}:{instance: any}) => {
     <>
       <button onClick={handleClose}>Set URL</button>
       { isOpen &&
-      <Modal handleClose={handleClose}>
+      <Modal name="Set URL" handleClose={handleClose}>
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex-wrap-center"

@@ -151,6 +151,13 @@ input {
   background: #27e811;
 }
 
+.modal-form-input {
+  padding-left: 0;
+  padding-right: 0;
+  margin: 5px 0;
+  width: 100%;
+}
+
 .break-words {
   word-break: break-all;
   white-space: pre-wrap;
