@@ -65,7 +65,7 @@ export const CreateThread = ({
   }, [chainId, boardId, threadId, navigate])
 
   return (
-    <Modal handleClose={handleClose}>
+    <Modal name="Create Thread" handleClose={handleClose}>
       <form 
         style={{
           display: 'flex',

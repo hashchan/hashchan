@@ -36,17 +36,12 @@ export const Chain = () => {
   }
 
   return (
-    <>{location.pathname == `/chains/${chain.id}` ? ( 
       <div>{ (chain?.id) && (<>
         <h3>{chain.name}</h3>
         <p>{createPostEstimate && (<>Est Cost to create Post: ~${fmtZero(createPostEstimate.toFixed(20))}</>)}</p>
         <p>{createThreadEstimate && (<>Est Cost to create Thread: ~${fmtZero(createThreadEstimate.toFixed(20))}</>)}</p>
       </>)
       }
-      </div>
-    ) : (
-      <Outlet />
-    )
-    }</>
+  </div>
   )
 }

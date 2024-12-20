@@ -8,6 +8,8 @@ import { truncateEthAddress } from '@/utils/address'
 import MarkdownEditor from '@uiw/react-markdown-editor';
 import { TbFlagExclamation  } from "react-icons/tb";
 
+import {BoardHeader} from '@/components/BoardHeader'
+
 import { ReducedModeWarning } from '@/components/ReducedModeWarning'
 import { TipCreator } from '@/components/HashChan/Thread/TipCreator'
 import { JannyPost } from '@/components/HashChan/Thread/JannyPost'
@@ -187,8 +189,7 @@ const Post = forwardRef(({
 export const Thread = () => {
   const [makeReply, setMakeReply] = useState([])
   const [toggleReply, setToggleReply] = useState(false)
-  const {threadId } = useParams()
-
+  const {threadId, boardId } = useParams()
   const { posts, isReducedMode, logErrors } = useThread()
 
   const handleOpenPost = (threadId:string) => {
@@ -201,6 +202,7 @@ export const Thread = () => {
 
   return (
     <>
+      <BoardHeader key={`board-${boardId}-${threadId}`} />
       {toggleReply && (<CreatePost threadId={threadId} replyIds={makeReply} handleClose={handleClose} />)}
       {isReducedMode && <ReducedModeWarning />}
       <h3 style={{wordWrap: 'break-word'}}>Thread {threadId}</h3>

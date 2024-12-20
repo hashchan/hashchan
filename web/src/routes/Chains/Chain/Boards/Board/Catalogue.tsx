@@ -1,9 +1,13 @@
+import {
+  Fragment,
+} from 'react'
 import { useParams } from 'react-router-dom'
 import { useThreads } from '@/hooks/HashChan/useThreads'
 import { useNavigate } from 'react-router-dom'
 import { truncateEthAddress } from '@/utils/address'
 import { ReducedModeWarning } from '@/components/ReducedModeWarning'
 import { useAccount } from 'wagmi'
+import { BoardHeader } from '@/components/BoardHeader'
 const ListItem = ({
   threadId, title, imgUrl, content, janitoredBy
 }: {
@@ -90,9 +94,12 @@ const List = ({threads}: {threads: any}) => {
 
 export const Catalogue = () => {
   const { address }  = useAccount()
+  const { chainId, boardId } = useParams()
   const { threads, logErrors, isReducedMode } = useThreads()
+  console.log('catalogue', threads)
   return (
-    <>
+    <Fragment>
+      <BoardHeader key={`board-${boardId}-catalogue`} />
       <span><h3 style={{display: "inline"}}>Catalogue</h3>
       {isReducedMode && <ReducedModeWarning />}</span>
       { address  ?  (
@@ -108,6 +115,6 @@ export const Catalogue = () => {
         })
       )
       }
-    </>
+    </Fragment>
   )
 }

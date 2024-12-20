@@ -76,12 +76,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                       <Route path="intro" element={<Intro />} />
                       <Route path="instructions" element={<Instructions />} />
                     </Route>
-                    <Route path="/chains/:chainId" element={<Chain />}>
-                      <Route path="boards/:boardId" element={<Board />}>
-                        <Route path="catalogue" element={<Catalogue />} />
-                        <Route path="threads/:threadId" element={<Thread />} />
-                      </Route>
-                    </Route>
+                    <Route path="/chains/:chainId" element={<Chain />} />
+                    <Route path="/chains/:chainId/boards/:boardId" element={<Board />}/>
+                    <Route path="/chains/:chainId/boards/:boardId/catalogue" element={<Catalogue />} />
+                    <Route path="/chains/:chainId/boards/:boardId/threads/:threadId" element={<Thread />} />
                     <Route path="/" element={<Home />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>

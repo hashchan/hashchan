@@ -19,6 +19,7 @@ import { tryRecurseBlockFilter } from '@/utils/blockchain'
 
 export const useThreads = () => {
   const { board } = useBoard()
+  const {boardId:boardIdParam} = useParams()
   const { db } = useContext(IDBContext)
   const [isInitialized, setIsInitialized] = useState(false)
   const { address, chain } = useAccount()
@@ -46,7 +47,7 @@ export const useThreads = () => {
     ) {
       let threads = await db.threads
         .where(['boardId+chainId'])
-        .equals([Number(board.boardId), Number(board.chainId)]).toArray()
+        .equals([Number(boardIdParam), Number(board.chainId)]).toArray()
 
         threads = await Promise.all(
           threads.map(async (thread) => {
@@ -110,7 +111,7 @@ export const useThreads = () => {
               }
           })
           await db.boards.where('[boardId+chainId]')
-            .equals([board.boardId, board.chainId]).modify({'lastSynced': Number(blockNumber.data)})
+            .equals([boardIdParam, board.chainId]).modify({'lastSynced': Number(blockNumber.data)})
 
           } catch (e) {
             console.log('log error', e)
@@ -126,6 +127,7 @@ export const useThreads = () => {
     publicClient,
     address,
     board,
+    boardIdParam,
     hashchan,
     chain?.id,
     blockNumber,
@@ -172,8 +174,10 @@ export const useThreads = () => {
   ])
 
   useEffect(() => {
+    setThreads([])
+    console.log('reinitializing')
     setIsInitialized(false)
-  },[board?.boardId])
+  },[boardIdParam])
 
 
   useEffect(() => {

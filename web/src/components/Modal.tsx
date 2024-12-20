@@ -2,6 +2,7 @@ import { ReactNode, useState, useRef, useEffect } from 'react';
 import Draggable from 'react-draggable';
 
 interface ModalProps {
+  name: string;
   handleClose: () => void;
   children: ReactNode;
   initialWidth?: number;
@@ -11,12 +12,13 @@ interface ModalProps {
 }
 
 export const Modal = ({
+  name,
   handleClose,
   children,
   initialWidth = 618,
   initialHeight = 618,
-  minWidth = 200,
-  minHeight = 150,
+  minWidth = 261,
+  minHeight = 161,
 }: ModalProps) => {
   const [dimensions, setDimensions] = useState({
     width: initialWidth,
@@ -101,7 +103,8 @@ export const Modal = ({
           style={{
             width: '100%',
             display: 'flex',
-            justifyContent: 'flex-end',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             cursor: 'move',
             paddingBottom: `${1/(Math.PHI**2)}rem`,
             background: '#20C20E20',
@@ -110,8 +113,15 @@ export const Modal = ({
             borderBottom: '1px solid #20C20E20',
           }}
         >
+          <p style={{
+            flexGrow: 1,
+            textAlign: 'center',
+            marginLeft: '34px',
+            paddingLeft: `${(1/(Math.PHI**2))}rem`,
+          }}>{name}</p>
           <button
             style={{
+              width: '34px',
               color: '#ff0000',
               background: 'none',
               border: 'none',

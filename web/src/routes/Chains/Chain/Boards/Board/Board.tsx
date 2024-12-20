@@ -1,42 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Link } from 'react-router-dom'
-import { useParams, Outlet, useLocation } from 'react-router-dom'
-import { CreateThread } from '@/components/HashChan/CreateThread'
-import { CreatePost } from '@/components/HashChan/CreatePost'
-import { useAccount } from 'wagmi'
+import { Fragment, useState, useEffect, useCallback } from 'react'
 
 import { useHelia } from '@/hooks/p2p/useHelia'
-
+import { BoardHeader } from '@/components/BoardHeader'
 import { useBoard } from '@/hooks/HashChan/useBoard'
 
-const PostButton = ({
-  threadId,
-  address,
-  chain,
-  handleClose
-}:{
-  threadId: string | null,
-  address: string | null,
-  chain: number | null,
-  handleClose: () => void
-}) => {
-  if (!address) {
-    return (<p>Please connect a wallet to get started</p>)
-  }
-
-  if (!chain) {
-    return (<p>Please connect to a supported chain</p>)
-  }
-
-
-  return (
-    <button
-      onClick={handleClose}
-    >
-      {threadId ? "Make Post" : "Make Thread"}
-    </button>
-  )
-}
 
 const Banner = ({
   bannerUrl,
@@ -81,56 +48,19 @@ const Banner = ({
 }
 
 export const Board = () => {
-  const { address, chain } = useAccount()
   const { board } = useBoard()
-  const { chainId, boardId, threadId } = useParams()
-  const [openMakeContent, setOpenMakeContent] = useState(false)
-  const location = useLocation()
 
-  const handleClose = () => {
-    setOpenMakeContent(!openMakeContent)
-  }
 
   useEffect(() => {
     console.log('board::board', board)
   }, [board])
 
+
+
   // Check if we're at the exact board route
-  const isExactBoardRoute = location.pathname === `/chains/${chainId}/boards/${boardId}`
-
   return (
-    <>
-      <div
-        className="flex-wrap-center"
-        style={{
-          marginTop: '0',
-          justifyContent: 'space-between'
-        }}>
-        { board && (
-          <h2>
-            <Link to={`/chains/${chainId}/boards/${boardId}`}>
-              /{board.symbol}/
-            </Link>
-          </h2>
-        )}
-        <PostButton
-          threadId={threadId}
-          address={address}
-          chain={chain?.id}
-          handleClose={handleClose}
-        />
-      </div>
-      <p>[<Link to={`/chains/${chainId}/boards/${boardId}/catalogue`}>Catalogue</Link>]</p>
-
-      {openMakeContent && (<>
-        { threadId ? (
-          <CreatePost threadId={threadId} replyIds={[]} handleClose={handleClose} />
-        ): (
-        <CreateThread board={board}  handleClose={handleClose}/>
-        )}
-        </>)
-      }
-      { isExactBoardRoute ? (
+    <Fragment key={`board-${board?.boardId}`}>
+      <BoardHeader />
         <>
           <div
             className="flex-wrap-center"
@@ -150,9 +80,6 @@ export const Board = () => {
             </div>
           </div>
         </>
-      ) : (
-        <Outlet />
-      )}
-    </>
+    </Fragment>
   )
 }

@@ -67,16 +67,22 @@ export const HeliaProvider = ({ children }) => {
     if (!db) return
     if (!address) return
     if (!walletClient?.data) return
+    if (!address) return
 
       const walletInterface = {
         address: address,
         getAddress: () => address,
         signMessage: async (message: string) => {
+          console.log('signing message', message)
+          const oldSig = localStorage.getItem(address)
+          if (oldSig) return oldSig
           const signature = await walletClient.data.signMessage({
             message,
             account: address
 
           })
+
+          localStorage.setItem(address, signature)
           return signature
 
         }

@@ -24,7 +24,7 @@ const ConnectW3StorageModal = ({handleClose}:{handleClose : () => void }) => {
 
 
     return (
-        <Modal handleClose={handleClose}>
+        <Modal name="Connect W3Storage" handleClose={handleClose}>
           <form
             className="flex-wrap-center"
             style={{

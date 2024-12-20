@@ -43,7 +43,7 @@ export const TipCreator = ({creator}: {creator: `0x${string}`}) => {
       </span>
 
       {isOpen &&
-        <Modal handleClose={handleClose}>
+        <Modal name="Tip Creator" handleClose={handleClose}>
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="flex-wrap-center"

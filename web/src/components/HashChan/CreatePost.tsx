@@ -8,7 +8,7 @@ import { parseContent } from '@/utils/content'
 import MarkdownEditor from '@uiw/react-markdown-editor';
 import { useW3Storage } from '@/hooks/useW3Storage'
 import { Modal } from '@/components/Modal'
-
+import {TxResponse} from '@/components/TxResponse'
 
 export const CreatePost = ({
   replyIds,
@@ -57,7 +57,7 @@ export const CreatePost = ({
   }, [logs])
 
   return (
-    <Modal handleClose={handleClose}>
+    <Modal name="Create Post" handleClose={handleClose}>
       <form
         style={{
           display: 'flex',
@@ -109,26 +109,12 @@ export const CreatePost = ({
             {isSubmitting ? (<span>Submitting...</span>): (<span>Make Post</span>)}
           </button>
         </div>
-        <div>
-        {(wait > 0 ) && <label htmlFor="hash">Hash:</label>}
-        {(wait > 0 && !hash ) && <p>waiting for wallet confirmation...</p>}
-          {hash && (
-            <p className="break-words">{hash}</p>
-          )}
-          {(wait > 1) && <label htmlFor="logs">confirmation:</label>}
-          {(wait > 1 && logs.length === 0) && <p>waiting for tx confirmation...</p>}
-          {logs.map((log, i) => {
-            return (
-              <>
-                <p className="break-words" key={i}>{log.transactionHash ? 'successful' : 'failed'}</p>
-              </>
-          )})}
-          {logErrors.map((log, i) => {
-            return (
-              <p className="break-words" key={i}>{log.toString()}</p>
-            )
-          })}
-        </div>
+        <TxResponse
+          wait={wait}
+          hash={hash}
+          logs={logs}
+          logErrors={logErrors}
+        />
       </form>
     </Modal>
   );

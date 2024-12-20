@@ -59,7 +59,7 @@ export const ReviewJanny = ({
         Rate Janitor
       </button>
       {isOpen &&
-      <Modal handleClose={handleClose}>
+      <Modal name="Review Janitor" handleClose={handleClose}>
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex-wrap-center"

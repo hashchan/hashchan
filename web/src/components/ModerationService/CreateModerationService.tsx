@@ -52,7 +52,7 @@ export const CreateModerationService = () => {
     <>
       <button onClick={handleClose}>Create Moderation Service</button>
       { isOpen &&
-      <Modal handleClose={handleClose}>
+      <Modal name="Create Moderation Service" handleClose={handleClose}>
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex-wrap-center"
