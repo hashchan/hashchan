@@ -1,6 +1,6 @@
 # [Hashchan](https://hashchan.network) 
 
-![banner-gif](https://github.com/user-attachments/assets/394c2d1e-9e8f-4c61-ac1d-64f5f723218e)
+![animated-banner-2](https://github.com/user-attachments/assets/dd55130f-1710-475e-96a6-b6fc9d4c07c4)
 
 
 (Beta)
@@ -95,3 +95,6 @@ npm run dev # or  pm2 start 'server.js'
 | Base-Sepolia | [0x0f379a480aC2AC95A5EF8a54094C3d3021332B73](https://sepolia.basescan.org/address/0x0f379a480aC2AC95A5EF8a54094C3d3021332B73)
 | Arbitrum Sepolia | [0x75Accb3c871167F66226F97092A717b2253010c9](https://sepolia.arbiscan.io/address/0x75Accb3c871167F66226F97092A717b2253010c9)
 | Flow EVM Testnet | [0x7cE23ee9023A138193C33F060A0060E918246E59](https://evm-testnet.flowscan.io/address/0x7cE23ee9023A138193C33F060A0060E918246E59)
+
+
+![4chan-banner-emojis](https://github.com/user-attachments/assets/0a553cb5-0382-49e9-9f14-a2fc27e42a23)
