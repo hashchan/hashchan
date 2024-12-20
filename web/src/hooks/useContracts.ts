@@ -45,6 +45,7 @@ export const useContracts = () => {
   }, [publicClient, walletClient?.data, chain?.id])
 
   useEffect(() => {
+    setHashchan(null)
     setIsInitialized(false)
   }, [chain?.id])
 

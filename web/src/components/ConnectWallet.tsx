@@ -6,10 +6,11 @@ import { truncateEthAddress } from '@/utils/address'
 import { useEstimateGas } from '@/hooks/useEstimateGas'
 import { formatNumberWithSubscriptZeros as fmtZero  } from '@haqq/format-number-with-subscript-zeros';
 import { FaLink  } from "react-icons/fa6";
+import { useNavigate } from 'react-router-dom'
 
 const ChainsDropDown = () => {
    const { chains, switchChain  } = useSwitchChain()
-
+   const navigate = useNavigate()
   const [expand, setExpand] = useState(false)
   
   const handleClose = () => {
@@ -58,7 +59,11 @@ const ChainsDropDown = () => {
                     justifyContent: 'space-between',
                     alignItems: 'center',
                   }}
-                  onClick={() => switchChain({chainId: chain.id})}
+                  onClick={() => {
+                    switchChain({chainId: chain.id})
+                    navigate(`/`)
+                  }
+                  }
                 >
                   {chain.name}
                 </a>

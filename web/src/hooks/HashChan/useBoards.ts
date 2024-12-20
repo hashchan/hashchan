@@ -4,16 +4,15 @@ import {
   useCallback,
   useEffect
 } from 'react'
-import { useContracts } from '@/hooks/useContracts'
-import { 
-  usePublicClient,
-  useAccount,
-  useBlockNumber } from 'wagmi'
 
-  import { writeContract, waitForTransactionReceipt } from '@wagmi/core'
-  import { config } from '@/config'
+import { useContracts } from '@/hooks/useContracts'
+
+import { 
+  useAccount,
+  useBlockNumber
+} from 'wagmi'
+
   import { IDBContext } from '@/provider/IDBProvider'
-  import { parseEventLogs, getContract } from 'viem'
 
 
   export const useBoards = () => {
@@ -23,7 +22,6 @@ import {
     const { address, chain } =  useAccount()
     const blockNumber = useBlockNumber();
     const { hashchan } = useContracts()
-    const publicClient = usePublicClient()
 
     const [boards, setBoards] = useState([])
     const [favouriteBoards, setFavouriteBoards] = useState([])
