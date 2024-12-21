@@ -48,10 +48,11 @@ export const useThreads = () => {
       board &&
       chain?.id
     ) {
+      console.log()
       let threads = await db.threads
         .where(['boardId+chainId'])
-        .equals([Number(boardIdParam), Number(board.chainId)]).toArray()
-
+        .equals([Number(boardIdParam), Number(chainIdParam)]).toArray()
+        console.log('cached threads', threads)
         threads = await Promise.all(
           threads.map(async (thread) => {
             return {
@@ -62,6 +63,7 @@ export const useThreads = () => {
         )
         console.log('last synced', board.lastSynced)
       if (blockNumber.data > board.lastSynced) {
+      //if (true == true) {
           const startingFilterArgs = {
             address: hashchan.address,
             abi: hashchan.abi,
@@ -70,6 +72,7 @@ export const useThreads = () => {
               'boardId': `0x${BigInt(board.boardId).toString(16)}`
             },
             fromBlock: BigInt(board.lastSynced ? board.lastSynced : 0),
+            //fromBlock: 0n,
             toBlock: blockNumber.data
           }
 
@@ -77,49 +80,42 @@ export const useThreads = () => {
           setIsReducedMode(isReduced)
           console.log()
           console.log('filter', filter)
-
+          let logs = []
           try {
-            const logs = await publicClient.getFilterLogs({
+            logs = await publicClient.getFilterLogs({
               filter,
             })
-            console.log('logs', logs) 
-            logs.forEach(async (log) => {
-              const {
-                boardId,
-                creator,
-                threadId,
-                imgUrl,
-                imgCID,
-                title,
-                content,
-                timestamp
-              } = log.args
-              try {
-                await db.threads.add(threads[threads.length - 1])
-                threads.push({
-                  lastSynced: 0,
-                  boardId: Number(boardId),
-                  threadId,
-                  creator,
-                  imgUrl,
-                  imgCID,
-                  title,
-                  content,
-                  janitoredBy: [],
-                  chainId: chain.id,
-                  timestamp: Number(timestamp)
-                })
-              } catch (e) {
-                console.log('duplicate, skipping')
-              }
+          } catch (e) {
+             console.log('filter error', e)
+             setLogErrors(old => [...old, e.message])
+          }
+          console.log('logs', logs) 
+          logs.forEach(async (log) => {
+            const newThread = {
+              lastSynced: 0,
+              boardId: Number(log.args.boardId),
+              threadId: log.args.threadId,
+              creator: log.args.creator,
+              imgUrl: log.args.imgUrl,
+              imgCID: log.args.imgCID,
+              title: log.args.title,
+              content: log.args.content,
+              janitoredBy: [],
+              chainId: Number(chain.id),
+              timestamp: Number(log.args.timestamp)
+
+            }
+            try {
+              await db.threads.add(newThread)
+            } catch (e) {
+              console.log('db error', e.message)
+              console.log('duplicate, skipping')
+            }
+            threads.push(newThread)
           })
+
           await db.boards.where('[boardId+chainId]')
             .equals([Number(boardIdParam), Number(chainIdParam)]).modify({'lastSynced': Number(blockNumber.data)})
-
-          } catch (e) {
-            console.log('log error', e)
-            setLogErrors(old => [...old, e.toString()])
-          }
 
         }
 

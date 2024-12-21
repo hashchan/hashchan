@@ -42,7 +42,7 @@ export const config = createConfig({
     //baseSepolia,
     //localhost,
     //optimismSepolia,
-    //optimism,
+    optimism,
     //fantom,
     //arbitrumSepolia,
     //arbitrum,

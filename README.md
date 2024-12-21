@@ -18,6 +18,7 @@ An imageboard inside ethereum event logs
 ### Hashchan
 |Chain| Address |
 | --- | ---- |
+| Optimism | [0xa160440daad769893b6938cdb1839ed5d34d8945](https://optimistic.etherscan.io/address/0xa160440daad769893b6938cdb1839ed5d34d8945)
 | Base | [0xd696047b3e92d9188bff402253bb1a99eceb3de1](https://basescan.org/address/0xd696047b3e92d9188bff402253bb1a99eceb3de1)
 | Testnet| --- |
 | Sepolia | [0x458c27D5a6421AfAFF435e27E870584Fe03a938F](https://sepolia.etherscan.io/address/0x458c27d5a6421afaff435e27e870584fe03a938f)
@@ -25,6 +26,7 @@ An imageboard inside ethereum event logs
 ## Moderation Service Factory
 |Chain| Address |
 | --- | ---- |
+| Optimism | [0x13666b1520e31776e0087ef2223e319bb841cd1c](https://optimistic.etherscan.io/address/0x13666b1520e31776e0087ef2223e319bb841cd1c)
 | Base | [0xC525AF851Fa283190d6e13d0f164c06Ab51C266A](https://basescan.org/address/0xc525af851fa283190d6e13d0f164c06ab51c266a)
 | Testnet| --- |
 | Sepolia | [0x147211461D47C8A4f5712cba079C521cacEDB16B](https://sepolia.etherscan.io/address/0x147211461d47c8a4f5712cba079c521cacedb16b)
@@ -33,6 +35,7 @@ An imageboard inside ethereum event logs
 ## Moderation Services
 |Chain| Address |
 | --- | ---- |
+| Optimism | [0x18866C1DfFbEFCDb63eaFad6842A34692e3165Ff](https://optimistic.etherscan.io/address/0x18866C1DfFbEFCDb63eaFad6842A34692e3165Ff)
 | Base | [0x838D3e6752f156C658ABA2F55Cb084bB684f5067](https://basescan.org/address/0x838D3e6752f156C658ABA2F55Cb084bB684f5067)
 | Testnet| --- |
 | Sepolia | [0x8456B34cd626E2F1c6761fe408d82189b991E88e](https://sepolia.etherscan.io/address/0x8456B34cd626E2F1c6761fe408d82189b991E88e)

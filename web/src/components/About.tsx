@@ -21,6 +21,8 @@ import ArbitrumOne from '@/assets/emoji/arbitrum-one.png'
 import ArbitrumNova from '@/assets/emoji/arbitrum-nova.png'
 import Flow from '@/assets/emoji/flow.png'
 
+import HashChan from '@/assets/abi/HashChan3.json'
+
 
 export const About = () => {
   return (
@@ -54,10 +56,6 @@ export const About = () => {
           <a target="_blank" href="https://etherscan.io/address/0xC525AF851Fa283190d6e13d0f164c06Ab51C266A"> Mainnet</a>
         </p>
         <p>
-          <img src={Optimism} className="emoji" />
-          <a target="_blank" href="https://optimistic.etherscan.io/address/0x77a510184D399C75a91FE9D522aB9e60C2bD08ef"> Optimism</a>
-        </p>
-        <p>
           <img src={Polygon} className="emoji" />
           <a target="_blank" href="https://polygonscan.com/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Polygon</a>
         </p>
@@ -83,12 +81,16 @@ export const About = () => {
         </p>
             */}
         <p>
+          <img src={Optimism} className="emoji" />
+          <a target='_blank' href={`https://optimistic.etherscan.io/address/${HashChan["10"].address}`}> Optimism</a>
+        </p>
+        <p>
           <img src={Base} className="emoji" />
-          <a target="_blank" href="https://basescan.org/address/0xd696047b3e92d9188bff402253bb1a99eceb3de1"> Base</a>
+          <a target="_blank" href={`https://basescan.org/address/${HashChan["8453"].address}`}> Base</a>
         </p>
         <p>
           <img src={Sepolia} className="emoji" />
-          <a target="_blank" href="https://sepolia.etherscan.io/address/0x458c27d5a6421afaff435e27e870584fe03a938f"> Sepolia Testnet</a>
+          <a target="_blank" href={`https://sepolia.etherscan.io/address/${HashChan["11155111"].address}`}> Sepolia Testnet</a>
         </p>
       </div>
       <div>

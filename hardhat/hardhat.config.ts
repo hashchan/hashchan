@@ -85,7 +85,8 @@ const config: HardhatUserConfig = {
         chainId: 10,
       accounts: {
         mnemonic: process.env.MNEMONIC
-      }
+      },
+      saveDeployments: true
     },
     fantom: {
       url: `https://fantom-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
@@ -163,6 +164,7 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
       mainnet: process.env.ETHERSCAN || '',
+      optimisticEthereum: process.env.OPTIMISMSCAN || '',
       sepolia: process.env.ETHERSCAN || '',
       'optimism-sepolia': process.env.BLOCKSCOUT || '',
       fantom: process.env.FTMSCAN || '',

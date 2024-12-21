@@ -1,5 +1,4 @@
-
-export default async function ({viem}) {
+export default async function ({network, viem}) {
   //console.log(viem);
   const [deployer, modServiceOwner] = await viem.getWalletClients()
   const publicClient = await viem.getPublicClient();
@@ -69,6 +68,15 @@ export default async function ({viem}) {
   console.log('addJanitorHash', addJanitorHash);
   const tx2 = await publicClient.waitForTransactionReceipt({ hash: addJanitorHash });
   console.log('tx2', tx2.transactionHash);
+
+  console.log(
+    'Verification commands:', '\n',
+    `npx hardhat verify --network ${network.name} ${hashChan3.address}`, '\n',
+    `npx hardhat verify --network ${network.name} ${modServiceFactory.address} ${hashChan3.address}`, '\n',
+    `npx hardhat verify --network ${network.name} ${modService.address} ${hashChan3.address} 'Basic Service' ${modServiceOwner.account.address} 'orbit.hashchan.org' 443`
+  )
+
+
 
   return {
     hashChan3,
