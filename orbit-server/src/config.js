@@ -7,12 +7,17 @@ import {
 
 import { privateKeyToAccount } from 'viem/accounts'
 
-import { base, sepolia } from 'viem/chains'
+import {
+  base,
+  sepolia,
+  optimism
+} from 'viem/chains'
+
 import  ModerationService from './abi/ModerationService.json' with {type: "json"}
 
 export const account = privateKeyToAccount(process.env.OWNER_KEY)
 
-export const chains = [ base, sepolia ]
+export const chains = [ base, sepolia, optimism ]
 
 export const publicClients = {
   8453: createPublicClient({
@@ -22,6 +27,10 @@ export const publicClients = {
   11155111: createPublicClient({
     chain: sepolia,
     transport: http(process.env.SEPOLIA_RPC_URL)
+  }),
+  10: createPublicClient({
+    chain: optimism,
+    transport: http(process.env.OPTIMISM_RPC_URL)
   })
 }
 
@@ -35,6 +44,11 @@ export const walletClients = {
     account,
     chain: sepolia,
     transport: http(process.env.SEPOLIA_RPC_URL)
+  }),
+  10: createWalletClient({
+    account,
+    chain: optimism,
+    transport: http(process.env.OPTIMISM_RPC_URL)
   })
 }
 
@@ -53,6 +67,14 @@ export const instances = {
     client: {
       public: publicClients['11155111'],
       wallet: walletClients['11155111']
+    }
+  }),
+  10: getContract({
+    address: ModerationService["10"].address,
+    abi: ModerationService.abi,
+    client: {
+      public: publicClients['10'],
+      wallet: walletClients['10']
     }
   }),
 }
