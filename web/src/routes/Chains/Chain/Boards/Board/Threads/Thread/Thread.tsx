@@ -22,6 +22,10 @@ import {
   TableData
 } from '@/components/Table'
 
+import { getExplorerUrl } from '@/utils/explorer'
+
+import { useAccount } from 'wagmi'
+
 const PostIdSpan = ({postId, handleOpenPost}:{postId:string, handleOpenPost: (postId:string) => void}) => {
   const [hovered, setHovered] = useState(false)
   return (
@@ -88,6 +92,7 @@ const Post = forwardRef(({
   janitoredBy: object[]
 }, ref)  => {
   const location = useLocation()
+  const { chain } = useAccount()
   const { board } = useBoard()
   const [viewSwitch, setViewSwitch] = useState(false)
 
@@ -149,7 +154,7 @@ const Post = forwardRef(({
       }}> 
       <div
       >
-        <span>{truncateEthAddress(creator)}</span>&nbsp;
+        <a target="_blank" href={getExplorerUrl(chain,creator, 'address')}>{truncateEthAddress(creator)}</a>&nbsp;
         <TipCreator creator={creator} />&nbsp;
         <JannyPost postId={postId} />&nbsp;
         {janitoredBy.length > 0 && (<>

@@ -1,5 +1,3 @@
-import { ReactNode } from 'react'
-
 import { CreateModerationService } from '@/components/ModerationService/CreateModerationService'
 import { SetURLModerationService } from '@/components/ModerationService/SetURLModerationService'
 import { AddJanitorModerationService } from '@/components/ModerationService/AddJanitorModerationService'
@@ -10,9 +8,12 @@ import { useModerationServices } from '@/hooks/ModerationService/useModerationSe
 import { truncateEthAddress } from '@/utils/address'
 import { Table, TableHeader, TableData } from '@/components/Table'
 import { Link } from 'react-router-dom'
+
+import { getExplorerUrl} from '@/utils/explorer'
+
 const ModServiceTable = () => {
   const { moderationServices } = useModerationServices()
-  const { address } = useAccount()
+  const { address, chain } = useAccount()
 
   return (
     <div style={{ overflowX: 'auto' }}>
@@ -33,8 +34,22 @@ const ModServiceTable = () => {
             }}>
               <TableData content={`${ms.positives}/${ms.negatives}`} />
               <TableData content={<Link to={`/janitors/${ms.address}`}>{ms.name}</Link>} />
-              <TableData content={truncateEthAddress(ms.address)} />
-              <TableData content={truncateEthAddress(ms.owner)} />
+              <TableData content={
+                <a
+                  target="_blank"
+                  href={getExplorerUrl(chain, ms.address, 'address')}
+                >
+                  {truncateEthAddress(ms.address)}
+                </a>
+              } />
+              <TableData content={
+                <a
+                  target="_blank"
+                  href={getExplorerUrl(chain, ms.owner, 'address')}
+                >
+                  {truncateEthAddress(ms.owner)}
+                </a>
+              } />
                 <TableData content={<>
                   { address === ms.owner && (<SetURLModerationService instance={ms.instance} />)}
                   { address === ms.owner && (<AddJanitorModerationService instance={ms.instance} />)}

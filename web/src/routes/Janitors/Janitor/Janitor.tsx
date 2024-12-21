@@ -26,6 +26,9 @@ import { SetURLModerationService } from '@/components/ModerationService/SetURLMo
 import { AddJanitorModerationService } from '@/components/ModerationService/AddJanitorModerationService'
 import { JoinModerationService } from '@/components/ModerationService/JoinModerationService'
 import { TransferOwnershipModerationService } from '@/components/ModerationService/TransferOwnershipModerationService'
+
+import { getExplorerUrl } from '@/utils/explorer'
+
 export const Janitor = () => {
   const {address, chain} = useAccount()
   const { janitorAddress } = useParams()
@@ -62,8 +65,23 @@ export const Janitor = () => {
                   <TableData content={ms.name} />
                   <TableData content={`${ms.positives}/${ms.negatives}`} />
                   <TableData content={fmtZero(formatEther(ms.totalWages))}/>
-                  <TableData content={truncateEthAddress(ms.address)} />
-                  <TableData content={truncateEthAddress(ms.owner)} />
+
+                  <TableData content={
+                    <a
+                      target="_blank"
+                      href={getExplorerUrl(chain, ms.address, 'address')}
+                    >
+                      {truncateEthAddress(ms.address)}
+                    </a>
+                  } />
+                  <TableData content={
+                    <a
+                      target="_blank"
+                      href={getExplorerUrl(chain, ms.owner, 'address')}
+                    >
+                      {truncateEthAddress(ms.owner)}
+                    </a>
+                  } />
                   <TableData content={`${ms.uri}:${ms.port}`} />
                 <TableData content={<>
                   { address === ms.owner && (<SetURLModerationService instance={ms.instance} />)}
@@ -92,7 +110,15 @@ export const Janitor = () => {
                 console.log('j', j)
                 return(
                   <tr key={i}>
-                    <TableData content={truncateEthAddress(j.janitor)} />
+
+                    <TableData content={
+                      <a
+                        target="_blank"
+                        href={getExplorerUrl(chain, j.janitor, 'address')}
+                      >
+                        {truncateEthAddress(j.janitor)}
+                      </a>
+                    } />
                     <TableData content={`${j.positiveReviews}/${j.negativeReviews}`} />
                     <TableData content={fmtZero(formatEther(j.claimedWages))}/>
                     <TableData content={Number(j.started)} />
