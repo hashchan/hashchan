@@ -24,7 +24,7 @@ export const useEstimateGas = () => {
   const [ethPrice, setEthPrice] = useState(null)
   const [gasPrice, setGasPrice] = useState(null)
   const { chain } = useAccount()
-  const { contractAddress, abi } = useContracts()
+  const { hashchan } = useContracts()
   const publicClient = usePublicClient();
   const [createThreadEstimate, setCreateThreadEstimate] = useState(null)
   const [createPostEstimate, setCreatePostEstimate] = useState(null)
@@ -33,8 +33,7 @@ export const useEstimateGas = () => {
   const fetchGasEstimateCreateThread = useCallback(async () => {
     if (
       chain &&
-      contractAddress &&
-      abi &&
+      hashchan &&
       publicClient &&
       pool
     ) {
@@ -48,13 +47,14 @@ export const useEstimateGas = () => {
       }
 
       const estimate = await publicClient.estimateContractGas({
-        address: contractAddress as `0x${string}`,
-        abi,
+        address: hashchan.address as `0x${string}`,
+        abi: hashchan.abi,
         functionName: 'createThread',
         args: [
           0,
           "Welcome to Hashchan",
           'https://bafkreicaumqhcbzvi653dkntzzyvacgxfquksgrsu2dltrx24bl2zaikva.ipfs.w3s.link/',
+          'bafkreicaumqhcbzvi653dkntzzyvacgxfquksgrsu2dltrx24bl2zaikva',
           'abcdefghijklmnopqrstuvwxyz'
         ]
       })
@@ -64,8 +64,7 @@ export const useEstimateGas = () => {
     }
   },[
     chain,
-    contractAddress,
-    abi,
+    hashchan,
     publicClient,
     pool
   ])
@@ -73,8 +72,7 @@ export const useEstimateGas = () => {
   const fetchGasEstimateCreatePost = useCallback(async () => {
     if (
       chain &&
-      contractAddress &&
-      abi &&
+      hashchan &&
       publicClient &&
       pool
     ) {
@@ -86,14 +84,15 @@ export const useEstimateGas = () => {
         ethPrice = parseFloat(pool.pool.token1Price.toSignificant(6))
       }
       const estimate = await publicClient.estimateContractGas({
-        address: contractAddress as `0x${string}`,
-        abi,
+        address: hashchan.address as `0x${string}`,
+        abi: hashchan.abi,
         functionName: 'createPost',
         args: [
           0,
           "0x9d44a4ec328db0ce6de3ae1d63080b983ff9943c2f3cf9e459bf18e7d74c3777",
           ["0x9d44a4ec328db0ce6de3ae1d63080b983ff9943c2f3cf9e459bf18e7d74c3777"],
           'https://bafkreicaumqhcbzvi653dkntzzyvacgxfquksgrsu2dltrx24bl2zaikva.ipfs.w3s.link/',
+          'bafkreicaumqhcbzvi653dkntzzyvacgxfquksgrsu2dltrx24bl2zaikva',
           'abcdefghijklmnopqrstuvwxyz'
         ]
       })
@@ -103,8 +102,7 @@ export const useEstimateGas = () => {
     }
   },[
     chain,
-    contractAddress,
-    abi,
+    hashchan,
     publicClient,
     pool
   ])
@@ -118,8 +116,7 @@ export const useEstimateGas = () => {
   useEffect(() => {
     if (isInitialized ||
         !chain ||
-        !contractAddress ||
-        !abi ||
+        !hashchan ||
         !publicClient ||
         !pool
        ) return
@@ -133,8 +130,7 @@ export const useEstimateGas = () => {
   }, [
     isInitialized,
     chain,
-    contractAddress,
-    abi,
+    hashchan,
     publicClient,
     fetchGasEstimateCreateThread,
     fetchGasEstimateCreatePost,
