@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useForm  } from "react-hook-form";
-import { useNavigate, useParams } from "react-router-dom";
-import { useThread } from "@/hooks/HashChan/useThread";
 import { useCreatePost } from "@/hooks/HashChan/useCreatePost";
 import { truncateEthAddress } from '@/utils/address'
 import { parseContent } from '@/utils/content'
