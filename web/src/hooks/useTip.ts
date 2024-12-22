@@ -5,8 +5,8 @@ import { sendTransaction } from '@wagmi/core'
 import {config} from '@/config'
 export const useTip = () => {
   const [hash, setHash] = useState(null)
-  const [receipt, setReceipt] = useState(null)
-  const [error, setError] = useState(null)
+  const [logs, setLogs] = useState([])
+  const [logErrors, setLogErrors] = useState([])
   const { address } = useAccount()
   const walletClient = useWalletClient()
   const publicClient = usePublicClient();
@@ -15,7 +15,6 @@ export const useTip = () => {
     receiver: `0x${string}`,
     amount: string
   ) => {
-    console.log('hi')
     if (publicClient && walletClient && address) {
       try {
         const hash = await sendTransaction(config, {
@@ -23,21 +22,12 @@ export const useTip = () => {
           value: parseEther(amount)
         })
         setHash(hash)
-        const receipt = await publicClient.waitForTransactionReceipt({hash})
-        setReceipt(receipt)
-        return {
-          hash,
-          receipt,
-          error: null
-        }
+
+        const tx = await publicClient.waitForTransactionReceipt({hash})
+        setLogs(old => [...old, tx ])
       } catch (e) {
         console.log(e)
-        setError(e)
-        return {
-          hash: null,
-          receipt: null,
-          error: e
-        }
+        setLogErrors(old => [...old, e.message])
       }
     }
   }, [walletClient, address,  publicClient])
@@ -46,8 +36,8 @@ export const useTip = () => {
   return {
     createTip,
     hash,
-    receipt,
-    error
+    logs,
+    logErrors
   }
 }
 

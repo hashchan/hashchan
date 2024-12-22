@@ -7,6 +7,7 @@ import MarkdownEditor from '@uiw/react-markdown-editor';
 import { useCreateThread } from "@/hooks/HashChan/useCreateThread";
 import { useW3Storage } from '@/hooks/useW3Storage'
 import { Modal } from '@/components/Modal'
+import { TxResponse } from '@/components/TxResponse'
 export const CreateThread = ({
   board,
   handleClose
@@ -14,6 +15,7 @@ export const CreateThread = ({
   board: string,
   handleClose : () => void
 }) => {
+  const [wait, setWait] = useState(0)
   const { chainId, boardId } = useParams()
   const {  account, uploadFile } = useW3Storage()
   const { register, handleSubmit, formState: { errors, isSubmitting  }, setValue  } = useForm();
@@ -28,9 +30,8 @@ export const CreateThread = ({
 
   const navigate = useNavigate();
 
-  const [rpcError, setRpcError] = useState(null)
-
   const onSubmit = async (data) => {
+    setWait(1)
     console.log(data)
     if  (data.imageUrl) {
        await createThread(
@@ -55,14 +56,27 @@ export const CreateThread = ({
     }
   }
 
+
+  useEffect(() => {
+    if (hash?.length) {
+      setWait(2)
+    }
+  }, [hash])
+
+  useEffect(() => {
+    if (logs.length > 0) {
+      setWait(3)
+    }
+  }, [logs])
+
   useEffect(() => {
     if (threadId && chainId && boardId) {
       setTimeout(() => {
         handleClose()
         navigate(`/chains/${chainId}/boards/${boardId}/threads/${threadId}`)
-      }, 618)
+      }, 100*Math.PHI)
     }
-  }, [chainId, boardId, threadId, navigate])
+  }, [chainId, boardId, threadId, navigate, handleClose])
 
   return (
     <Modal name="Create Thread" handleClose={handleClose}>
@@ -121,24 +135,12 @@ export const CreateThread = ({
           </button>
           </div>
           <div>
-            {hash && (
-              <p className="break-words">Hash: {hash}</p>
-            )}
-            {logs.map((log, i) => {
-              return (
-              <>
-                <p className="break-words" key={i}>{log.transactionHash ? 'successful' : 'failed'}</p>
-              </>
-              )
-            })}
-            {logErrors.map((log, i) => {
-              return (
-                <p className="break-words" key={i}>{log.toString()}</p>
-              )
-            })}
-            { rpcError && (
-              <p className="break-words">{rpcError}</p>
-            )}
+          <TxResponse
+            wait={wait}
+            hash={hash}
+            logs={logs}
+            logErrors={logErrors}
+          />
           </div>
       </form>
     </Modal>

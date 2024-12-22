@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useForm  } from "react-hook-form";
 import { Modal } from '@/components/Modal'
 import { useEditModerationService } from '@/hooks/ModerationService/useEditModerationService'
+
+import { TxResponse} from '@/components/TxResponse'
 export const SetURLModerationService = ({instance}:{instance: any}) => {
   const [isOpen, setIsOpen] = useState(false)
   const {
@@ -93,24 +95,7 @@ export const SetURLModerationService = ({instance}:{instance: any}) => {
             </button>
           </div>
         <div>
-        {(wait > 0 ) && <label htmlFor="hash">Hash:</label>}
-        {(wait > 0 && !hash ) && <p>waiting for wallet confirmation...</p>}
-          {hash && (
-            <p className="break-words">{hash}</p>
-          )}
-          {(wait > 1) && <label htmlFor="logs">confirmation:</label>}
-          {(wait > 1 && logs.length === 0) && <p>waiting for tx confirmation...</p>}
-          {logs.map((log, i) => {
-            return (
-              <>
-                <p className="break-words" key={i}>{log.transactionHash ? 'successful' : 'failed'}</p>
-              </>
-          )})}
-          {logErrors.map((log, i) => {
-            return (
-              <p className="break-words" key={i}>{log.toString()}</p>
-            )
-          })}
+        <TxResponse hash={hash} logs={logs} logErrors={logErrors} wait={wait} />
         </div>
       </form>
     </Modal>

@@ -1,5 +1,6 @@
 import { 
   useState,
+  useEffect
 } from 'react'
 import { useForm } from "react-hook-form";
 import { FaHandHoldingDollar } from "react-icons/fa6";
@@ -7,9 +8,11 @@ import { FaHandHoldingDollar } from "react-icons/fa6";
 import { useTip } from '@/hooks/useTip'
 
 import { Modal } from '@/components/Modal'
+import { TxResponse} from '@/components/TxResponse'
 
 export const TipCreator = ({creator}: {creator: `0x${string}`}) => {
-  const { createTip, hash, receipt, error } = useTip()
+  const [wait, setWait] = useState(0)
+  const { createTip, hash, logs, logErrors } = useTip()
   const [isOpen, setIsOpen] = useState(false)
   const [hovered, setHovered] = useState(false)
   const { register, handleSubmit, formState: { errors  }  } = useForm();
@@ -19,16 +22,24 @@ export const TipCreator = ({creator}: {creator: `0x${string}`}) => {
   }
 
   const onSubmit = async (data) => {
-    const response = await createTip(
+    setWait(1)
+    await createTip(
       creator,
       data.amount
     )
-    if (response.hash) {
-      console.log('response', response)
-    } else {
-      console.log('error', response.error.message)
-    }
   }
+
+  useEffect(() => {
+    if (hash?.length) {
+      setWait(2)
+    }
+  }, [hash])
+
+  useEffect(() => {
+    if (logs.length > 0) {
+      setWait(3)
+    }
+  }, [logs])
 
   return (
     <>
@@ -67,11 +78,7 @@ export const TipCreator = ({creator}: {creator: `0x${string}`}) => {
             </div>
             <button type="submit">Tip</button>
           </form>
-          {hash && <p>Transaction hash: {truncateEthAddress(hash)}</p>}
-          {receipt && <p>Transaction receipt: {receipt.status}</p>}
-          {error && <div 
-            style={{ backgroundColor: 'red', position: 'absolute' }}
-          >{error}</div>}
+          <TxResponse wait={wait} hash={hash} logs={logs} logErrors={logErrors} />
         </Modal>
       }
     </>
