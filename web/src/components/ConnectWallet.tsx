@@ -91,10 +91,14 @@ const Account = () => {
     <div >
       {ensAvatar && <img alt="ENS Avatar" src={ensAvatar} />}
       <div>
+      <ChainsDropDown />
+      {chain ? (
+        <Link to={`/chains/${chain?.id}`}>{chain?.id && chain.name}</Link>
+      ): (
+        <span style={{paddingRight: '1.25vw'}}>Unsupported chain</span>
+      )}
         {(address && chain )&& <>
-          <span style={{paddingRight: '1.25vw'}}>~${createPostEstimate && (<>{fmtZero(createPostEstimate.toFixed(20))}/Post</>)}</span>
-          <Link to={`/chains/${chain?.id}`}>{chain?.id && chain.name}</Link>
-          <ChainsDropDown />
+          <span style={{paddingLeft: '1.25vw', paddingRight: '1.25vw'}}>~${createPostEstimate && (<>{fmtZero(createPostEstimate.toFixed(20))}/Post</>)}</span>
           <span style={{padding: '0px 1.25vw'}}>
 
             {ensName ? `${ensName} (${truncateEthAddress(address)})` : truncateEthAddress(address)}
