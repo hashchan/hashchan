@@ -69,27 +69,6 @@ export const HeliaProvider = ({ children }) => {
     if (!walletClient?.data) return
     if (!address) return
 
-      const walletInterface = {
-        address: address,
-        getAddress: () => address,
-        signMessage: async (message: string) => {
-          console.log('signing message', message)
-          const oldSig = localStorage.getItem(address)
-          if (oldSig) return oldSig
-          const signature = await walletClient.data.signMessage({
-            message,
-            account: address
-
-          })
-
-          localStorage.setItem(address, signature)
-          return signature
-
-        }
-
-      }
-
-    const ethProvider = OrbitDBIdentityProviderEthereum.default({ wallet: walletInterface  })
 
 
 
@@ -141,14 +120,41 @@ export const HeliaProvider = ({ children }) => {
       })
 
       let orbit = null
-      try  {
-        orbit = await createOrbitDB({
-          ipfs:helia,
-          identity: {provider: ethProvider}
-        })
+      if (await db.moderationServices.count() > 0) {
+        const walletInterface = {
+          address: address,
+          getAddress: () => address,
+          signMessage: async (message: string) => {
+            console.log('signing message', message)
+            const oldSig = localStorage.getItem(address)
+            if (oldSig) return oldSig
+            const signature = await walletClient.data.signMessage({
+              message,
+              account: address
 
-      } catch (e) {
-        console.log('orbit signature reject janny service offline')
+            })
+
+            localStorage.setItem(address, signature)
+            return signature
+
+          }
+
+        }
+
+        const ethProvider = OrbitDBIdentityProviderEthereum.default({ wallet: walletInterface  })
+        try  {
+          orbit = await createOrbitDB({
+            ipfs:helia,
+            identity: {provider: ethProvider}
+          })
+
+        } catch (e) {
+          console.log('orbit signature reject janny service offline')
+        }
+      } else {
+        orbit = await createOrbitDB({
+          ipfs:helia
+        })
       }
 
       // Try to get the stored database address from localStorage
