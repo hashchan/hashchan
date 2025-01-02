@@ -5,12 +5,11 @@ import { useCreateBoard } from '@/hooks/HashChan/useCreateBoard'
 import { useAccount } from 'wagmi'
 import { FaRegCheckCircle, FaCheckCircle } from 'react-icons/fa'
 import { CreateBoard } from '@/components/HashChan/CreateBoard'
-
+import { DropDown } from '@/components/DropDown'
 export const BoardsList = () => {
   const { address } =  useAccount()
   const { boards, favouriteBoards, toggleFavourite } = useBoards()
   const { createBoard } = useCreateBoard()
-  const [expandBoardList, setExpandBoardList] = useState(false)
   const [openCreateBoard, setOpenCreateBoard] = useState(false)
 
   const handleClose = () => {
@@ -31,68 +30,42 @@ export const BoardsList = () => {
           )
         })}
         ]
-        <button
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'row',
-          }}
-          onClick={() => setExpandBoardList(old => !old)}
-        >
-          <p>{expandBoardList ? "▾" : "▸"}&nbsp;</p>
-          Boards
-        </button>
-        {expandBoardList && (
-          <div style={{
-            backgroundColor: '#090909',
-            display: 'block',
-            position: 'absolute',
-            top: `${(100/ Math.PHI) + (100/ Math.PHI**3)}px`,
-            zIndex: '1',
-            width: `${100*Math.PHI}px`,
-            }}>
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              }}>
-              {boards.map((board,i) => {
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      padding:'0px 5px',
-                      borderBottom: '1px solid #20C20E',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}>
-                    <Link
-                      to={`/chains/${board.chainId}/boards/${board.boardId}/catalogue`}
-                      style={{
-                      }}
-                    >
-                      {board.symbol}
-                    </Link>
-                    <button
-                      style={{
-                        border: 'none',
-                      }}
-                      onClick={() => {toggleFavourite(board)}}>
-                      {board.favourite === 1 ? <FaCheckCircle /> : <FaRegCheckCircle />}
-                    </button>
-                  </div>
-                )
-              })}
-              <button
+        <DropDown name="Boards">
+          {boards.map((board,i) => {
+            return (
+              <div
+                key={i}
                 style={{
-                  border: 'none',
-                }}
-                onClick={() => setOpenCreateBoard(old => !old)}
-              >+</button>
-            </div>
-          </div>
-        )}
+                  padding:'0px 5px',
+                  borderBottom: '1px solid #20C20E',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}>
+                <Link
+                  to={`/chains/${board.chainId}/boards/${board.boardId}/catalogue`}
+                  style={{
+                  }}
+                >
+                  {board.symbol}
+                </Link>
+                <button
+                  style={{
+                    border: 'none',
+                  }}
+                  onClick={() => {toggleFavourite(board)}}>
+                  {board.favourite === 1 ? <FaCheckCircle /> : <FaRegCheckCircle />}
+                </button>
+              </div>
+            )
+          })}
+          <button
+            style={{
+              border: 'none',
+            }}
+            onClick={() => setOpenCreateBoard(old => !old)}
+          >+</button>
+        </DropDown>
         {openCreateBoard && (
           <CreateBoard
             handleClose={handleClose}
