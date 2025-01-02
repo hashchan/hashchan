@@ -8,6 +8,7 @@ import {
 import { privateKeyToAccount } from 'viem/accounts'
 
 import {
+  classic,
   base,
   sepolia,
   optimism
@@ -20,6 +21,10 @@ export const account = privateKeyToAccount(process.env.OWNER_KEY)
 export const chains = [ base, sepolia, optimism ]
 
 export const publicClients = {
+  61: createPublicClient({
+    chain: classic,
+    transport: http(process.env.CLASSIC_RPC_URL)
+  }),
   8453: createPublicClient({
     chain: base,
     transport: http(process.env.BASE_RPC_URL)
@@ -35,6 +40,11 @@ export const publicClients = {
 }
 
 export const walletClients = {
+  61: createWalletClient({
+    account,
+    chain: classic,
+    transport: http(process.env.CLASSIC_RPC_URL)
+  }),
   8453: createWalletClient({
     account,
     chain: base,
@@ -53,6 +63,14 @@ export const walletClients = {
 }
 
 export const instances = {
+  61: getContract({
+    address: ModerationService["61"].address,
+    abi: ModerationService.abi,
+    client: {
+      public: publicClients['61'],
+      wallet: walletClients['61']
+    }
+  }),
   8453: getContract({
     address: ModerationService["8453"].address,
     abi: ModerationService.abi,

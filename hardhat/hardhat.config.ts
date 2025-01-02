@@ -163,6 +163,7 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
+      classic: process.env.ETCBLOCKSCOUT || '',
       mainnet: process.env.ETHERSCAN || '',
       optimisticEthereum: process.env.OPTIMISMSCAN || '',
       sepolia: process.env.ETHERSCAN || '',
@@ -178,6 +179,15 @@ const config: HardhatUserConfig = {
       'flow-testnet': 'nokey'
     },
     customChains: [
+      {
+        network: 'classic',
+        chainId: 61,
+        urls: {
+          apiURL: 'https://etc.blockscout.com/api',
+          browserURL: 'https://etc.blockscout.com'
+        }
+
+      },
       {
         network: "optimism-sepolia",
         chainId: 11155420,

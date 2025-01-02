@@ -1,0 +1,3 @@
+npx hardhat verify --network classic 0x49b98eab13247e786bed0bb5780728db8d24b5e0
+ npx hardhat verify --network classic 0xf4a88ee70097a0120cd2b905fd3a8b40d3e360d0 0x49b98eab13247e786bed0bb5780728db8d24b5e0
+ npx hardhat verify --network classic 0x544a860451b72c00AF838C2feCd8766897373FEF 0x49b98eab13247e786bed0bb5780728db8d24b5e0 'Basic Service' 0xebf056e97595eb4bfc80dcf8c3f3b5be54625c24 'orbit.hashchan.org' 443
