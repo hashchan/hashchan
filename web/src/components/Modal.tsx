@@ -1,5 +1,6 @@
-import { ReactNode, useState, useRef, useEffect } from 'react';
+import { ReactNode, useState, useRef, useEffect, useCallback } from 'react';
 import Draggable from 'react-draggable';
+import { BrowserView, MobileView } from 'react-device-detect';
 
 interface ModalProps {
   name: string;
@@ -79,84 +80,131 @@ export const Modal = ({
   // Calculate width in viewport units for display
   const widthInVw = pxToVw(dimensions.width);
 
+  const mobileRef= useRef<HTMLDivElement>(null);
+
+  const handleClickOutside = useCallback((event: MouseEvent) => {
+    if (
+      mobileRef.current &&
+      !mobileRef.current.contains(event.target as Node)
+    ) {
+      handleClose();
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [handleClickOutside])
   return (
-    <Draggable handle=".modal-header">
-      <div
-        ref={modalRef}
-        className="modal-container"
-        style={{
-          position: 'fixed',
-          backgroundColor: '#090909',
-          border: '1px solid #20C20E20',
-          padding: `${1/Math.PHI**2}rem`,
-          width: `${widthInVw}vw`,
-          height: dimensions.height,
-          display: 'flex',
-          flexDirection: 'column',
-          zIndex: 1618,
-          top: `${100/(Math.PHI**3)}%`,
-          left: `${100/(Math.PHI**3)}%`,
-        }}
-      >
+    <>
+      <BrowserView>
+        <Draggable handle=".modal-header">
+          <div
+            ref={modalRef}
+            className="modal-container"
+            style={{
+              position: 'fixed',
+              backgroundColor: '#090909',
+              border: '1px solid #20C20E20',
+              padding: `${1/Math.PHI**2}rem`,
+              width: `${widthInVw}vw`,
+              height: dimensions.height,
+              display: 'flex',
+              flexDirection: 'column',
+              zIndex: 1618,
+              top: `${100/(Math.PHI**3)}%`,
+              left: `${100/(Math.PHI**3)}%`,
+            }}
+          >
+            <div
+              className="modal-header"
+              style={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                cursor: 'move',
+                paddingBottom: `${1/(Math.PHI**2)}rem`,
+                background: '#20C20E20',
+                margin: `-${1/(Math.PHI**2)}rem -${1/(Math.PHI**2)}rem ${1/(Math.PHI)}rem -${1/(Math.PHI**2)}rem`,
+                padding: `${1/(Math.PHI**9)}rem ${1/(Math.PHI**2)}rem`,
+                borderBottom: '1px solid #20C20E20',
+              }}
+            >
+              <p style={{
+                flexGrow: 1,
+                textAlign: 'center',
+                marginLeft: '34px',
+                paddingLeft: `${(1/(Math.PHI**2))}rem`,
+              }}>{name}</p>
+              <button
+                style={{
+                  width: '34px',
+                  color: '#ff0000',
+                  background: 'none',
+                  border: 'none',
+                  fontSize: `${(Math.PHI)}rem`,
+                  cursor: 'pointer',
+                }}
+                onClick={handleClose}
+              >
+                ×
+              </button>
+            </div>
+
+            <div
+              style={{
+                flex: 1,
+                overflow: 'auto',
+              }}
+            >
+              {children}
+            </div>
+
+            <div
+              className="resize-handle"
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                width: '15px',
+                height: '15px',
+                cursor: 'se-resize',
+                background: 'linear-gradient(135deg, transparent 50%, #20C20E 50%)',
+              }}
+              onMouseDown={handleResizeStart}
+            />
+          </div>
+        </Draggable>
+      </BrowserView>
+      <MobileView>
         <div
-          className="modal-header"
+          ref={mobileRef}
           style={{
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            cursor: 'move',
-            paddingBottom: `${1/(Math.PHI**2)}rem`,
-            background: '#20C20E20',
-            margin: `-${1/(Math.PHI**2)}rem -${1/(Math.PHI**2)}rem ${1/(Math.PHI)}rem -${1/(Math.PHI**2)}rem`,
-            padding: `${1/(Math.PHI**9)}rem ${1/(Math.PHI**2)}rem`,
-            borderBottom: '1px solid #20C20E20',
+            position: 'absolute',
+            top: '50%',
+            left:'50%',
+            transform: 'translate(-50%, -50%)',
+            width: `${100/Math.PHI + 100/Math.PHI**3 + 100/Math.PHI**5}vw`,
+            backgroundColor: '#090909',
+            zIndex: 1618,
           }}
         >
           <p style={{
-            flexGrow: 1,
-            textAlign: 'center',
-            marginLeft: '34px',
-            paddingLeft: `${(1/(Math.PHI**2))}rem`,
-          }}>{name}</p>
-          <button
-            style={{
-              width: '34px',
-              color: '#ff0000',
-              background: 'none',
-              border: 'none',
-              fontSize: `${(Math.PHI)}rem`,
-              cursor: 'pointer',
-            }}
-            onClick={handleClose}
-          >
-            ×
-          </button>
-        </div>
+          textAlign: 'center',
+          width: '100%',
+          paddingBottom: `${1/(Math.PHI**2)}rem`,
+          background: '#20C20E20',
+          margin: `-${1/(Math.PHI**2)}rem -${1/(Math.PHI**2)}rem ${1/(Math.PHI)}rem -${1/(Math.PHI**2)}rem`,
+          padding: `${1/(Math.PHI**9)}rem ${1/(Math.PHI**2)}rem`,
+          borderBottom: '1px solid #20C20E20',
 
-        <div
-          style={{
-            flex: 1,
-            overflow: 'auto',
-          }}
-        >
+          }}>{name}</p>
           {children}
         </div>
-
-        <div
-          className="resize-handle"
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            right: 0,
-            width: '15px',
-            height: '15px',
-            cursor: 'se-resize',
-            background: 'linear-gradient(135deg, transparent 50%, #20C20E 50%)',
-          }}
-          onMouseDown={handleResizeStart}
-        />
-      </div>
-    </Draggable>
+      </MobileView>
+    </>
   );
 }

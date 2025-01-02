@@ -7,73 +7,37 @@ import { useEstimateGas } from '@/hooks/useEstimateGas'
 import { formatNumberWithSubscriptZeros as fmtZero  } from '@haqq/format-number-with-subscript-zeros';
 import { FaLink  } from "react-icons/fa6";
 import { useNavigate } from 'react-router-dom'
+import { DropDown } from '@/components/DropDown'
 
 const ChainsDropDown = () => {
-   const { chains, switchChain  } = useSwitchChain()
-   const navigate = useNavigate()
-  const [expand, setExpand] = useState(false)
-  
-  const handleClose = () => {
-    setExpand(old => !old)
-  }
-
+  const { chains, switchChain  } = useSwitchChain()
+  const navigate = useNavigate()
   return (
     <>
-      <button
-        style={{
-          marginLeft: '1.25vw',
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexDirection: 'row',
-        }}
-        onClick={handleClose}
-      >
-        <p>{expand ? "▾" : "▸"}&nbsp;</p>
-        <FaLink />
-      </button>
-      { expand && (
-        <div
-          style={{
-            backgroundColor: '#090909',
-            display: 'block',
-            position: 'absolute',
-            top: `${(100/ Math.PHI) + (100/ Math.PHI**3)}px`,
-            zIndex: '1',
-            width: `${(100*Math.PHI)+(10*Math.PHI**2)}px`,
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-            }}>
-            { chains.map((chain,i) => {
-              return (
-                <a
-                  key={i}
-                  style={{
-                    padding:'0px 5px',
-                    borderBottom: '1px solid #20C20E',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                  onClick={() => {
-                    switchChain({chainId: chain.id})
-                    navigate(`/`)
-                  }
-                  }
-                >
-                  {chain.name}
-                </a>
-              )
-            })
-
-            }
-          </div>
-        </div>
-      )}
+      <DropDown name={<FaLink />}>
+        { chains.map((chain,i) => {
+          return (
+            <a
+              key={i}
+              style={{
+                padding:'0px 5px',
+                borderBottom: '1px solid #20C20E',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+              onClick={() => {
+                switchChain({chainId: chain.id})
+                navigate(`/`)
+              }
+              }
+            >
+              {chain.name}
+            </a>
+          )
+        })
+        }
+      </DropDown>
     </>
   )
 }
@@ -91,22 +55,22 @@ const Account = () => {
     <div >
       {ensAvatar && <img alt="ENS Avatar" src={ensAvatar} />}
       <div>
-      <ChainsDropDown />
-      {chain ? (
-        <Link to={`/chains/${chain?.id}`}>{chain?.id && chain.name}</Link>
-      ): (
+        <ChainsDropDown />
+        {chain ? (
+          <Link to={`/chains/${chain?.id}`}>{chain?.id && chain.name}</Link>
+        ): (
         <span style={{paddingRight: '1.25vw'}}>Unsupported chain</span>
-      )}
+        )}
         {(address && chain )&& <>
           <span style={{paddingLeft: '1.25vw', paddingRight: '1.25vw'}}>~${createPostEstimate && (<>{fmtZero(createPostEstimate.toFixed(20))}/Post</>)}</span>
           <span style={{padding: '0px 1.25vw'}}>
 
-            {ensName ? `${ensName} (${truncateEthAddress(address)})` : truncateEthAddress(address)}
+          {ensName ? `${ensName} (${truncateEthAddress(address)})` : truncateEthAddress(address)}
           </span>
-        </>}
-        <button onClick={() => disconnect()}>Disconnect</button>
-      </div>
-    </div>
+          </>}
+          <button onClick={() => disconnect()}>Disconnect</button>
+          </div>
+          </div>
   )
 }
 
