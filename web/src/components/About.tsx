@@ -46,11 +46,11 @@ export const About = () => {
       </div>
       <div>
         <h3>Supported Chains</h3>
-        {/*
         <p>
           <img src={Classic} className="emoji" />
-          <a target="_blank" href="https://etc.blockscout.com/address/0xca0296EFC305ba8f2A3035e2846d389A8617c4cf"> Classic</a>
+          <a target="_blank" href="https://etc.blockscout.com/address/0x49b98EAB13247E786BEd0bb5780728db8d24b5e0"> Classic</a>
         </p>
+        {/*
         <p>
           <img src={EthereumEmoji} className="emoji" />
           <a target="_blank" href="https://etherscan.io/address/0xC525AF851Fa283190d6e13d0f164c06Ab51C266A"> Mainnet</a>
