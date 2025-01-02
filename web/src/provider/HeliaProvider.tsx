@@ -20,7 +20,7 @@ import * as filters from '@libp2p/websockets/filters'
 import { circuitRelayTransport  } from '@libp2p/circuit-relay-v2'
 import { multiaddr  } from '@multiformats/multiaddr'
 
-
+import { getWalletInterface } from '@/utils/blockchain'
 import { unixfs } from '@helia/unixfs'
 import {dagJson} from '@helia/dag-json'
 import PropTypes from 'prop-types'
@@ -43,7 +43,8 @@ export const HeliaContext = createContext({
   fs: null,
   orbit: null,
   error: false,
-  starting: true
+  starting: true,
+  startOrbitDb: async () => {},
 })
 
 export const HeliaProvider = ({ children }) => {
@@ -68,9 +69,6 @@ export const HeliaProvider = ({ children }) => {
     if (!address) return
     if (!walletClient?.data) return
     if (!address) return
-
-
-
 
     // Use consistent names for the datastores
     const datastoreName = 'hashchan-datastore'
@@ -119,28 +117,44 @@ export const HeliaProvider = ({ children }) => {
         libp2p
       })
 
+
+      // Try to get the stored database address from localStorage
+      //const storedDbAddress = localStorage.getItem('hashchanDbAddress')
+      const settings = await db.settings.get(1)
+      console.log('settings', settings)
+      helia.libp2p.addEventListener('peer:discovery', (event) => {
+        console.log('Discovered peer:', event.detail.id.toString())
+      })
+
+      // Listen for peer connection
+      helia.libp2p.addEventListener('peer:connect', (event) => {
+        console.log('Connected to peer:', event.detail.toString())
+      })
+
+      setLibp2p(libp2p)
+      setHelia(helia)
+      setDj(dagJson(helia))
+      setFs(unixfs(helia))
+      setStarting(false)
+      setIsInitialized(true)
+    } catch (e) {
+      console.error(e)
+      setError(true)
+    }
+  }, [
+    db,
+    address,
+    walletClient?.data
+  ])
+
+  const startOrbitDb = useCallback(async () => {
+    if(!address || !helia || !db || !walletClient.data) return
       let orbit = null
       if (await db.moderationServices.count() > 0) {
-        const walletInterface = {
-          address: address,
-          getAddress: () => address,
-          signMessage: async (message: string) => {
-            console.log('signing message', message)
-            const oldSig = localStorage.getItem(address)
-            if (oldSig) return oldSig
-            const signature = await walletClient.data.signMessage({
-              message,
-              account: address
-
-            })
-
-            localStorage.setItem(address, signature)
-            return signature
-
-          }
-
-        }
-
+        const walletInterface =  getWalletInterface({
+          address,
+          walletClient: walletClient.data
+        })
         const ethProvider = OrbitDBIdentityProviderEthereum.default({ wallet: walletInterface  })
         try  {
           orbit = await createOrbitDB({
@@ -151,71 +165,17 @@ export const HeliaProvider = ({ children }) => {
         } catch (e) {
           console.log('orbit signature reject janny service offline')
         }
-      } else {
-        orbit = await createOrbitDB({
-          ipfs:helia
-        })
       }
 
-      // Try to get the stored database address from localStorage
-      //const storedDbAddress = localStorage.getItem('hashchanDbAddress')
-      const settings = await db.settings.get(1)
-      console.log('settings', settings)
-      /*let orbitdb;
-      if (settings.orbitDbAddr) {
-        // If we have a stored address, try to open the existing database
-        try {
-          orbitdb = await orbit.open(settings.orbitDbAddr)
-          console.log('Opened existing database:', settings.orbitDbAddr)
-        } catch (err) {
-          console.warn('Failed to open existing database, creating new one:', err)
-          orbitdb = await orbit.open(settings.orbitDbAddr)
-          // Store the new database address
-
-        }
-      } else {
-        // First time - create new database
-        orbitdb = await orbit.open('hashchan')
-        // Store the database address for future use
-        await db.settings.where('id').equals(1).modify({orbitDbAddr: orbitdb.address.toString()})
-
-      }
-       */
-      helia.libp2p.addEventListener('peer:discovery', (event) => {
-        console.log('Discovered peer:', event.detail.id.toString())
-      })
-
-      // Listen for peer connection
-      helia.libp2p.addEventListener('peer:connect', (event) => {
-        console.log('Connected to peer:', event.detail.toString())
-      })
-      /*
-      orbitdb.events.on('ready', () => {
-        console.log('OrbitDB is ready')
-      })
-
-      orbitdb.events.on('update', async (entry) => {
-        console.log('OrbitDB updated', entry)
-      })
-       */
-
-
-
-      setLibp2p(libp2p)
-      setHelia(helia)
       setOrbit(orbit)
-      setDj(dagJson(helia))
-      setFs(unixfs(helia))
-      setStarting(false)
-    } catch (e) {
-      console.error(e)
-      setError(true)
-    }
-  }, [
-    db,
-    address,
-    walletClient?.data
-  ])
+
+  }, [helia, db, address, walletClient.data])
+
+  useEffect(() => {
+    if (!helia) return
+
+    startOrbitDb()
+  }, [helia, startOrbitDb])
 
   useEffect(() => {
     if (isInitialized ||
@@ -236,7 +196,8 @@ export const HeliaProvider = ({ children }) => {
         dj,
         fs,
         error,
-        starting
+        starting,
+        startOrbitDb
       }}
     >{children}</HeliaContext.Provider>
   )

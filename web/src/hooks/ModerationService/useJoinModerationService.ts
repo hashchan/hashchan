@@ -27,7 +27,7 @@ import {
 
 import { multiaddr  } from '@multiformats/multiaddr'
 export const useJoinModerationService = (ms: any) => {
-  const { helia } = useContext(HeliaContext)
+  const { helia, startOrbitDb } = useContext(HeliaContext)
   const { chain } = useAccount()
   const { addPubsubHandle } = useContext(ModerationServicesContext)
   const { db } = useContext(IDBContext)
@@ -67,6 +67,7 @@ export const useJoinModerationService = (ms: any) => {
                 orbitDbAddr: json.orbitDbAddr
               })
             }
+            await startOrbitDb()
             setJoined(true)
           }
           await helia.libp2p.services.pubsub.removeEventListener("message", async () => {
@@ -90,7 +91,7 @@ export const useJoinModerationService = (ms: any) => {
         setDialErrors(old => [...old, e.message])
       }
     }
-  },[helia, db, ms, chain?.id])
+  },[helia, db, ms, chain?.id, startOrbitDb])
   
   const leaveModerationService = useCallback(async () => {
     if ( helia && db && ms && chain?.id ) {  

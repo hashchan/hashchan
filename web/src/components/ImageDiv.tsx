@@ -10,11 +10,14 @@ export const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
   const [videoError, setVideoError] = useState(false)
   const [imgError, setImgError] = useState(false)
 
-  const handleImageError = () => {
+  const handleImageError = (e) => {
+    console.log('image error', e)
+    console.log('image error')
     setImgError(true)
     setIsVideo(true)
   }
-  const handleVideoError = () => {
+  const handleVideoError = (e) => {
+    console.log('video error', e)
     setIsVideo(false);
     setVideoError(true);
   };
@@ -41,6 +44,8 @@ export const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
   }, [handleFetchCID, imgUrl])
 
   if (videoError && imgError) {
+    console.log('videoError', videoError)
+    console.log('imgError', imgError)
     return (<></>)
   }
 
@@ -60,7 +65,6 @@ export const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
         preload="metadata"
         controls
         playsInline
-        onError={handleVideoError}
       />
     )
   }
