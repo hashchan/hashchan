@@ -9,40 +9,65 @@ import { FaLink  } from "react-icons/fa6";
 import { useNavigate } from 'react-router-dom'
 import { DropDown } from '@/components/DropDown'
 
+const ChainDropDownItem = ({
+  chainId,
+  chainName,
+  switchChain
+}:{
+  chainId: number,
+  chainName: string,
+  switchChain: ({chainId}) => void
+}) => {
+
+  const navigate = useNavigate()
+  const [hover, setHover] = useState(false)
+
+  const handleMouseEnter = () => {
+    setHover(true)
+  }
+
+  const handleMouseLeave = () => {
+    setHover(false)
+  }
+  return (
+    <a
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        margin: '5px 8px',
+        backgroundColor: hover ? '#222222' : '#090909',
+        padding:'5px 8px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        whiteSpace: 'nowrap',
+      }}
+      onClick={() => {
+        switchChain({chainId})
+        navigate(`/`)
+      }
+      }
+    >
+      {chainName}
+    </a>
+
+  )
+}
+
+
 const ChainsDropDown = () => {
   const { chains, switchChain  } = useSwitchChain()
-  const navigate = useNavigate()
   return (
     <>
       <DropDown name={<FaLink />}>
         { chains.map((chain,i) => {
-          return (
-            <a
-              key={i}
-              style={{
-                padding:'0px 5px',
-                borderBottom: '1px solid #20C20E',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-              onClick={() => {
-                switchChain({chainId: chain.id})
-                navigate(`/`)
-              }
-              }
-            >
-              {chain.name}
-            </a>
-          )
+          return <ChainDropDownItem key={i} chainId={chain.id} chainName={chain.name} switchChain={switchChain} />
         })
         }
       </DropDown>
     </>
   )
 }
-
-
 
 const Account = () => {
   const { createPostEstimate } = useEstimateGas()   

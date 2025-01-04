@@ -59,7 +59,7 @@ export const DropDown = ({
         position: 'absolute',
         top: '100%',
         zIndex: '1',
-        width: `${100*Math.PHI}px`,
+        //width: `${100*Math.PHI}px`,
     }}>
       <div style={{
         display: 'flex',

@@ -64,7 +64,7 @@ export const useModerationService = ({address}:{address:`0x${string}`}) => {
       console.log('newJanitorEvent', newJanitorEvents)
       const janitors = await Promise.all(
         newJanitorEvents.map(async (event) => {
-          const janitor = event.args.janitor
+         const janitor = event.args.janitor
           const data = await instance.read.getJanitor([janitor])
           return {
             janitor,

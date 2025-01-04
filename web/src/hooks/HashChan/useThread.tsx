@@ -159,7 +159,6 @@ export const useThread = () => {
 
         if (cachedPosts.length > 0) {
           cachedPosts.forEach((post) => {
-            console.log('postincachedpsts', post)
             post.replies = []
             localRefsObj[post.postId] = createRef()
             localLogsObj[post.postId] = {
