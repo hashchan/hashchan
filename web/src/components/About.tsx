@@ -50,11 +50,11 @@ export const About = () => {
           <img src={Classic} className="emoji" />
           <a target="_blank" href="https://etc.blockscout.com/address/0x49b98EAB13247E786BEd0bb5780728db8d24b5e0"> Classic</a>
         </p>
-        {/*
         <p>
           <img src={EthereumEmoji} className="emoji" />
-          <a target="_blank" href="https://etherscan.io/address/0xC525AF851Fa283190d6e13d0f164c06Ab51C266A"> Mainnet</a>
+          <a target="_blank" href="https://etherscan.io/address/0x16cca36a14b42925d1bec87be2edcf244492d394"> Mainnet</a>
         </p>
+        {/*
         <p>
           <img src={Polygon} className="emoji" />
           <a target="_blank" href="https://polygonscan.com/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Polygon</a>

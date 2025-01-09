@@ -9,7 +9,6 @@ import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 import { createLibp2p } from 'libp2p'
 import { createHelia } from 'helia'
 import { webSockets } from '@libp2p/websockets'
-import { tcp } from '@libp2p/tcp'
 import { createOrbitDB, IPFSAccessController, useIdentityProvider  } from '@orbitdb/core'
 import { identify } from "@libp2p/identify";
 import { circuitRelayServer  } from '@libp2p/circuit-relay-v2'
@@ -17,17 +16,12 @@ import { circuitRelayServer  } from '@libp2p/circuit-relay-v2'
 import * as filters from "@libp2p/websockets/filters";
 import { loadOrCreatePeerId } from  "./src/loadOrCreatePeerId.js"
 
-import { account, publicClients, instances, chains } from './src/config.js'
+import { publicClients, instances } from './src/config.js'
 
 import { affirmJanny } from './src/affirmJanny.js'
 
-import  ModerationService from './src/abi/ModerationService.json' with {type: "json"}
-
 import * as OrbitDBIdentityProviderEthereum from '@orbitdb/identity-provider-ethereum'
 import { Wallet } from '@ethersproject/wallet'
-
-
-//const addr = ModerationService[11155111].address
 
 const main = async () => {
 
@@ -36,15 +30,13 @@ const main = async () => {
   const provider = OrbitDBIdentityProviderEthereum.default({ wallet: ethersWallet })
 
   const peerId = await loadOrCreatePeerId()
-  //console.log(peerId.toJSON())	
 
   const blockstore = new LevelBlockstore("./hashchan/blockstore")
   const datastore = new LevelDatastore("./hashchan/datastore")
 
   await datastore.open()
   await blockstore.open()
-  //console.log('peerId', peerId)
-  //
+  
   const libp2p = await createLibp2p({
     peerId,
     datastore,
@@ -98,9 +90,6 @@ const main = async () => {
     console.log(addr.toString())
   })
 
-  //const baseUrl = `/chainId/${chainId}/address/${addr}`
-  //console.log('baseUrl', baseUrl)
-  const baseUrls = []
 
   for (const instance in instances) {
     const baseUrl =`/chainId/${(await publicClients[instance].getChainId())}/address/${instances[instance].address}`
@@ -113,19 +102,12 @@ const main = async () => {
 
   helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
     const { topic, data } = event.detail
-    console.log('topic', topic)
     const [, , chainId, , address , action] = topic.split('/')
-    console.log('chainId', chainId)
-    console.log('address', address)
-    console.log('action', action)
     switch (action) {
       case (undefined):
-        console.log('data', new TextDecoder().decode(data))
         const json = JSON.parse(new TextDecoder().decode(data))
         const valid = await publicClients[chainId].verifyTypedData(json)
-        console.log('valid', valid)
         if (valid) {
-          console.log('json', json)
           const {affirmData, affirmSig} = await affirmJanny({
             janitor: json.address,
             postId: json.message.postId,

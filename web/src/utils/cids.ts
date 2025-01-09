@@ -2,6 +2,25 @@ import { CID  } from 'multiformats/cid'
 import * as raw from 'multiformats/codecs/raw'
 import { sha256  } from 'multiformats/hashes/sha2'
 
+import imageCompression from 'browser-image-compression';
+
+
+export const packageImage = async (imageUrl: string) => {
+  const thumbnail = new Image();
+
+  try {
+    const res = await fetch(imageUrl)
+    if (!res.ok) {
+      throw new Error('Failed to fetch image')
+    }
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+  } catch(e) {
+    console.log(e)
+  }
+}
+
+
 export const computeImageCID = async (imageUrl: string) => {
   try {
     const response = await fetch(imageUrl)

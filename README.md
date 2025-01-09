@@ -18,6 +18,7 @@ An imageboard inside ethereum event logs
 ### Hashchan
 |Chain| Address |
 | --- | ---- |
+| Mainnet | [0x16cca36a14b42925d1bec87be2edcf244492d394](https://etherscan.io/address/0x16cca36a14b42925d1bec87be2edcf244492d394)
 | Classic | [0x49b98EAB13247E786BEd0bb5780728db8d24b5e0](https://etc.blockscout.com/address/0x49b98EAB13247E786BEd0bb5780728db8d24b5e0)
 | Optimism | [0xa160440daad769893b6938cdb1839ed5d34d8945](https://optimistic.etherscan.io/address/0xa160440daad769893b6938cdb1839ed5d34d8945)
 | Base | [0xd696047b3e92d9188bff402253bb1a99eceb3de1](https://basescan.org/address/0xd696047b3e92d9188bff402253bb1a99eceb3de1)
@@ -27,6 +28,7 @@ An imageboard inside ethereum event logs
 ## Moderation Service Factory
 |Chain| Address |
 | --- | ---- |
+| Mainnet | [0xa89209b111590023c7e0ce3e809a830572ca032b](https://etherscan.io/address/0xa89209b111590023c7e0ce3e809a830572ca032b)
 | Classic | [0xf4A88Ee70097a0120cd2B905fd3a8b40d3E360D0](https://etc.blockscout.com/address/0xf4A88Ee70097a0120cd2B905fd3a8b40d3E360D0)
 | Optimism | [0x13666b1520e31776e0087ef2223e319bb841cd1c](https://optimistic.etherscan.io/address/0x13666b1520e31776e0087ef2223e319bb841cd1c)
 | Base | [0xC525AF851Fa283190d6e13d0f164c06Ab51C266A](https://basescan.org/address/0xc525af851fa283190d6e13d0f164c06ab51c266a)
@@ -37,6 +39,7 @@ An imageboard inside ethereum event logs
 ## Moderation Services
 |Chain| Address |
 | --- | ---- |
+| Mainnet | [0x0310AA05c54219D3a26Dc2d96B61036067D01018](https://etherscan.io/address/0x0310AA05c54219D3a26Dc2d96B61036067D01018)
 | Classic | [0x544a860451b72c00AF838C2feCd8766897373FEF](https://etc.blockscout.com/address/0x544a860451b72c00AF838C2feCd8766897373FEF)
 | Optimism | [0x18866C1DfFbEFCDb63eaFad6842A34692e3165Ff](https://optimistic.etherscan.io/address/0x18866C1DfFbEFCDb63eaFad6842A34692e3165Ff)
 | Base | [0x838D3e6752f156C658ABA2F55Cb084bB684f5067](https://basescan.org/address/0x838D3e6752f156C658ABA2F55Cb084bB684f5067)
