@@ -46,7 +46,7 @@ const config: HardhatUserConfig = {
     },
     mainnet: {
       url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-        chainId: 1,
+      chainId: 1,
       accounts: {
         mnemonic: process.env.MNEMONIC
       }

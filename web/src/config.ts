@@ -1,4 +1,4 @@
-import { http, createConfig } from 'wagmi'
+import { createConfig } from 'wagmi'
 
 import {
   classic,
@@ -26,9 +26,9 @@ import { injected, walletConnect } from 'wagmi/connectors'
 const metadata = {
     name: 'HashChan',
     description: 'imageboard inside ethereum eventlogs',
-    url: 'https://hashchan.network', // origin must match your domain & subdomain
+    url: 'https://hashchan.org', // origin must match your domain & subdomain
     icons: ['https://avatars.githubusercontent.com/u/37784886'],
-    explore: 'https://hashchan.network',    
+    explore: 'https://hashchan.org',    
 }
 // if import.met.env.VITE_WALLETCONNECT_PROJECT_ID is not set
 const connectors = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID ?
@@ -36,7 +36,7 @@ const connectors = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID ?
 export const config = createConfig({
   chains: [
     classic,
-    //mainnet,
+    mainnet,
     base,
     sepolia,
     //baseSepolia,

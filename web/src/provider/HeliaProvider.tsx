@@ -4,6 +4,7 @@ import { IDBBlockstore } from 'blockstore-idb'
 import { IDBDatastore } from 'datastore-idb'
 import { createLibp2p  } from 'libp2p'
 import { createHelia } from 'helia'
+import { heliaWithRemotePins  } from '@helia/remote-pinning'
 
 import { createOrbitDB, useIdentityProvider } from '@orbitdb/core'
 import * as OrbitDBIdentityProviderEthereum from '@orbitdb/identity-provider-ethereum'
@@ -18,7 +19,6 @@ import { webRTC  } from '@libp2p/webrtc'
 
 import * as filters from '@libp2p/websockets/filters'
 import { circuitRelayTransport  } from '@libp2p/circuit-relay-v2'
-import { multiaddr  } from '@multiformats/multiaddr'
 
 import { getWalletInterface } from '@/utils/blockchain'
 import { unixfs } from '@helia/unixfs'
@@ -45,6 +45,7 @@ export const HeliaContext = createContext({
   error: false,
   starting: true,
   startOrbitDb: async () => {},
+  startHelia: async () => {}
 })
 
 export const HeliaProvider = ({ children }) => {
@@ -108,14 +109,25 @@ export const HeliaProvider = ({ children }) => {
           identify: identify(),
         }
       })
+      let helia;
+      const remotePin = JSON.parse(localStorage.getItem('remote-pin'))
+      if (!remotePin) {
+        helia = await createHelia({
+          datastore,
+          blockstore,
+          libp2p
+        })
+      } else {
+        helia = heliaWithRemotePins(await createHelia({
+          datastore,
+          blockstore,
+          libp2p
+        }), {
+          endpointUrl: remotePin.endpointUrl,
+          accessToken: remotePin.accessToken
+        })
+      }
 
-
-
-      const helia = await createHelia({
-        datastore,
-        blockstore,
-        libp2p
-      })
 
 
       // Try to get the stored database address from localStorage
@@ -197,7 +209,8 @@ export const HeliaProvider = ({ children }) => {
         fs,
         error,
         starting,
-        startOrbitDb
+        startOrbitDb,
+        startHelia
       }}
     >{children}</HeliaContext.Provider>
   )
