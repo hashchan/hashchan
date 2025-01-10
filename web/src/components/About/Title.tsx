@@ -42,8 +42,11 @@ const Cryptographic = ({isMobile}: {isMobile: boolean}) => {
                     transition={{
                       delay: 2.618,
                     }}
-                    style={{display: 'inline'}}>
-                      <i>{isTransitioning ? endChars[i] : char}</i>
+                    style={{
+                    display: 'inline',
+                    fontStyle: 'italic',
+                    }}>
+                      {isTransitioning ? endChars[i] : char}
                     </motion.h2>)
                   : (
                   <motion.h1
@@ -52,8 +55,11 @@ const Cryptographic = ({isMobile}: {isMobile: boolean}) => {
                     transition={{
                       delay: 2.618,
                     }}
-                    style={{display: 'inline'}}>
-                      <i>{isTransitioning ? endChars[i] : char}</i>
+                    style={{
+                    display: 'inline',
+                    fontStyle: 'italic',
+                    }}>
+                      {isTransitioning ? endChars[i] : char}
                   </motion.h1>
                 )
               }
@@ -71,7 +77,7 @@ const Laser = ({isMobile}: {isMobile: boolean}) => {
   return (
       <motion.div
         style={{
-        width: isMobile ? '14.5vw' : '358px',
+        width: isMobile ? '210px' : '358px',
         }}
         initial={{x: "-10vw"}}
         animate={{x: ["-10vw", isMobile ? '12.5vw': '42.5vw']}}

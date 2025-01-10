@@ -24,7 +24,7 @@ import ArbitrumNova from '@/assets/emoji/arbitrum-nova.png'
 import Flow from '@/assets/emoji/flow.png'
 
 import HashChan from '@/assets/abi/HashChan3.json'
-
+import {isMobile as deviceIsMobile} from 'react-device-detect'
 import { motion, AnimatePresence } from 'motion/react'
 
 import { Title } from '@/components/About/Title'
@@ -33,7 +33,7 @@ export const About = () => {
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 520) {
+      if (window.innerWidth < 520 || deviceIsMobile) {
         setIsMobile(true)
       } else {
         setIsMobile(false)
@@ -46,6 +46,19 @@ export const About = () => {
   }, [])
   return (<>
     <Title isMobile={isMobile} />
+    { isMobile ? (
+    <motion.h3
+      initial={{opacity: 0}}
+      animate={{opacity: 1}}
+      transition={{delay: 3.8, duration: 0.618}}
+      style={{
+        marginTop: '5vh',
+        textAlign: 'center',
+        fontStyle: 'italic',
+    }}>
+      Imageboards for the Age of the AI Botnet Swarm
+    </motion.h3>) 
+    :(
     <motion.h2
       initial={{opacity: 0}}
       animate={{opacity: 1}}
@@ -53,9 +66,12 @@ export const About = () => {
       style={{
         marginTop: '5vh',
         textAlign: 'center',
+        fontStyle: 'italic',
     }}>
-      <i>Imageboards for the Age of the AI Botnet Swarm</i>
+      Imageboards for the Age of the AI Botnet Swarm
     </motion.h2>
+
+    ) }
     <div
       className="flex-wrap-center"
       style={{
