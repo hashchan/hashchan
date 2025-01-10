@@ -45,6 +45,7 @@ export const useThread = () => {
 
 
   const fetchPosts = useCallback(async () => {
+    console.log(Boolean(publicClient), Boolean(address), Boolean(hashchan), Boolean(threadIdParam), Boolean(chain?.id), Boolean(db), Boolean(boardIdParam), Boolean(blockNumber.data), Boolean(moderationServices))
     if (
       publicClient &&
       address &&
@@ -264,6 +265,7 @@ export const useThread = () => {
   ])
 
   useEffect(() => {
+    console.log(Boolean(isInitialized), Boolean(address), Boolean(chain), Boolean(db), Boolean(publicClient), Boolean(hashchan), Boolean(blockNumber.data), Boolean(boardIdParam), Boolean(threadIdParam), Boolean(moderationServices))
     if (
       isInitialized ||
       !address ||

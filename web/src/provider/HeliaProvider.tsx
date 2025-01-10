@@ -160,6 +160,8 @@ export const HeliaProvider = ({ children }) => {
   ])
 
   const startOrbitDb = useCallback(async () => {
+    console.log('start orbit')
+    console.log(Boolean(address), Boolean(helia), Boolean(db), Boolean(walletClient.data))
     if(!address || !helia || !db || !walletClient.data) return
       let orbit = null
       if (await db.moderationServices.count() > 0) {
@@ -177,6 +179,10 @@ export const HeliaProvider = ({ children }) => {
         } catch (e) {
           console.log('orbit signature reject janny service offline')
         }
+      } else {
+        orbit = await createOrbitDB({
+          ipfs:helia
+        })
       }
 
       setOrbit(orbit)
@@ -194,7 +200,9 @@ export const HeliaProvider = ({ children }) => {
         !address ||
         !walletClient?.data ||
         !db) return
-    startHelia()
+
+      startHelia()
+
   }, [
     walletClient?.data,
     address, db, startHelia, isInitialized])

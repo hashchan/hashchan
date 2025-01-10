@@ -170,6 +170,8 @@ export const ModerationServicesProvider = ({ children }) => {
   ])
 
   useEffect(() => {
+    console.log('mod servcie init')
+    console.log(Boolean(isInitialized), Boolean(helia), Boolean(db), Boolean(publicClient), Boolean(walletClient?.data), Boolean(orbit), Boolean(chain?.id))
     if (isInitialized ||
        !helia ||
        !db ||
