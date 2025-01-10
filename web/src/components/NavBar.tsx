@@ -3,6 +3,8 @@ import HashchanLogo from '@/assets/logo-4.png'
 import HashchanLogoGif from '@/assets/animated-banner.gif'
 import HashchanBanner from '@/assets/animated-banner-2.gif'
 import HashchanBannerNoRepeat from '@/assets/hashchan-banner-no-repeat.gif'
+import HashchanGaussianBlur from  '@/assets/logo-gaussian-blur.gif'
+import HashchanGaussianBlurNoRepeat from  '@/assets/logo-gaussian-blur-no-repeat.gif'
 import HashchanLogoGlitchGif from '@/assets/glitched-logo.gif'
 import {FaGithub, FaSquareXTwitter, FaDiscord, FaBook, FaYoutube} from 'react-icons/fa6'
 import { GiMagicBroom, GiBookshelf } from 'react-icons/gi'
@@ -13,12 +15,12 @@ import { BoardsList } from '@/components/HashChan/BoardsList'
 
 const HomeButton = () => {
   const [homeHover, setHomeHover] = useState(false)
-  const [logo, setLogo] = useState(HashchanBannerNoRepeat)
+  const [logo, setLogo] = useState(HashchanGaussianBlurNoRepeat)
   const handleHomeHover = (inside:boolean) => {
     if (inside) {
-      setLogo(HashchanBanner)
+      setLogo(HashchanGaussianBlur)
     } else {
-      setLogo(HashchanBannerNoRepeat)
+      setLogo(HashchanGaussianBlurNoRepeat)
     }
   }
 
