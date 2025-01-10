@@ -71,7 +71,7 @@ const Laser = ({isMobile}: {isMobile: boolean}) => {
   return (
       <motion.div
         style={{
-        width: isMobile ? '14.5vw' : '34.5vw',
+        width: isMobile ? '14.5vw' : '358px',
         }}
         initial={{x: "-10vw"}}
         animate={{x: ["-10vw", isMobile ? '12.5vw': '42.5vw']}}
@@ -89,15 +89,14 @@ const Laser = ({isMobile}: {isMobile: boolean}) => {
           boxShadow: '0 0 15px 5px #20c20E',
           borderBottom: '1px solid #20c20E'
           }}>
-        </motion.div>
         {
           isMobile ? (
             <motion.span
               style={{
               position: 'absolute',
               fontSize: '13px',
-              top: '34px',
-              right: '-30vw'
+              top: '-10px',
+              right: '-1vw'
               }}
             >
               0x
@@ -106,8 +105,8 @@ const Laser = ({isMobile}: {isMobile: boolean}) => {
               style={{
               position: 'absolute',
               fontSize: '13px',
-              top: '54px',
-              right: '22vw'
+              top: '-10px',
+              right: '-1vw'
               }}
             >
               0x
@@ -115,6 +114,7 @@ const Laser = ({isMobile}: {isMobile: boolean}) => {
 
           )
         }
+        </motion.div>
       </motion.div>
   )
 }
