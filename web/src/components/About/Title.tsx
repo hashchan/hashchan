@@ -71,7 +71,7 @@ const Laser = ({isMobile}: {isMobile: boolean}) => {
   return (
       <motion.div
         style={{
-        width: isMobile ? '14.5vw' : '14.5vw',
+        width: isMobile ? '14.5vw' : '34.5vw',
         }}
         initial={{x: "-10vw"}}
         animate={{x: ["-10vw", isMobile ? '12.5vw': '42.5vw']}}
@@ -107,7 +107,7 @@ const Laser = ({isMobile}: {isMobile: boolean}) => {
               position: 'absolute',
               fontSize: '13px',
               top: '54px',
-              right: '1.8vw'
+              right: '22vw'
               }}
             >
               0x
