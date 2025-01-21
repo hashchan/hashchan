@@ -58,7 +58,7 @@ interface Thread {
   chainId: number;
 }
 
-interface Board {
+export interface Board {
   id: number;
   lastSynced: number;
   chainId: number;

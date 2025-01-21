@@ -56,9 +56,21 @@ import { Board } from "@/routes/Chains/Chain/Boards/Board/Board";
 import { Catalogue } from "@/routes/Chains/Chain/Boards/Board/Catalogue";
 import { Thread } from "@/routes/Chains/Chain/Boards/Board/Threads/Thread/Thread";
 
+const createQueryClient = () => {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 1000 * 30, // 30 seconds - aggressive refresh since we use Dexie for persistence
+        gcTime: 1000 * 60 * 60, // 1 hour - how long to keep inactive data in memory
+        retry: 2, // Retry failed requests twice
+        refetchOnWindowFocus: true, // Refetch when window regains focus
+      },
+    },
+  })
+}
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <WagmiProvider config={config}>
-    <QueryClientProvider client={new QueryClient()}>
+    <QueryClientProvider client={createQueryClient()}>
       <W3UpProvider>
         <IDBProvider>
           <HeliaProvider>
