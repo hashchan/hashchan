@@ -13,9 +13,12 @@ export const useCheckRpc = () => {
   const [hasNewFilter, setHasNewFilter] = useState(true)
 
   const fetchRpcHasNewFilter = useCallback(async () => {
-    if (publicClient && chain) {
+    console.log('chain', chain)
+    if (publicClient && chain?.id) {
       try {
+        console.log('publicClient', publicClient)
         const blockHeight = await publicClient.getBlockNumber()
+        console.log('blockHeight', blockHeight)
         const filter = await publicClient.request({
           method: 'eth_newFilter',
           params: [{
@@ -33,7 +36,7 @@ export const useCheckRpc = () => {
         console.log('changes', changes)
         setHasNewFilter(true)
       } catch (e) {
-        console.log(e)
+        console.log('error: ',e)
         setHasNewFilter(false)
       }
     }

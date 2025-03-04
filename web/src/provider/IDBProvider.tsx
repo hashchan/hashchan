@@ -76,6 +76,7 @@ interface BoardsSync {
   chainId: number;
   boardIterator: number;
   lastSynced: number;
+  rangeLimit: number;
 }
 
 type HashchanDB = Dexie & {
@@ -97,7 +98,7 @@ export const IDBProvider = ({ children }) => {
 
   useEffect(() => {
     const db = new Dexie('hashchan') as HashchanDB;
-    db.version(3).stores({
+    db.version(4).stores({
       boardsSync: 'chainId',
       boards: '++id, boardId, &[boardId+chainId], chainId, [chainId+favourite]',
       threads: '++id, &threadId, [boardId+chainId], timestamp',

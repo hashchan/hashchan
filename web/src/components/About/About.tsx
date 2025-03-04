@@ -118,10 +118,12 @@ export const About = () => {
           <img src={Avalanche} className="emoji" />
           <a target="_blank" href="https://subnets.avax.network/c-chain/address/0x7cE23ee9023A138193C33F060A0060E918246E59"> Avalanche</a>
         </p>
+          */}
         <p>
           <img src={Fantom} className="emoji" />
-          <a target="_blank" href="https://ftmscan.com/address/0xca0296EFC305ba8f2A3035e2846d389A8617c4cf"> Fantom</a>
+          <a target="_blank" href="https://ftmscan.com/address/0xd8d6ff8ca3bf20f691a3fd0ee13f104e07e8eb85"> Fantom</a>
         </p>
+        {/*
         <p>
           <img src={ArbitrumOne} className="emoji" />
           <a target="_blank" href="https://arbiscan.io/address/0xca0296EFC305ba8f2A3035e2846d389A8617c4cf"> Arbitrum One</a>
