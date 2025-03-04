@@ -23,8 +23,13 @@ interface Post {
 	replyIds: string[]
 }
 
-const createQueryKey = (threadId: string | undefined, chainId: string | undefined, blockNumber: bigint | undefined) => {
-	return ['thread', threadId, chainId, blockNumber ? Number(blockNumber) : undefined] as const
+const createQueryKey = (
+  chainId: string | undefined,
+  boardId: string | undefined,
+  threadId: string | undefined,
+  blockNumber: bigint | undefined
+) => {
+  return ['chain', chainId, 'board', boardId, 'thread', threadId, blockNumber ? Number(blockNumber) : undefined] as const
 }
 
 export const useThread = () => {
@@ -44,7 +49,7 @@ export const useThread = () => {
 		error,
 		isLoading,
 	} = useQuery({
-		queryKey: createQueryKey(threadIdParam, chainIdParam, blockNumber.data),
+		queryKey: createQueryKey(chainIdParam, boardIdParam, threadIdParam, blockNumber.data),
 		queryFn: async () => {
 			// Initialize refs and logs objects
 			const refsObj: Record<string, any> = {}
@@ -55,6 +60,7 @@ export const useThread = () => {
 			let thread
 
 			if (cachedThread) {
+        console.log('cachedThread', cachedThread)
 				thread = {
 					lastSynced: cachedThread.lastSynced,
 					creator: cachedThread.creator,
@@ -67,11 +73,12 @@ export const useThread = () => {
 					timestamp: Number(cachedThread.timestamp)
 				}
 			} else {
+        console.log('threadIdParam', threadIdParam)
 				const filterArgs = {
 					address: hashchan.address,
 					abi: hashchan.abi,
 					eventName: 'NewThread',
-					args: { id: threadIdParam },
+					args: { threadId: threadIdParam },
 					fromBlock: 0n,
 					toBlock: blockNumber.data
 				}
