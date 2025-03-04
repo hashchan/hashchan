@@ -12,30 +12,38 @@ permissions:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '23'
+          node-version: '20'  # Changed from 23 to 20 for better compatibility
           cache: 'npm'
           cache-dependency-path: web/package-lock.json
-      
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential
+
       - name: Install dependencies
         working-directory: ./web
-        run: npm ci
-      
+        run: |
+          npm install @libp2p/webrtc@5.0.18  # Pin to a specific version
+          npm ci
+        env:
+          PREBUILD_INSTALL_FORCE_REBUILD: "true"
+
       - name: Build
         working-directory: ./web
         run: npm run build
-      
+
       - name: Zip dist folder
         working-directory: ./web
         run: zip -r dist.zip dist/
-      
+
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
