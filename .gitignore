@@ -47,3 +47,4 @@ datastore
 blockstore
 orbit-server/hashchan/orbitdb/orbitdb
 peer-id.json
+.aider*

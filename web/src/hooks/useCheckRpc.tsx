@@ -8,12 +8,14 @@ import { usePublicClient, useAccount } from 'wagmi'
 
 export const useCheckRpc = () => {
   const [isInitialized, setInitialized] = useState(false)
-  const { chain } = useAccount()
+  const { address, chain } = useAccount()
   const publicClient = usePublicClient()
   const [hasNewFilter, setHasNewFilter] = useState(true)
 
+
   const fetchRpcHasNewFilter = useCallback(async () => {
-    if (publicClient && chain) {
+    console.log('fetching rpc has new filter')
+    if (address && publicClient && chain) {
       try {
         const blockHeight = await publicClient.getBlockNumber()
         const filter = await publicClient.request({
@@ -37,7 +39,7 @@ export const useCheckRpc = () => {
         setHasNewFilter(false)
       }
     }
-  },[publicClient, chain])
+  },[ address, publicClient, chain])
 
   useEffect(() => {
     setInitialized(false)

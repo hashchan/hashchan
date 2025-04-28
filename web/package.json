@@ -48,8 +48,8 @@
     "react-router-dom": "^6.25.1",
     "react-string-replace": "^1.1.1",
     "sanitize-markdown": "^2.6.7",
-    "viem": "^2.18.2",
-    "wagmi": "^2.12.1"
+    "viem": "^2.27.2",
+    "wagmi": "^2.14.16"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",

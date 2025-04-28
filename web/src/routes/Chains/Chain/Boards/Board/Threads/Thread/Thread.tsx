@@ -9,12 +9,12 @@ import {BoardHeader} from '@/components/BoardHeader'
 
 import { ReducedModeWarning } from '@/components/ReducedModeWarning'
 import { Post } from '@/components/HashChan/Thread/Post'
-
+import { CacheFlusher } from '@/components/CacheFlusher'
 export const Thread = () => {
   const [makeReply, setMakeReply] = useState([])
   const [toggleReply, setToggleReply] = useState(false)
   const {threadId, boardId } = useParams()
-  const { posts, isReducedMode  } = useThread()
+  const { posts, isReducedMode, isLoading  } = useThread()
 
   const handleOpenPost = (threadId:string) => {
     setMakeReply(old => [...old, threadId])
@@ -22,6 +22,10 @@ export const Thread = () => {
   }
   const handleClose = () => {
     setToggleReply(!toggleReply)
+  }
+
+  if (isLoading) {
+    return <div>Loading...</div>
   }
 
   return (
@@ -47,6 +51,19 @@ export const Thread = () => {
         )
       })
       }
+      {posts.length === 0 && (
+        <>
+          <p>Think there should be something here? try flushing the cache</p>
+          <CacheFlusher
+            query={{
+              table: "threads",
+              where: "threadId",
+              equals: threadId
+            }}
+            handler={() => window.location.reload()}
+          />
+        </>
+      )}
     </>
   )
 }

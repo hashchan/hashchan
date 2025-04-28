@@ -58,7 +58,7 @@ export const TOSPPBanner = () => {
       borderTop: '1px solid #20C20E',
       zIndex: 1000,
     }}>
-      <span>Please Accept the TOS and Privacy Policy or visit the <a target="_blank" href="https://github.com/hashchan/hashchan">github repo</a> to Run Locally</span>
+      <span>Please accept the TOS and privacy policy for the host of this hosted service or visit <a target="_blank" href="https://github.com/hashchan/hashchan">here</a> to run hashchan locally</span>
       <button 
         onClick={() => navigate('/tospp')}
         style={{ 

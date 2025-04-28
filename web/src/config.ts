@@ -20,8 +20,8 @@ import {
 } from 'wagmi/chains'
 
 import { custom } from 'viem'
-import { unstable_connector, fallback } from '@wagmi/core'
-import { injected, walletConnect } from 'wagmi/connectors'
+import { injected, unstable_connector, fallback } from '@wagmi/core'
+import { walletConnect } from 'wagmi/connectors'
 
 const metadata = {
     name: 'HashChan',
@@ -39,73 +39,51 @@ export const config = createConfig({
     mainnet,
     base,
     sepolia,
-    //baseSepolia,
-    //localhost,
-    //optimismSepolia,
+//    baseSepolia,
+//    localhost,
+//    optimismSepolia,
     optimism,
-    //fantom,
-    //arbitrumSepolia,
-    //arbitrum,
-    //arbitrumNova,
-    //flowMainnet,
-    //flowTestnet,
-    //avalanche,
-    //polygon
+//    fantom,
+//    arbitrumSepolia,
+//    arbitrum,
+//    arbitrumNova,
+//    flowMainnet,
+//    flowTestnet,
+//    avalanche,
+//    polygon
   ],
   connectors,
   transports: {
-    [localhost.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+//    [localhost.id]: fallback([injected(), custom(window.ethereum!), unstable_connector(injected)]),
     [classic.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+    /*
+    [mainnet.id]: custom({
+      async request({ method, params }) { 
+        console.log('method', method)
+        console.log('params', params)
+        const response = await window.ethereum.request({ method, params })
+        console.log('response', response)
+        return response
+        
+
+      }
+
+    }),
+   */
     [mainnet.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
     [sepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-    [optimismSepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-    [optimism.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-    [fantom.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+      //[optimismSepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+      [optimism.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+//    [fantom.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
     [base.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-    [baseSepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-    [arbitrumSepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-    [arbitrum.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-    [arbitrumNova.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-    [flowMainnet.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-    [flowTestnet.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-    [polygon.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-    [avalanche.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+//    [baseSepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+//    [arbitrumSepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+//    [arbitrum.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+//    [arbitrumNova.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+//    [flowMainnet.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+//    [flowTestnet.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+//    [polygon.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+//    [avalanche.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
   },
 })
 
-export const chainIdMap = (chainId: number) => {
-  switch (chainId) {
-    case 1337:
-      return 'Localhost'
-    case 84532:
-      return 'Base Sepolia'
-    case 8453:
-      return 'Base'
-    case 250:
-      return 'Fantom Opera'
-    case 61:
-      return 'Ethereum Classic'
-    case 1:
-      return 'Ethereum Mainnet'
-    case 11155111:
-      return 'Sepolia Testnet'
-    case 31337:
-      return 'Localhost'
-    case 11155420:
-      return 'Optimism Sepolia Testnet'
-    case 10:
-      return "Optimism Mainnet"
-    case 421614:
-      return "Arbitrum Sepolia"
-    case 42161:
-      return "Arbitrum One"
-    case 42170:
-      return "Arbitrum Nova"
-    case 747:
-      return "EVM Flow Mainnet"
-    case 545:
-      return "EVM Flow Testnet"
-    default:
-      return "Unsupported Chain"  
-  }
-}

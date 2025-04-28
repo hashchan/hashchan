@@ -16,6 +16,8 @@ import {
 } from 'wagmi';
 import { IDBContext } from '@/provider/IDBProvider';
 import { useParams } from 'react-router-dom';
+
+
 export const useBoard = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const { boardId, chainId } = useParams();

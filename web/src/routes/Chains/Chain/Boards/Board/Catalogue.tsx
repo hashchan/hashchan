@@ -4,7 +4,7 @@ import { useThreads } from '@/hooks/HashChan/useThreads'
 import { useAccount } from 'wagmi'
 import { BoardHeader } from '@/components/BoardHeader'
 import { ReducedModeWarning } from '@/components/ReducedModeWarning'
-
+import { CacheFlusher } from '@/components/CacheFlusher'
 interface Thread {
 	threadId: string
 	title: string
@@ -61,8 +61,24 @@ const ListItem = ({ thread }: { thread: Thread }) => {
 }
 
 const ThreadsList = ({ threads }: { threads: Thread[] }) => {
+  const {boardId, chainId}    = useParams()
 	if (!threads.length) {
-		return <p>Nothing here yet, be the first to post</p>
+    return (
+      <>
+        <p>Nothing here yet, be the first to post</p>
+        <p>Feel like you should see something? try flushing the cache and refetching</p>
+        <CacheFlusher 
+          query={
+            {
+              table: "boards",
+              where: "[boardId+chainId]",
+              equals: [Number(boardId), Number(chainId)]
+            }
+          }
+          handler={() => window.location.reload()}
+        />
+      </>
+    )
 	}
 
 	return (
