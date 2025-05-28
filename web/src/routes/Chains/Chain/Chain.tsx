@@ -7,10 +7,12 @@ import {  Outlet } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { useNavigate, useLocation  } from 'react-router-dom'
 import { useEstimateGas } from '@/hooks/useEstimateGas'
+import { ChainSwitchNotification } from '@/components/ChainSwitchNotification'
+import { PleaseConnectWallet } from '@/components/PleaseConnectWallet'
 import { formatNumberWithSubscriptZeros as fmtZero  } from '@haqq/format-number-with-subscript-zeros';
 
 export const Chain = () => {
-  const { chain } = useAccount()
+  const { chain, isConnected } = useAccount()
   const navigate = useNavigate()
   const previousChainId = useRef(chain?.id)
   const location = useLocation()
@@ -26,17 +28,26 @@ export const Chain = () => {
     }
   }, [chain?.id, navigate])
 
-
   useEffect(() => {
     handleChainChange()
   }, [handleChainChange])
+
+  if (!isConnected) {
+    return (
+      <div>
+        <PleaseConnectWallet />
+      </div>
+    )
+  }
 
   if (!chain) {
     return <>Please connect an RPC to view chain statistics</>
   }
 
   return (
-      <div>{ (chain?.id) && (<>
+      <div>
+        <ChainSwitchNotification />
+        { (chain?.id) && (<>
         <h3>{chain.name}</h3>
         <p>{createPostEstimate && (<>Est Cost to create Post: ~${fmtZero(createPostEstimate.toFixed(20))}</>)}</p>
         <p>{createThreadEstimate && (<>Est Cost to create Thread: ~${fmtZero(createThreadEstimate.toFixed(20))}</>)}</p>

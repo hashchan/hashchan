@@ -3,17 +3,21 @@ import { useParams   } from 'react-router-dom'
 
 import { useThread } from '@/hooks/HashChan/useThread'
 import { CreatePost } from '@/components/HashChan/CreatePost'
-
+import { ChainSwitchNotification } from '@/components/ChainSwitchNotification'
+import { PleaseConnectWallet } from '@/components/PleaseConnectWallet'
+import { useAccount } from 'wagmi'
 
 import {BoardHeader} from '@/components/BoardHeader'
 
 import { ReducedModeWarning } from '@/components/ReducedModeWarning'
 import { Post } from '@/components/HashChan/Thread/Post'
 import { CacheFlusher } from '@/components/CacheFlusher'
+
 export const Thread = () => {
   const [makeReply, setMakeReply] = useState([])
   const [toggleReply, setToggleReply] = useState(false)
   const {threadId, boardId } = useParams()
+  const { isConnected } = useAccount()
   const { posts, isReducedMode, isLoading  } = useThread()
 
   const handleOpenPost = (threadId:string) => {
@@ -28,8 +32,17 @@ export const Thread = () => {
     return <div>Loading...</div>
   }
 
+  if (!isConnected) {
+    return (
+      <>
+        <PleaseConnectWallet />
+      </>
+    )
+  }
+
   return (
     <>
+      <ChainSwitchNotification />
       <BoardHeader key={`board-${boardId}-${threadId}`} />
       {toggleReply && (<CreatePost threadId={threadId} replyIds={makeReply} handleClose={handleClose} />)}
       {isReducedMode && <ReducedModeWarning />}

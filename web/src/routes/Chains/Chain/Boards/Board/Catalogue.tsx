@@ -5,15 +5,10 @@ import { useAccount } from 'wagmi'
 import { BoardHeader } from '@/components/BoardHeader'
 import { ReducedModeWarning } from '@/components/ReducedModeWarning'
 import { CacheFlusher } from '@/components/CacheFlusher'
-interface Thread {
-	threadId: string
-	title: string
-	imgUrl: string
-	content: string
-	janitoredBy: any[]
-}
+import { ChainSwitchNotification } from '@/components/ChainSwitchNotification'
+import { PleaseConnectWallet } from '@/components/PleaseConnectWallet'
 
-const ListItem = ({ thread }: { thread: Thread }) => {
+const ListItem = ({ thread }: { thread: any }) => {
 	const { chainId, boardId } = useParams()
 	const navigate = useNavigate()
 	const { threadId, title, imgUrl, content, janitoredBy } = thread
@@ -60,7 +55,7 @@ const ListItem = ({ thread }: { thread: Thread }) => {
 	)
 }
 
-const ThreadsList = ({ threads }: { threads: Thread[] }) => {
+const ThreadsList = ({ threads }: { threads: any[] }) => {
   const {boardId, chainId}    = useParams()
 	if (!threads.length) {
     return (
@@ -117,9 +112,7 @@ const ErrorState = ({ error }: { error: Error }) => (
 )
 
 const WalletRequiredState = () => (
-	<div style={{ padding: '20px' }}>
-		You need an ethereum RPC connection to scrape logs, please connect an ethereum client like metamask
-	</div>
+	<PleaseConnectWallet />
 )
 
 export const Catalogue = () => {
@@ -134,6 +127,7 @@ export const Catalogue = () => {
 
 	return (
 		<Fragment>
+			<ChainSwitchNotification />
 			<BoardHeader key={`board-${boardId}-catalogue`} />
 
 			<div style={{ marginBottom: '20px' }}>

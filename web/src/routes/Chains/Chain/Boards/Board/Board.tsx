@@ -3,6 +3,9 @@ import { Fragment, useState, useEffect, useCallback } from 'react'
 import { useHelia } from '@/hooks/p2p/useHelia'
 import { BoardHeader } from '@/components/BoardHeader'
 import { useBoard } from '@/hooks/HashChan/useBoard'
+import { ChainSwitchNotification } from '@/components/ChainSwitchNotification'
+import { PleaseConnectWallet } from '@/components/PleaseConnectWallet'
+import { useAccount } from 'wagmi'
 
 
 const Banner = ({
@@ -49,17 +52,24 @@ const Banner = ({
 
 export const Board = () => {
   const { board } = useBoard()
-
+  const { isConnected } = useAccount()
 
   useEffect(() => {
     console.log('board::board', board)
   }, [board])
 
-
+  if (!isConnected) {
+    return (
+      <Fragment key={`board-${board?.boardId}`}>
+        <PleaseConnectWallet />
+      </Fragment>
+    )
+  }
 
   // Check if we're at the exact board route
   return (
     <Fragment key={`board-${board?.boardId}`}>
+      <ChainSwitchNotification />
       <BoardHeader />
         <>
           <div
