@@ -68,6 +68,8 @@ const createQueryClient = () => {
     },
   })
 }
+document.documentElement.setAttribute('data-color-mode', 'dark')
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <WagmiProvider config={config}>
     <QueryClientProvider client={createQueryClient()}>
