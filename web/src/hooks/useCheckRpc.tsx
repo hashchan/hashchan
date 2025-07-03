@@ -14,6 +14,8 @@ export const useCheckRpc = () => {
 
 
   const fetchRpcHasNewFilter = useCallback(async () => {
+    console.log(address, publicClient, chain)
+    /*
     console.log('fetching rpc has new filter')
     if (address && publicClient && chain) {
       try {
@@ -39,6 +41,7 @@ export const useCheckRpc = () => {
         setHasNewFilter(false)
       }
     }
+     */
   },[ address, publicClient, chain])
 
   useEffect(() => {
