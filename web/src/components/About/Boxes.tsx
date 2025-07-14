@@ -36,22 +36,22 @@ const Box = ({
           repeat: Infinity
         }}
         style={{
-          height: '128px',
+          height: '144px',
         }}
         src={logo}/>
   )
 
   return (
     <motion.div style={{
-      marginTop: '5vh',
+      marginTop: `${2 * Math.PHI}vh`,
       display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '0 1.3vw',
-      gap: '5px',
-      width: isMobile ? '90vw' : '30vw',
-      minWidth: isMobile ? '200px' : '400px',
+      padding: `0 ${100/Math.PHI**9}vw`,
+      gap: `${100/Math.PHI**7}px`,
+      width: isMobile ? '90vw' : `${100/Math.PHI**2}vw`,
+      minWidth: isMobile ? '200px' : '377px',
       }}>
       { !isMobile && <LogoDiv/>}
       <div 

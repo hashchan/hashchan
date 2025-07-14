@@ -52,7 +52,7 @@ export const About = () => {
       animate={{opacity: 1}}
       transition={{delay: 3.8, duration: 0.618}}
       style={{
-        marginTop: '5vh',
+        marginTop: `${Math.PHI**2}vh`,
         textAlign: 'center',
         fontStyle: 'italic',
     }}>
@@ -64,7 +64,7 @@ export const About = () => {
       animate={{opacity: 1}}
       transition={{delay: 3.8, duration: 0.618}}
       style={{
-        marginTop: '5vh',
+        marginTop: `${Math.PHI**2}vh`,
         textAlign: 'center',
         fontStyle: 'italic',
     }}>
@@ -75,8 +75,8 @@ export const About = () => {
     <div
       className="flex-wrap-center"
       style={{
-        marginTop: '45vh',
-        marginBottom: '45vh',
+        marginTop: `${100/Math.PHI**2}vh`,
+        marginBottom: `${100/Math.PHI**2}vh`,
         flexDirection: 'column',
       }}
     >
@@ -85,8 +85,8 @@ export const About = () => {
     <div
       className="flex-wrap-center"
       style={{
-        marginTop: '50vh',
-        marginBottom: '45vh',
+        marginTop: `${100/Math.PHI**2}vh`,
+        marginBottom: `${100/Math.PHI**2}vh`,
         flexDirection: 'column',
       }}
     >
@@ -94,8 +94,8 @@ export const About = () => {
     </div>
     <div className="flex-wrap-center"
       style={{
-        marginTop: '35vh',
-        marginBottom: '40vh',
+        marginTop: `${100/Math.PHI**2}vh`,
+        marginBottom: `${100/Math.PHI**2}vh`,
         justifyContent: 'space-around',
       }}
     >
