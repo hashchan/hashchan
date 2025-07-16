@@ -18,7 +18,7 @@ const Cryptographic = ({isMobile}: {isMobile: boolean}) => {
     return (
       <div
         style={{
-          marginTop: '40vh',
+          marginTop: `${100/Math.PHI**2}vh`,
         }}
       >
         { startChars.map((char,i) => (

@@ -171,8 +171,6 @@ export const Post = forwardRef(({
         <ImageDiv imgUrl={imgUrl} />
         <MarkdownEditor.Markdown
           style={{
-            display: 'flex',
-            flexWrap: 'wrap',
             width: `${(100/ Math.PHI)+(100/ (Math.PHI**4))}vw`
           }}
           source={content}
