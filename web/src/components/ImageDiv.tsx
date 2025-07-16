@@ -59,7 +59,7 @@ export const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
           objectFit: 'contain',
           paddingRight: `${1/ Math.PHI}vw`,
           minHeight: `${100*(Math.PHI - 1)}px`,
-          maxWidth: `${100*(Math.PHI + 1)}px`,
+          width: `${100*(Math.PHI + 1)}px`,
           maxHeight: `${1000/(Math.PHI**3)}px`,
         }}
         preload="metadata"
@@ -77,7 +77,7 @@ export const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
         objectFit: 'contain',
         paddingRight: `${1/ Math.PHI}vw`,
         minHeight: `${100*(Math.PHI - 1)}px`,
-        maxWidth: expanded ? `${(100/(Math.PHI))+(100/(Math.PHI**3))+(100/(Math.PHI**5))}vw` : `${100*(Math.PHI + 1)}px`,
+        width: expanded ? `${(100/(Math.PHI))+(100/(Math.PHI**3))+(100/(Math.PHI**5))}vw` : `${100*(Math.PHI + 1)}px`,
         maxHeight: expanded ? `${(100/(Math.PHI))+(100/(Math.PHI**3))+(100/(Math.PHI**5))}vh` : `${1000/(Math.PHI**3)}px`,
       }}
       src={uri}
