@@ -52,6 +52,7 @@ import { Janitors } from "@/routes/Janitors/Janitors";
 import { Janitor } from "@/routes/Janitors/Janitor/Janitor";
 
 import { Chain } from "@/routes/Chains/Chain/Chain";
+import { Boards } from "@/routes/Chains/Chain/Boards/Boards"
 import { Board } from "@/routes/Chains/Chain/Boards/Board/Board";
 import { Catalogue } from "@/routes/Chains/Chain/Boards/Board/Catalogue";
 import { Thread } from "@/routes/Chains/Chain/Boards/Board/Threads/Thread/Thread";
@@ -91,6 +92,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                       <Route path="instructions" element={<Instructions />} />
                     </Route>
                     <Route path="/chains/:chainId" element={<Chain />} />
+                    <Route path="/chains/:chainId/boards" element={<Boards/>}/>
                     <Route path="/chains/:chainId/boards/:boardId" element={<Board />}/>
                     <Route path="/chains/:chainId/boards/:boardId/catalogue" element={<Catalogue />} />
                     <Route path="/chains/:chainId/boards/:boardId/threads/:threadId" element={<Thread />} />
