@@ -131,6 +131,8 @@ export const useThreads = () => {
   useEffect(() => {
     if (!hashchan || !board || !chain?.id) return
 
+    console.log(`🔍 Starting event watcher for NewThread events on board ${board.boardId}...`)
+    
     const unwatch = publicClient.watchContractEvent({
       address: hashchan.address,
       abi: hashchan.abi,
@@ -139,6 +141,9 @@ export const useThreads = () => {
         boardId: board.boardId
       },
       onLogs: async (logs) => {
+        console.log(`📡 Received ${logs.length} new thread event(s) via polling`)
+        console.log('logs', logs)
+        
         const newThread = {
           title: logs[0].args.title,
           creator: logs[0].args.creator,
@@ -151,9 +156,12 @@ export const useThreads = () => {
           timestamp: Number(logs[0].args.timestamp)
         }
 
+        console.log('new thread', newThread)
+
         // Update IndexedDB
         try {
           await db.threads.add(newThread)
+          console.log('Thread added to IndexedDB')
         } catch (e) {
           console.log('Duplicate thread, skipping')
         }
@@ -163,6 +171,7 @@ export const useThreads = () => {
           createQueryKey(boardIdParam, chainIdParam, blockNumber.data),
           (old: Thread[] = []) => [...old, newThread]
         )
+        console.log('Thread added to query cache')
       }
     })
 
@@ -170,6 +179,7 @@ export const useThreads = () => {
 
     return () => {
       if (unwatchRef.current) {
+        console.log(`🛑 Stopping event watcher for board ${board?.boardId}`)
         unwatchRef.current()
         unwatchRef.current = null
       }

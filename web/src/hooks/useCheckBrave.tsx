@@ -14,7 +14,6 @@ export const useCheckBrave = () => {
     console.log('brave', brave)
 
     if (typeof brave === 'undefined') {
-      consolog.log('no brave')
       setIsBrave(false)
     } else {
       setIsBrave(true)

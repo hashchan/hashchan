@@ -33,7 +33,6 @@ export const ModerationServicesProvider = ({ children }) => {
   const walletClient = useWalletClient();
 
   const addPubsubHandle = useCallback(async () => {
-    console.log('adding pubsub handle')
     if (!helia && !db && !orbit) return 
     //const listenerCount = helia.libp2p.services.pubsub.listenerCount('message')
     //console.log('listenerCount', listenerCount)
@@ -54,7 +53,6 @@ export const ModerationServicesProvider = ({ children }) => {
         setLogErrors(old =>[...old, e.message])
       }
       if (route == 'ping') {
-        console.log('ping received', data)
         await db.moderationServices
           .where('[address+chainId]')
           .equals([addr, chainId]).modify({orbitDbAddr: data.orbitDbAddr})
@@ -115,7 +113,6 @@ export const ModerationServicesProvider = ({ children }) => {
       subscribedModerationServices.forEach(async (ms) => {
         try {
           const dial = await helia.libp2p.dial(multiaddr(`/dns4/${ms.uri}/tcp/${ms.port}/wss`))
-          console.log('ms.address', ms.address)
           const baseUrl = `/chainId/${ms.chainId}/address/${ms.address}`
           await helia.libp2p.services.pubsub.subscribe(baseUrl)
           await helia.libp2p.services.pubsub.subscribe(`${baseUrl}/ping`)
@@ -170,8 +167,6 @@ export const ModerationServicesProvider = ({ children }) => {
   ])
 
   useEffect(() => {
-    console.log('mod servcie init')
-    console.log(Boolean(isInitialized), Boolean(helia), Boolean(db), Boolean(publicClient), Boolean(walletClient?.data), Boolean(orbit), Boolean(chain?.id))
     if (isInitialized ||
        !helia ||
        !db ||

@@ -27,7 +27,7 @@ const createQueryKey = (
   chainId: string | undefined,
   boardId: string | undefined,
   threadId: string | undefined,
-  blockNumber: bigint | undefined
+  blockNumber: number | undefined
 ) => {
   return ['chain', chainId, 'board', boardId, 'thread', threadId, blockNumber ? Number(blockNumber) : undefined] as const
 }
@@ -49,7 +49,7 @@ export const useThread = () => {
 		error,
 		isLoading,
 	} = useQuery({
-		queryKey: createQueryKey(chainIdParam, boardIdParam, threadIdParam, blockNumber.data),
+		queryKey: createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data)),
 		queryFn: async () => {
 			// Initialize refs and logs objects
 			const refsObj: Record<string, any> = {}
@@ -239,26 +239,27 @@ export const useThread = () => {
 				onLogs: async (logs) => {
 					const { creator, content, postId, imgUrl, imgCID, timestamp } = logs[0].args
 
-					queryClient.setQueryData(
-						createQueryKey(threadIdParam, chainIdParam, blockNumber.data),
-						(old: { posts: Post[] } = { posts: [] }) => {
-							const replyIds = parseContent(content)
-							const newPost = {
-								creator,
-								postId,
-								imgUrl,
-								imgCID,
-								content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
-								timestamp: Number(timestamp),
-								janitoredBy: [],
-								replies: [],
-								ref: createRef(),
-								replyIds
-							}
+					const sanitizedContent = sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] })
+					const replyIds = parseContent(sanitizedContent)	
+					const newPost = {
+						creator,
+						postId: String(postId),
+						imgUrl,
+						imgCID,
+						content: sanitizedContent,
+						timestamp: Number(timestamp),
+						janitoredBy: [],
+						replies: [],
+						ref: createRef(),
+						replyIds
+					}
 
+					queryClient.setQueryData(
+						createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data)),
+						(old: { posts: Post[] } = { posts: [] }) => {
 							// Update replies in existing posts
 							const updatedPosts = old.posts.map(post => {
-								if (replyIds.includes(post.postId || post.threadId || '')) {
+								if (newPost.replyIds.includes(post.postId || post.threadId || '')) {
 									return {
 										...post,
 										replies: [...post.replies, { ref: newPost.ref, id: postId }]
@@ -279,7 +280,7 @@ export const useThread = () => {
 						await db.posts.add({
 							boardId: boardIdParam,
 							threadId: threadIdParam,
-							postId,
+							postId: String(postId),
 							creator,
 							imgUrl,
 							imgCID,
