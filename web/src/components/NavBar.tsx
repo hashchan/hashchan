@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom'
 import { ConnectWallet } from './ConnectWallet'
 import { ConnectW3Storage } from './ConnectW3Storage'
 import { BoardsList } from '@/components/HashChan/BoardsList'
+import { OptionsModal } from './OptionsModal'
 
 const HomeButton = () => {
   const [homeHover, setHomeHover] = useState(false)
@@ -87,6 +88,7 @@ export const NavBar = () => {
         <IconLink href="https://twitter.com/0xhashchan" Logo={<FaSquareXTwitter size={pxSize}   />} />
         <IconLink href="https://discord.gg/ZQPA5MQHa6" Logo={<FaDiscord size={pxSize}  />} />
         <IconLink href="https://youtube.com/@0xhashchan" Logo={<FaYoutube size={pxSize} />} />
+        <OptionsModal pxSize={pxSize} />
       </div>
     </div>
   )

@@ -14,10 +14,12 @@ interface ModerationService {
   orbitDbAddr: string;
 }
 
-interface Settings {
+export interface Settings {
   id?: number;
   tosAccepted: boolean;
   tosTimestamp: number;
+  defaultTipAmount: string; // wei
+  indexingStrategy: 'fullNode' | 'reverseChunked' | 'bulkScrape'
 }
 
 interface Post {
@@ -97,7 +99,7 @@ export const IDBProvider = ({ children }) => {
 
   useEffect(() => {
     const db = new Dexie('hashchan') as HashchanDB;
-    db.version(3).stores({
+    db.version(4).stores({
       boardsSync: 'chainId',
       boards: '++id, boardId, &[boardId+chainId], chainId, [chainId+favourite]',
       threads: '++id, &threadId, [boardId+chainId], timestamp',
@@ -114,6 +116,8 @@ export const IDBProvider = ({ children }) => {
         await db.settings.add({
           tosAccepted: false,
           tosTimestamp: 0,
+          defaultTipAmount: '161803398874989485',
+          indexingStrategy: 'fullNode'
         });
       }
       setDb(db);
