@@ -8,6 +8,7 @@ import sanitizeMarkdown from 'sanitize-markdown'
 import { parseContent } from '@/utils/content'
 import { tryRecurseBlockFilter } from '@/utils/blockchain'
 import { ModerationServicesContext } from '@/provider/ModerationServicesProvider'
+import { useBoard } from '@/hooks/HashChan/useBoard'
 
 interface Post {
 	creator: string
@@ -42,6 +43,7 @@ export const useThread = () => {
 	const { hashchan } = useContracts()
 	const queryClient = useQueryClient()
 	const unwatchRef = useRef<(() => void) | null>(null)
+	const { updateMetadata } = useBoard()
 
 	// Main query for thread and posts
 	const {
@@ -208,6 +210,11 @@ export const useThread = () => {
 				lastSynced: Number(blockNumber.data)
 			})
 
+			// Update board's post count using the mutation
+			if (logs.length > 0) {
+				updateMetadata({ postCount: logs.length })
+			}
+
 			return {
 				posts: Object.values(logsObj),
 				isReducedMode: isReduced
@@ -288,6 +295,9 @@ export const useThread = () => {
 							timestamp: Number(timestamp),
 							replyIds: parseContent(content)
 						})
+
+						updateMetadata({ postCount: 1 })
+
 					} catch (e) {
 						console.log('Duplicate post, skipping')
 					}

@@ -62,18 +62,18 @@ export const useHelia = () => {
 	const {helia, fs} = useContext(HeliaContext)
 	const [logErrors, setLogErrors] = useState([])
 
-	const fetchCID = useCallback(async (cidSting: string) => {
-		console.log('helia', helia)
-		if (helia && fs) {
+	const fetchCID = useCallback(async (cidString: string) => {
+		if (helia && fs && cidString?.length > 0 ) {
 			try {
-				const cid = CID.parse(cidSting)
+				console.log('cidString', cidString)
+				const cid = CID.parse(cidString)
 				const res = await fs.cat(cid)
 				const stream = iteratorToStream(res)
 				// Create blob from stream
 				const response = new Response(stream)
 				const blob = await response.blob()
 		
-				return { blob, type:null }
+				return { blob: blob, type:null }
 
 			} catch (e) {
 				console.log('e', e)

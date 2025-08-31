@@ -72,7 +72,13 @@ export const useCreateBoard = () => {
                   bannerCID,
                   description,
                   rules,
-                  favourite: 0
+                  favourite: 0,
+                  metadata: {
+                    stats: {
+                      threadCount: 0,
+                      postCount: 0
+                    }
+                  }
                 })
                 unwatch()
               }

@@ -54,7 +54,7 @@ export const useBoards = () => {
       hashchan
     ),
     staleTime: 1000 * 60 * 5, // Consider data stale after 5 minutes
-    queryKey: ['boards', Number(blockNumber.data), Number(chain?.id)],
+    queryKey: ['boards', Number(chain?.id)],
     queryFn: async () => {
       let boardsSync = await db.boardsSync.where('chainId').equals(chain.id).first()
       if (!boardsSync) {
@@ -87,7 +87,13 @@ export const useBoards = () => {
             bannerUrl: ethBoard.bannerUrl,
             bannerCID: ethBoard.bannerCID,
             rules: ethBoard.rules,
-            lastSynced: 0
+            lastSynced: 0,
+            metadata: {
+              stats: {
+                threadCount: 0,
+                postCount: 0
+              }
+            }
           }
           await db.boards.add(board)
           boards.push(board)
@@ -129,7 +135,9 @@ export const useBoards = () => {
       return board
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['favouriteBoards', chain?.id] })
+      // Invalidate both queries to ensure UI updates
+      queryClient.invalidateQueries({ queryKey: ['boards', Number(chain?.id)] })
+      queryClient.invalidateQueries({ queryKey: ['favouriteBoards', Number(chain?.id)] })
     }
   })
 
@@ -140,12 +148,8 @@ export const useBoards = () => {
     favouriteBoards,
     toggleFavourite: toggleFavouriteMutation.mutate,
     refetch: () => {
-      queryClient.invalidateQueries({ queryKey: [
-        'boards',
-        Number(blockNumber.data),
-        Number(chain?.id)
-      ]})
-      queryClient.invalidateQueries({ queryKey: ['favouriteBoards', Number( chain?.id )] })
+      queryClient.invalidateQueries({ queryKey: ['boards', Number(chain?.id)] })
+      queryClient.invalidateQueries({ queryKey: ['favouriteBoards', Number(chain?.id)] })
     }
   }
 }

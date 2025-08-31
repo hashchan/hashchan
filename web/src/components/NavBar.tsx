@@ -66,6 +66,7 @@ export const NavBar = () => {
       </div>
       <ConnectWallet />
       <ConnectW3Storage />
+      <OptionsModal pxSize={pxSize} />
       <div
         className="flex-wrap-center"
         style={{
@@ -88,7 +89,6 @@ export const NavBar = () => {
         <IconLink href="https://twitter.com/0xhashchan" Logo={<FaSquareXTwitter size={pxSize}   />} />
         <IconLink href="https://discord.gg/ZQPA5MQHa6" Logo={<FaDiscord size={pxSize}  />} />
         <IconLink href="https://youtube.com/@0xhashchan" Logo={<FaYoutube size={pxSize} />} />
-        <OptionsModal pxSize={pxSize} />
       </div>
     </div>
   )

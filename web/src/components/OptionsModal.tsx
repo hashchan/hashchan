@@ -85,6 +85,7 @@ const OptionsModalContent = ({ handleClose }: { handleClose: () => void }) => {
             && <span>This field is required</span>
           }
         </div>
+        {/*
         <label htmlFor="indexingStrategy">Index Strategy</label>
         <div style={{ width }}>
           <div className="radio-group">
@@ -123,7 +124,7 @@ const OptionsModalContent = ({ handleClose }: { handleClose: () => void }) => {
             && <span>This field is required</span>
           }
         </div>
-
+        */}
         <button
           disabled={isSubmitting}
           type="submit"

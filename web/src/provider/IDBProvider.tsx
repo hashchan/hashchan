@@ -46,7 +46,7 @@ interface Janitored {
   janny: `0x${string}`;
 }
 
-interface Thread {
+export interface Thread {
   id: number;
   lastSynced: number;
   boardId: number;
@@ -72,6 +72,12 @@ export interface Board {
   bannerCID: string;
   rules: string[];
   favourite: number; // 0 = false, 1 = true
+  metadata: {
+    stats: {
+      threadCount: number;
+      postCount: number;
+    }
+  }
 }
 
 interface BoardsSync {

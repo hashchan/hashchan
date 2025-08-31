@@ -1,6 +1,7 @@
 import { getExplorerUrl } from '@/utils/explorer'
 import { truncateEthAddress } from '@/utils/address'
 import { useAccount } from 'wagmi'
+import { Fragment } from 'react/jsx-runtime'
 export const TxResponse = ({
   wait,
   hash,
@@ -51,9 +52,9 @@ export const TxResponse = ({
             <p>waiting for tx confirmation...</p>
           ) : logs.map((log, i) => {
             return (
-              <>
+              <Fragment key={i+'log'}>
                 <p className="break-words" key={i}>{log.transactionHash ? 'successful' : 'failed'}</p>
-              </>
+              </Fragment>
             )
           })
           }
