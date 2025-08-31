@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState } from 'react';
 import Dexie, { type EntityTable } from 'dexie';
-
+import { formatEther } from 'viem'
 
 interface ModerationService {
   id?: number;
@@ -117,12 +117,14 @@ export const IDBProvider = ({ children }) => {
 
     (async () => {
       // Initialize settings if they don't exist
+      const bigPhi = BigInt(Math.PHI * 10 ** 16)
+      console.log('bigPhi', bigPhi)
       const settings = await db.settings.toArray();
       if (settings.length === 0) {
         await db.settings.add({
           tosAccepted: false,
           tosTimestamp: 0,
-          defaultTipAmount: '161803398874989485',
+          defaultTipAmount: String(bigPhi),
           indexingStrategy: 'fullNode'
         });
       }
