@@ -1,7 +1,7 @@
 import { Table, TableHeader, TableData } from "@/components/Table"
 import { useBoards } from "@/hooks/HashChan/useBoards"
 import { FaRegCheckCircle, FaCheckCircle } from "react-icons/fa"
-import { Link } from "react-router-dom"
+import { Link, useParams } from "react-router-dom"
 const Favourited = ({
     board,
     toggleFavourite
@@ -28,9 +28,17 @@ const BoardLink = ({board}: {board: any}) => {
 export const Boards = ({}:{}) => {
 
     const {boards, toggleFavourite} = useBoards()
+    const { chainId } = useParams()
 
     return (
         <>
+        <div className="flex-wrap-center"
+          style={{
+            justifyContent: 'space-between',
+          }}
+        >
+          <h2>Boards List for {chainId}</h2>
+        </div>
         <Table>
             <thead>
                 <tr>
@@ -55,6 +63,7 @@ export const Boards = ({}:{}) => {
                 ))}
             </tbody>
         </Table>
+        <p>Threads and Post counts increase as you find them, will be at zero for beginning</p>
         </>
     )
 }
