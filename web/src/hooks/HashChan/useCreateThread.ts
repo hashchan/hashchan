@@ -11,13 +11,14 @@ import { useContracts } from '@/hooks/useContracts'
 
 import { useBoard } from '@/hooks/HashChan/useBoard'
 import { computeImageCID } from '@/utils/cids'
+import { Thread } from '@/provider/IDBProvider'
 
 
 export const useCreateThread = () => {
   const { db } = useContext(IDBContext)
-  const { board } = useBoard()
+  const { board, updateMetadata } = useBoard()
   const { hashchan } = useContracts()
-  const { address } =  useAccount()
+  const { address, chainId } =  useAccount()
 
   const [hash, setHash] = useState(null)
   const [logs, setLogs] = useState([])
@@ -31,7 +32,7 @@ export const useCreateThread = () => {
     imageUrl: string,
     content: string
   )  => {
-    if (db && board && hashchan && address) {
+    if (db && board && hashchan && address && chainId) {
 
       const { cid, error } = await computeImageCID(imageUrl)
       if (error) {
@@ -52,8 +53,29 @@ export const useCreateThread = () => {
               console.log('onLogs', logs)
               setLogs(logs)
               setThreadId(logs[0].args.threadId)
-              // maybe lastsynced here
-              //await db.threads.add(logs[0].args)
+              /*
+              const newThread:Thread = {
+                id: logs[0].args.threadId,
+                lastSynced: 0,
+                boardId: Number(logs[0].args.boardId),
+                threadId: logs[0].args.threadId,
+                creator: logs[0].args.creator,
+                imgUrl: logs[0].args.imgUrl,
+                imgCID: logs[0].args.imgCID,
+                title: logs[0].args.title,
+                content: logs[0].args.content,
+                timestamp: Number(logs[0].args.timestamp),
+                chainId: Number(chainId)
+              }
+              await db.threads.add(newThread)
+
+              // Update board's last synced timestamp
+              await db.boards.update(board.boardId, { lastSynced: Date.now() })
+
+              // Update board's thread count with the useBoard hook
+              updateMetadata({ threadCount: 1})
+              */
+
               unwatch()
             }
           }
@@ -76,6 +98,7 @@ export const useCreateThread = () => {
     db,
     board,
     address,
+    chainId
   ])
 
   return {

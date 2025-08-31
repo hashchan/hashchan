@@ -9,12 +9,15 @@ import { useTip } from '@/hooks/useTip'
 
 import { Modal } from '@/components/Modal'
 import { TxResponse} from '@/components/TxResponse'
+import { useOptions } from '@/hooks/useOptions'
+import { formatEther } from 'viem'
 
 export const TipCreator = ({creator}: {creator: `0x${string}`}) => {
   const [wait, setWait] = useState(0)
   const { createTip, hash, logs, logErrors } = useTip()
   const [isOpen, setIsOpen] = useState(false)
   const [hovered, setHovered] = useState(false)
+  const { options } = useOptions()
   const { register, handleSubmit, formState: { errors  }  } = useForm();
 
   const handleClose = () => {
@@ -73,7 +76,7 @@ export const TipCreator = ({creator}: {creator: `0x${string}`}) => {
                 margin: '4px 0',
                 width: '100%',
               }}
-              defaultValue={(Math.PHI)/100} {...register("amount", { required: true })} />
+              defaultValue={formatEther(options?.defaultTipAmount).toString()} {...register("amount", { required: true })} />
               {errors.amount && <span>This field is required</span>}
             </div>
             <button type="submit">Tip</button>

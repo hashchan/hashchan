@@ -26,7 +26,7 @@ const createQueryKey = (boardId: string | undefined, chainId: string | undefined
 }
 
 export const useThreads = () => {
-  const { board } = useBoard()
+  const { board, updateMetadata } = useBoard()
   const { boardId: boardIdParam, chainId: chainIdParam } = useParams()
   const { db } = useContext(IDBContext)
   const { address, chain } = useAccount()
@@ -76,25 +76,38 @@ export const useThreads = () => {
           const logs = await publicClient.getFilterLogs({ filter })
           
           for (const log of logs) {
+            // Type cast the log to access args properly
+            const logArgs = (log as any).args
+            
+            // Check if thread already exists
+            const existingThread = await db.threads.where('threadId').equals(logArgs.threadId).first()
+            
+            if (existingThread) {
+              console.log('Thread already exists, skipping:', logArgs.threadId)
+              continue
+            }
+
             const newThread: Thread = {
               lastSynced: 0,
-              boardId: Number(log.args.boardId),
-              threadId: log.args.threadId,
-              creator: log.args.creator,
-              imgUrl: log.args.imgUrl,
-              imgCID: log.args.imgCID,
-              title: log.args.title,
-              content: log.args.content,
+              boardId: Number(logArgs.boardId),
+              threadId: logArgs.threadId,
+              creator: logArgs.creator,
+              imgUrl: logArgs.imgUrl,
+              imgCID: logArgs.imgCID,
+              title: logArgs.title,
+              content: logArgs.content,
               janitoredBy: [],
               chainId: Number(chain.id),
-              timestamp: Number(log.args.timestamp)
+              timestamp: Number(logArgs.timestamp)
             }
 
             try {
+              console.log('Adding new thread:', newThread.threadId)
               await db.threads.add(newThread)
               threads.push(newThread)
             } catch (e) {
-              console.log('Duplicate thread, skipping')
+              console.log('Error adding thread:', e)
+              console.log('Skipping thread:', newThread.threadId)
             }
           }
 
@@ -103,6 +116,11 @@ export const useThreads = () => {
             .where('[boardId+chainId]')
             .equals([Number(boardIdParam), Number(chainIdParam)])
             .modify({ lastSynced: Number(blockNumber.data) })
+
+          // Update thread count using the mutation
+          if (logs.length > 0) {
+            updateMetadata({ threadCount: logs.length })
+          }
 
           return threads
         } catch (error) {
@@ -144,16 +162,28 @@ export const useThreads = () => {
         console.log(`📡 Received ${logs.length} new thread event(s) via polling`)
         console.log('logs', logs)
         
+        const logArgs = (logs[0] as any).args
+        
+        // Check if thread already exists
+        const existingThread = await db.threads.where('threadId').equals(logArgs.threadId).first()
+        
+        if (existingThread) {
+          console.log('Thread already exists in real-time update, skipping:', logArgs.threadId)
+          return
+        }
+        
         const newThread = {
-          title: logs[0].args.title,
-          creator: logs[0].args.creator,
-          threadId: logs[0].args.threadId,
-          imgUrl: logs[0].args.imgUrl,
-          imgCID: logs[0].args.imgCID,
-          content: logs[0].args.content,
+          lastSynced: 0,
+          boardId: Number(logArgs.boardId),
+          title: logArgs.title,
+          creator: logArgs.creator,
+          threadId: logArgs.threadId,
+          imgUrl: logArgs.imgUrl,
+          imgCID: logArgs.imgCID,
+          content: logArgs.content,
           janitoredBy: [],
-          chainId: chain.id,
-          timestamp: Number(logs[0].args.timestamp)
+          chainId: Number(chain.id),
+          timestamp: Number(logArgs.timestamp)
         }
 
         console.log('new thread', newThread)
@@ -161,9 +191,11 @@ export const useThreads = () => {
         // Update IndexedDB
         try {
           await db.threads.add(newThread)
+          updateMetadata({ threadCount: 1 })
           console.log('Thread added to IndexedDB')
         } catch (e) {
-          console.log('Duplicate thread, skipping')
+          console.log('Error adding thread in real-time:', e)
+          console.log('Skipping thread:', newThread.threadId)
         }
 
         // Update query cache

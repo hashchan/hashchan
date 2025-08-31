@@ -9,7 +9,7 @@ import { DropDown } from '@/components/DropDown'
 const BoardItem = ({
   board,
   toggleFavourite
-}:{
+}: {
   board: any
   toggleFavourite: (board: any) => void
 }) => {
@@ -28,10 +28,10 @@ const BoardItem = ({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{
-        width: `${100*Math.PHI}px`,
+        width: `${100 * Math.PHI}px`,
         margin: '5px 8px',
         backgroundColor: hover ? '#222222' : '#090909',
-        padding:'5px 8px',
+        padding: '5px 8px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -51,7 +51,7 @@ const BoardItem = ({
           alignItems: 'center',
           justifyContent: 'center',
         }}
-        onClick={() => {toggleFavourite(board)}}>
+        onClick={() => { toggleFavourite(board) }}>
         {board.favourite === 1 ? <FaCheckCircle /> : <FaRegCheckCircle />}
       </button>
     </div>
@@ -59,17 +59,25 @@ const BoardItem = ({
 }
 
 export const BoardsList = () => {
-  const { address } =  useAccount()
+  const { address, chainId } = useAccount()
   const { boards, favouriteBoards, toggleFavourite } = useBoards()
   const [openCreateBoard, setOpenCreateBoard] = useState(false)
+  const [hover, setHover] = useState(false)
 
   const handleClose = () => {
     setOpenCreateBoard(old => !old)
   }
+  const handleMouseEnter = () => {
+    setHover(true)
+  }
+
+  const handleMouseLeave = () => {
+    setHover(false)
+  }
   if (address) {
     return (
       <>[
-        {favouriteBoards.map((board,i) => {
+        {favouriteBoards.map((board, i) => {
           return (
             <Fragment key={i}>
               <Link
@@ -82,7 +90,23 @@ export const BoardsList = () => {
         })}
         ]
         <DropDown name="Boards">
-          {boards.map((board,i) => {
+          <Link
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            style={{
+              width: `${100 * Math.PHI}px`,
+              margin: '5px 8px',
+              backgroundColor: hover ? '#222222' : '#090909',
+              padding: '5px 8px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+            to={`/chains/${chainId}/boards`}
+          >
+            Boards List
+          </Link>
+          {favouriteBoards.map((board, i) => {
             return <BoardItem key={i} board={board} toggleFavourite={toggleFavourite} />
           })}
           <button

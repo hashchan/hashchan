@@ -16,6 +16,7 @@ import {
 } from 'wagmi';
 import { IDBContext } from '@/provider/IDBProvider';
 import { useParams } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 
 export const useBoard = () => {
@@ -28,6 +29,7 @@ export const useBoard = () => {
   const [board, setBoard] = useState(null);
   const { chain} = useAccount()
   const {db} = useContext(IDBContext)
+  const queryClient = useQueryClient()
 
   const fetchBoard = useCallback(async () => {
     if (
@@ -55,21 +57,6 @@ export const useBoard = () => {
           }
         )
 
-        /*
-        const boardFilter = await publicClient.createContractEventFilter({
-          address: contractAddress,
-          abi,
-          eventName: 'NewBoard',
-          args: {
-            boardId: boardId
-          }
-        })
-
-        const events = await publicClient.getContractEvents({
-          filter: boardFilter
-        })
-
-         */
         const log = logs[0]
         if (!log) {return}
 
@@ -80,7 +67,13 @@ export const useBoard = () => {
           favourite: 0,
           name,
           symbol,
-          lastSynced: 0
+          lastSynced: 0,
+          metadata: {
+            stats: {
+              threadCount: 0,
+              postCount: 0
+            }
+          }
         }
 
         try {
@@ -100,6 +93,41 @@ export const useBoard = () => {
     chainId,
     hashchan
   ]);
+
+
+  const updateMetadataMutation = useMutation({
+    mutationFn: async (increment: { threadCount?: number; postCount?: number }) => {
+      if (!board) throw new Error('Board not loaded')
+      
+      await db.boards
+        .where('[boardId+chainId]')
+        .equals([board.boardId, board.chainId])
+        .modify((boardData) => {
+          if (!boardData.metadata) {
+            boardData.metadata = { stats: { threadCount: 0, postCount: 0 } }
+          }
+          if (increment.threadCount) {
+            boardData.metadata.stats.threadCount += increment.threadCount
+          }
+          if (increment.postCount) {
+            boardData.metadata.stats.postCount += increment.postCount
+          }
+        })
+      
+      // Refresh board state from DB
+      const updatedBoard = await db.boards
+        .where('[boardId+chainId]')
+        .equals([board.boardId, board.chainId])
+        .first()
+      
+      return updatedBoard
+    },
+    onSuccess: (updatedBoard) => {
+      if (updatedBoard) setBoard(updatedBoard)
+      // Invalidate boards query to refresh UI with updated metadata
+      queryClient.invalidateQueries({ queryKey: ['boards', Number(chain?.id)] })
+    }
+  })
 
 
   useEffect(() => {
@@ -132,6 +160,7 @@ export const useBoard = () => {
   ])
 
   return {
-    board
+    board,
+    updateMetadata: updateMetadataMutation.mutate
   }
 }

@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState } from 'react';
 import Dexie, { type EntityTable } from 'dexie';
-
+import { formatEther } from 'viem'
 
 interface ModerationService {
   id?: number;
@@ -14,10 +14,12 @@ interface ModerationService {
   orbitDbAddr: string;
 }
 
-interface Settings {
+export interface Settings {
   id?: number;
   tosAccepted: boolean;
   tosTimestamp: number;
+  defaultTipAmount: string; // wei
+  indexingStrategy: 'fullNode' | 'reverseChunked' | 'bulkScrape'
 }
 
 interface Post {
@@ -44,7 +46,7 @@ interface Janitored {
   janny: `0x${string}`;
 }
 
-interface Thread {
+export interface Thread {
   id: number;
   lastSynced: number;
   boardId: number;
@@ -70,6 +72,12 @@ export interface Board {
   bannerCID: string;
   rules: string[];
   favourite: number; // 0 = false, 1 = true
+  metadata: {
+    stats: {
+      threadCount: number;
+      postCount: number;
+    }
+  }
 }
 
 interface BoardsSync {
@@ -97,7 +105,7 @@ export const IDBProvider = ({ children }) => {
 
   useEffect(() => {
     const db = new Dexie('hashchan') as HashchanDB;
-    db.version(3).stores({
+    db.version(4).stores({
       boardsSync: 'chainId',
       boards: '++id, boardId, &[boardId+chainId], chainId, [chainId+favourite]',
       threads: '++id, &threadId, [boardId+chainId], timestamp',
@@ -109,11 +117,15 @@ export const IDBProvider = ({ children }) => {
 
     (async () => {
       // Initialize settings if they don't exist
+      const bigPhi = BigInt(Math.PHI * 10 ** 16)
+      console.log('bigPhi', bigPhi)
       const settings = await db.settings.toArray();
       if (settings.length === 0) {
         await db.settings.add({
           tosAccepted: false,
           tosTimestamp: 0,
+          defaultTipAmount: String(bigPhi),
+          indexingStrategy: 'fullNode'
         });
       }
       setDb(db);
