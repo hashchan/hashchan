@@ -16,6 +16,7 @@ interface Thread {
   imgCID: string
   title: string
   content: string
+  bookmarked: boolean
   janitoredBy: string[]
   chainId: number
   timestamp: number
@@ -95,6 +96,7 @@ export const useThreads = () => {
               imgUrl: logArgs.imgUrl,
               imgCID: logArgs.imgCID,
               title: logArgs.title,
+              bookmarked: false,
               content: logArgs.content,
               janitoredBy: [],
               chainId: Number(chain.id),
@@ -181,6 +183,7 @@ export const useThreads = () => {
           imgUrl: logArgs.imgUrl,
           imgCID: logArgs.imgCID,
           content: logArgs.content,
+          bookmarked: false,
           janitoredBy: [],
           chainId: Number(chain.id),
           timestamp: Number(logArgs.timestamp)

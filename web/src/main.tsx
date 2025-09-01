@@ -56,6 +56,7 @@ import { Boards } from "@/routes/Chains/Chain/Boards/Boards"
 import { Board } from "@/routes/Chains/Chain/Boards/Board/Board";
 import { Catalogue } from "@/routes/Chains/Chain/Boards/Board/Catalogue";
 import { Thread } from "@/routes/Chains/Chain/Boards/Board/Threads/Thread/Thread";
+import { Bookmarks } from "@/routes/Chains/Chain/Boards/Board/Bookmarks";
 
 const createQueryClient = () => {
   return new QueryClient({
@@ -95,6 +96,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                     <Route path="/chains/:chainId/boards" element={<Boards/>}/>
                     <Route path="/chains/:chainId/boards/:boardId" element={<Board />}/>
                     <Route path="/chains/:chainId/boards/:boardId/catalogue" element={<Catalogue />} />
+                    <Route path="/chains/:chainId/boards/:boardId/bookmarks" element={<Bookmarks />} />
                     <Route path="/chains/:chainId/boards/:boardId/threads/:threadId" element={<Thread />} />
                     <Route path="/" element={<Home />} />
                     <Route path="*" element={<NotFound />} />

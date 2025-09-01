@@ -30,6 +30,7 @@ interface Post {
   creator: `0x${string}`;
   imgUrl: string;
   imgCID: string;
+  bookmarked: number;
   replyIds: string[];
   content: string;
   timestamp: number;
@@ -49,6 +50,7 @@ interface Janitored {
 export interface Thread {
   id: number;
   lastSynced: number;
+  bookmarked: number;
   boardId: number;
   threadId: string;
   creator: `0x${string}`;
@@ -105,11 +107,11 @@ export const IDBProvider = ({ children }) => {
 
   useEffect(() => {
     const db = new Dexie('hashchan') as HashchanDB;
-    db.version(5).stores({
+    db.version(6).stores({
       boardsSync: 'chainId',
       boards: '++id, boardId, &[boardId+chainId], chainId, [chainId+favourite]',
-      threads: '++id, &threadId, [boardId+chainId], timestamp',
-      posts: '++id, &postId, threadId, timestamp',
+      threads: '++id, &threadId, bookmarked, [boardId+chainId], timestamp',
+      posts: '++id, &postId, threadId, bookmarked, timestamp',
       settings: '++id',
       moderationServices: '++id, &[address+chainId], subscribed, address',
       janitored: '++id, moderationServiceAddress, postId, threadId'
@@ -118,7 +120,6 @@ export const IDBProvider = ({ children }) => {
     (async () => {
       // Initialize settings if they don't exist
       const bigPhi = BigInt(Math.PHI * 10 ** 16)
-      console.log('bigPhi', bigPhi)
       const settings = await db.settings.toArray();
       if (settings.length === 0) {
         await db.settings.add({

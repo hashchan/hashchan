@@ -16,9 +16,13 @@ import { CacheFlusher } from '@/components/CacheFlusher'
 export const Thread = () => {
   const [makeReply, setMakeReply] = useState([])
   const [toggleReply, setToggleReply] = useState(false)
-  const {threadId, boardId } = useParams()
+  const {threadId, boardId, chainId } = useParams()
   const { isConnected } = useAccount()
-  const { posts, isReducedMode, isLoading  } = useThread()
+  const { posts, isReducedMode, isLoading, bookmark } = useThread()
+
+  const handleBookmark = (chainId: string, boardId: string, threadId: string, postId: string) => {
+    bookmark({ threadId, postId })
+  }
 
   const handleOpenPost = (threadId:string) => {
     setMakeReply(old => [...old, threadId])
@@ -51,15 +55,17 @@ export const Thread = () => {
         return (
           <Post
             key={i}
-            creator={post?.creator}
+            creator={post?.creator as `0x${string}`}
             postId={i === 0 ? post?.threadId:post?.postId}
             imgUrl={post?.imgUrl}
             content={post?.content}
             timestamp={post?.timestamp}
             replies={post?.replies}
+            bookmarked={post?.bookmarked}
             handleOpenPost={handleOpenPost}
             ref={post?.ref}
             janitoredBy={post?.janitoredBy}
+            bookmark={handleBookmark}
           />
         )
       })

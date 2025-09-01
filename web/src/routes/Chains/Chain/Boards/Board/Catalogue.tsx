@@ -1,119 +1,11 @@
 import { Fragment } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { useThreads } from '@/hooks/HashChan/useThreads'
 import { useAccount } from 'wagmi'
 import { BoardHeader } from '@/components/BoardHeader'
 import { ReducedModeWarning } from '@/components/ReducedModeWarning'
-import { CacheFlusher } from '@/components/CacheFlusher'
 import { ChainSwitchNotification } from '@/components/ChainSwitchNotification'
-import { PleaseConnectWallet } from '@/components/PleaseConnectWallet'
-
-const ListItem = ({ thread }: { thread: any }) => {
-	const { chainId, boardId } = useParams()
-	const navigate = useNavigate()
-	const { threadId, title, imgUrl, content, janitoredBy } = thread
-
-	return (
-		<div
-			style={{
-				filter: janitoredBy.length > 0 ? 'brightness(0%)' : 'none',
-				display: 'flex',
-				flexDirection: 'column',
-				justifyContent: 'flex-start',
-				width: "233px",
-				height: "377px",
-				cursor: 'pointer'
-			}}
-			onClick={() => navigate(`/chains/${chainId}/boards/${boardId}/threads/${threadId}`)}
-		>
-			<img
-				style={{
-					objectFit: 'contain',
-					width: '100%',
-				}}
-				src={imgUrl}
-				alt={title}
-			/>
-			<div 
-				style={{
-					overflow: 'hidden',
-					textOverflow: 'ellipsis',
-					textAlign: 'center',
-					display: '-webkit-box',
-					WebkitLineClamp: '3',
-					WebkitBoxOrient: 'vertical',
-					width: '100%',
-					height: '100%',
-				}}
-			>
-				<p style={{ fontSize: '14px' }}>
-					<b>{title}</b>
-					{content}
-				</p>
-			</div>
-		</div>
-	)
-}
-
-const ThreadsList = ({ threads }: { threads: any[] }) => {
-  const {boardId, chainId}    = useParams()
-	if (!threads.length) {
-    return (
-      <>
-        <p>Nothing here yet, be the first to post</p>
-        <p>Feel like you should see something? try flushing the cache and refetching</p>
-        <CacheFlusher 
-          query={
-            {
-              table: "boards",
-              where: "[boardId+chainId]",
-              equals: [Number(boardId), Number(chainId)]
-            }
-          }
-          handler={() => window.location.reload()}
-        />
-      </>
-    )
-	}
-
-	return (
-		<div
-			style={{
-				width: '95vw',
-				display: 'flex',
-				flexWrap: 'wrap',
-				flexDirection: 'row',
-				gap: '10px',
-			}}
-		>
-			{threads.map((thread) => (
-				<ListItem 
-					key={thread.threadId} 
-					thread={thread}
-				/>
-			))}
-		</div>
-	)
-}
-
-const LoadingState = () => (
-	<div style={{ padding: '20px' }}>
-		Loading threads...
-	</div>
-)
-
-const ErrorState = ({ error }: { error: Error }) => (
-	<div style={{ 
-		padding: '20px',
-		color: 'red' 
-		}}>
-		Error loading threads: {error.message}
-	</div>
-)
-
-const WalletRequiredState = () => (
-	<PleaseConnectWallet />
-)
+import { ThreadsList } from '@/components/HashChan/ThreadsList'
 
 export const Catalogue = () => {
 	const { address } = useAccount()
@@ -135,15 +27,13 @@ export const Catalogue = () => {
 				{isReducedMode && <ReducedModeWarning />}
 			</div>
 
-			{!address ? (
-				<WalletRequiredState />
-			) : isLoading ? (
-				<LoadingState />
-			) : error ? (
-				<ErrorState error={error as Error} />
-			) : (
-				<ThreadsList threads={threads} />
-			)}
+			<ThreadsList 
+				threads={threads}
+				isLoading={isLoading}
+				error={error}
+				address={address}
+				isReducedMode={isReducedMode}
+			/>
 		</Fragment>
 	)
 }

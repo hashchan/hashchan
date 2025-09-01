@@ -66,7 +66,10 @@ export const BoardHeader = () => {
           handleClose={handleClose}
         />
       </div>
-      <p>[<Link to={`/chains/${chainId}/boards/${boardId}/catalogue`}>Catalogue</Link>]</p>
+      <p>[
+        <Link to={`/chains/${chainId}/boards/${boardId}/catalogue`}>Catalogue</Link>,&nbsp;
+        <Link to={`/chains/${chainId}/boards/${boardId}/bookmarks`}>Bookmarked</Link>
+      ]</p>
 
       {openMakeContent && (<>
         { threadId ? (

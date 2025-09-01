@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { useContext, createRef, useRef, useEffect } from 'react'
 import { useAccount, usePublicClient, useBlockNumber } from 'wagmi'
 import { useContracts } from '@/hooks/useContracts'
@@ -18,6 +18,7 @@ interface Post {
 	imgCID: string
 	content: string
 	timestamp: number
+	bookmarked: number
 	replies: Array<{ ref: any; id: string }>
 	janitoredBy: any[]
 	ref: any
@@ -62,7 +63,6 @@ export const useThread = () => {
 			let thread
 
 			if (cachedThread) {
-        console.log('cachedThread', cachedThread)
 				thread = {
 					lastSynced: cachedThread.lastSynced,
 					creator: cachedThread.creator,
@@ -70,12 +70,12 @@ export const useThread = () => {
 					imgUrl: cachedThread.imgUrl,
 					imgCID: cachedThread.imgCID,
 					content: sanitizeMarkdown(cachedThread.content, { allowedTags: ['p', 'div', 'img'] }),
+					bookmarked: cachedThread.bookmarked,
 					replies: [],
 					janitoredBy: [],
 					timestamp: Number(cachedThread.timestamp)
 				}
 			} else {
-        console.log('threadIdParam', threadIdParam)
 				const filterArgs = {
 					address: hashchan.address,
 					abi: hashchan.abi,
@@ -101,6 +101,7 @@ export const useThread = () => {
 					replies: [],
 					janitoredBy: [],
 					content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
+					bookmarked: 0,
 					timestamp: Number(timestamp)
 				}
 			}
@@ -176,6 +177,7 @@ export const useThread = () => {
 						timestamp: Number(timestamp),
 						replies: [],
 						janitoredBy: [],
+						bookmarked: 0,
 						content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
 						ref: refsObj[postId],
 						replyIds
@@ -256,6 +258,7 @@ export const useThread = () => {
 						content: sanitizedContent,
 						timestamp: Number(timestamp),
 						janitoredBy: [],
+						bookmarked: 0,
 						replies: [],
 						ref: createRef(),
 						replyIds
@@ -291,6 +294,7 @@ export const useThread = () => {
 							creator,
 							imgUrl,
 							imgCID,
+							bookmarked: 0,
 							content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
 							timestamp: Number(timestamp),
 							replyIds: parseContent(content)
@@ -314,10 +318,78 @@ export const useThread = () => {
 			}
 	}, [hashchan, threadIdParam, db, blockNumber.data])
 
+	// Bookmark mutation
+	const bookmarkMutation = useMutation({
+		mutationFn: async ({ threadId, postId }: {
+			threadId: string
+			postId: string
+		}) => {
+			console.log('bookmarking', threadId, postId)
+			// Determine if this is a thread (postId === threadId) or a post
+			const isThread = postId === threadId
+			
+			if (isThread) {
+				// Handle thread bookmark
+				const currentThread = await db.threads.where('threadId').equals(threadId).first()
+				if (currentThread) {
+					const newBookmarkStatus = currentThread.bookmarked === 1 ? 0 : 1
+					await db.threads.where('threadId').equals(threadId).modify({
+						bookmarked: newBookmarkStatus
+					})
+					return { type: 'thread', id: threadId, bookmarked: newBookmarkStatus }
+				}
+			} else {
+				// Handle post bookmark
+				const currentPost = await db.posts.where('postId').equals(postId).first()
+				if (currentPost) {
+					const newBookmarkStatus = currentPost.bookmarked === 1 ? 0 : 1
+					await db.posts.where('postId').equals(postId).modify({
+						bookmarked: newBookmarkStatus
+					})
+					return { type: 'post', id: postId, bookmarked: newBookmarkStatus }
+				}
+			}
+		},
+		onError: (error) => {
+			console.log('bookmark error', error)
+		},
+		onSuccess: (result) => {
+			if (result) {
+				// Update the query cache to reflect the bookmark change
+				queryClient.setQueryData(
+					createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data)),
+					(old: { posts: Post[] } = { posts: [] }) => {
+						const updatedPosts = old.posts.map(post => {
+							const postIdentifier = post.postId || post.threadId
+							if (postIdentifier === result.id) {
+								return {
+									...post,
+									bookmarked: result.bookmarked
+								}
+							}
+							return post
+						})
+						
+						return {
+							...old,
+							posts: updatedPosts
+						}
+					}
+				)
+
+				// Invalidate bookmarks query to update the Bookmarks page
+				queryClient.invalidateQueries({
+					queryKey: ['bookmarked-posts', chainIdParam, boardIdParam]
+				})
+			}
+		}
+	})
+
 	return {
 		posts,
 		error,
 		isLoading,
-		isReducedMode
+		isReducedMode,
+		bookmark: bookmarkMutation.mutate
 	}
 }
