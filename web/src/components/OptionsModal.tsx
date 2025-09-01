@@ -3,9 +3,11 @@ import { Modal } from '@/components/Modal'
 import { FaGear } from 'react-icons/fa6'
 import { useForm } from 'react-hook-form'
 import { useOptions } from '@/hooks/useOptions'
+import { formatEther, parseEther } from 'viem'
 const OptionsModalContent = ({ handleClose }: { handleClose: () => void }) => {
 
   const { options, updateOptions} = useOptions()
+  const [showSuccess, setShowSuccess] = useState(false)
 
 
   const {
@@ -20,35 +22,11 @@ const OptionsModalContent = ({ handleClose }: { handleClose: () => void }) => {
       },
     });
 
-  // Convert wei to ETH for display
-  const weiToEth = (weiString: string): string => {
-    const wei = BigInt(weiString);
-    const eth = wei.toString();
-    
-    // If less than 18 digits, pad with leading zeros
-    const paddedWei = eth.padStart(18, '0');
-    
-    // Insert decimal point 18 places from the right
-    const integerPart = paddedWei.slice(0, -18) || '0';
-    const decimalPart = paddedWei.slice(-18);
-    
-    // Remove trailing zeros from decimal part
-    const trimmedDecimal = decimalPart.replace(/0+$/, '');
-    
-    return trimmedDecimal ? `${integerPart}.${trimmedDecimal}` : integerPart;
-  };
-
-  // Convert ETH to wei for storage
-  const ethToWei = (ethString: string): string => {
-    const [integerPart = '0', decimalPart = ''] = ethString.split('.');
-    const paddedDecimal = decimalPart.padEnd(18, '0').slice(0, 18);
-    return (BigInt(integerPart) * 10n**18n + BigInt(paddedDecimal)).toString();
-  };
 
   // Reset form with async data when options are loaded
   useEffect(() => {
     if (options) {
-      const ethValue = weiToEth(options.defaultTipAmount);
+      const ethValue = formatEther(BigInt(options.defaultTipAmount));
       console.log('Wei:', options.defaultTipAmount);
       console.log('ETH:', ethValue);
       
@@ -61,8 +39,11 @@ const OptionsModalContent = ({ handleClose }: { handleClose: () => void }) => {
 
   const onSubmit = async (data) => {
     // Convert ETH back to wei for storage
-    const weiValue = ethToWei(data.defaultTipAmount);
-    await updateOptions(weiValue, data.indexingStrategy);
+    console.log(data)
+    const weiValue = parseEther(data.defaultTipAmount).toString();
+    await updateOptions(weiValue, 'fullNode');
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
   }
 
   const width = `${100 / (Math.PHI) + (100 / (Math.PHI ** 3))}%`
@@ -136,6 +117,17 @@ const OptionsModalContent = ({ handleClose }: { handleClose: () => void }) => {
           )}
         </button>
 
+        {showSuccess && (
+          <div 
+          className="flex-wrap-center"
+          style={{ 
+            flexDirection: 'row',
+            width: '100%',
+          }}>
+            <p style={{color: '#20C20E'}}>Options saved successfully</p>
+          </div>
+        )}
+
       </form>
 
     </Modal>
@@ -151,8 +143,10 @@ export const OptionsModal = ({ pxSize }: { pxSize: string }) => {
 
   return (
     <>
-      <button onClick={handleShowModal}>
-        <FaGear size={pxSize} />
+      <button
+      className="flex-wrap-center"
+       onClick={handleShowModal}>
+        {'\u200B'}<FaGear  />
       </button>
       {showModal && <OptionsModalContent handleClose={handleShowModal} />}
     </>
