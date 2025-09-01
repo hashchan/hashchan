@@ -10,7 +10,7 @@ export const Bookmarker = ({
 
     return (
     <span onClick={bookmark}>
-      {bookmarked ? <RiBookmark3Fill /> : <RiBookmark3Line />}
+      {bookmarked ? <RiBookmark3Fill color="#fff" /> : <RiBookmark3Line color="#fff" />}
     </span>
   )
 }
