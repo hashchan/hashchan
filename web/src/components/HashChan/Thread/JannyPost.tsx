@@ -69,7 +69,6 @@ export const JannyPost = ({ postId = '' }: JannyPostProps) => {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
-          paddingLeft: `${1 / Math.PHI}vw`,
           color: hovered ? '#20c20E' : 'white',
           cursor: 'pointer'
         }}

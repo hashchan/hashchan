@@ -157,8 +157,7 @@ export const Post = forwardRef(({
       style={{
         display: 'flex',
         flexWrap: 'wrap',
-        padding: `${1 / Math.PHI}vh 0vw`,
-      }}>
+      }}>&nbsp;
       <div
       >
         <a target="_blank" href={getExplorerUrl(chain, creator, 'address')}>{truncateEthAddress(creator)}</a>&nbsp;
@@ -167,7 +166,7 @@ export const Post = forwardRef(({
           <Bookmarker
             bookmarked={Boolean(bookmarked)}
             bookmark={() => bookmark(chainId!, boardId!, threadId!, postId)}
-          /> &nbsp;
+          />&nbsp;
           </>
         )
 }
@@ -177,7 +176,6 @@ export const Post = forwardRef(({
           <span
             onClick={() => handleViewSwitch()}
             style={{
-              paddingLeft: `${1 / Math.PHI}vw`,
               color: 'white'
             }}
           >

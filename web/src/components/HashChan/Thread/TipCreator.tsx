@@ -49,7 +49,6 @@ export const TipCreator = ({creator}: {creator: `0x${string}`}) => {
       <span
         onClick={handleClose}
         style={{
-          paddingLeft: `${1/ Math.PHI}vw`,
           color: hovered ? '#20c20E': 'white',
         }}
       >
