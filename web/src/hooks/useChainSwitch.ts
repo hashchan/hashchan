@@ -4,12 +4,13 @@ import { useAccount, useSwitchChain } from 'wagmi'
 
 export const useChainSwitch = () => {
   const { chainId: urlChainId } = useParams()
-  const { chain } = useAccount()
+  const { chain, isConnected, isReconnecting } = useAccount()
   const { switchChain, isPending: isSwitchingChain } = useSwitchChain()
   const [switchError, setSwitchError] = useState<string | null>(null)
 
   // Handle automatic chain switching when URL chainId doesn't match wallet chainId
   const handleChainSwitch = useCallback(async () => {
+    if (!isConnected || isReconnecting) return
     if (!urlChainId || !chain?.id) return
     
     const targetChainId = parseInt(urlChainId)
@@ -24,17 +25,17 @@ export const useChainSwitch = () => {
     if (targetChainId && targetChainId !== chain.id) {
       try {
         setSwitchError(null)
-        await switchChain({ chainId: targetChainId })
+        switchChain({ chainId: targetChainId })
       } catch (error) {
-        console.error('Failed to switch chain:', error)
-        setSwitchError(`Failed to switch to chain ${targetChainId}. Please switch manually in your wallet.`)
+        setSwitchError(`switchchain::Failed to switch to chain ${targetChainId}. Please switch manually in your wallet.`)
       }
     }
-  }, [urlChainId, chain?.id, switchChain])
+  }, [isConnected, isReconnecting, urlChainId, chain?.id, switchChain])
 
   useEffect(() => {
+    if (!isConnected || isReconnecting) return
     handleChainSwitch()
-  }, [handleChainSwitch])
+  }, [isConnected, isReconnecting, handleChainSwitch])
 
   return {
     isSwitchingChain,
