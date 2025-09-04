@@ -53,3 +53,21 @@ export const getWalletInterface = ({
     }
   }
 }
+
+
+export const chainIdToName = (chainId: number) => {
+  switch (chainId) {
+    case 1:
+      return 'Ethereum'
+    case 10:
+      return 'OP Mainnet'
+    case 61:
+      return "Ethereum Classic"
+    case 8453:
+      return 'Base'
+    case 11155111:
+      return 'Sepolia'
+    default:
+      return 'Unknown'
+  }
+}

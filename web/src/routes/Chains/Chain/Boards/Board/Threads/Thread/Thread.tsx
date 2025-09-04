@@ -12,11 +12,13 @@ import {BoardHeader} from '@/components/BoardHeader'
 import { ReducedModeWarning } from '@/components/ReducedModeWarning'
 import { Post } from '@/components/HashChan/Thread/Post'
 import { CacheFlusher } from '@/components/CacheFlusher'
+import { chainIdToName } from '@/utils/blockchain'
 
 export const Thread = () => {
   const [makeReply, setMakeReply] = useState([])
   const [toggleReply, setToggleReply] = useState(false)
-  const {threadId, boardId, chainId } = useParams()
+  const {threadId, boardId, chainId: urlChainId } = useParams()
+  const { chain } = useAccount()
   const { isConnected } = useAccount()
   const { posts, isReducedMode, isLoading, bookmark } = useThread()
 
@@ -73,6 +75,8 @@ export const Thread = () => {
       {posts.length === 0 && (
         <>
           <p>Think there should be something here? try flushing the cache</p>
+          <p>This thread is on the {chainIdToName(Number(urlChainId))}</p>
+          <p>Current chain is {chain.name}</p>
           <CacheFlusher
             query={{
               table: "threads",

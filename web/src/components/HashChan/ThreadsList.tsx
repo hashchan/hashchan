@@ -1,7 +1,8 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { CacheFlusher } from '@/components/CacheFlusher'
 import { PleaseConnectWallet } from '@/components/PleaseConnectWallet'
-
+import { chainIdToName } from '@/utils/blockchain'
+import { useAccount } from 'wagmi'
 interface Thread {
   lastSynced: number
   boardId: number
@@ -94,9 +95,12 @@ const ThreadsGrid = ({ threads }: { threads: Thread[] }) => {
 
 const EmptyState = () => {
   const { boardId, chainId } = useParams()
+  const { chain } = useAccount()
   
   return (
     <>
+      <p>This board is on the {chainIdToName(Number(chainId))}</p>
+      <p>Current chain is {chain.name}</p>
       <p>Nothing here yet, be the first to post</p>
       <p>Feel like you should see something? try flushing the cache and refetching</p>
       <CacheFlusher 
