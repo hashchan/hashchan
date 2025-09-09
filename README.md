@@ -1,4 +1,4 @@
-**Ongoing Supply Chain attack! use at own risk until https://jdstaerk.substack.com/p/we-just-found-malicious-code-in-the concludes **
+*Ongoing Supply Chain attack! use at own risk until https://jdstaerk.substack.com/p/we-just-found-malicious-code-in-the concludes*
 # [Hashchan](https://hashchan.network) 
 
 ![animated-banner-2](https://github.com/user-attachments/assets/dd55130f-1710-475e-96a6-b6fc9d4c07c4)
