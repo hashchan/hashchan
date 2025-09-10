@@ -1,4 +1,4 @@
-# [Hashchan](https://hashchan.network) 
+# [Hashchan](https://hashchan.org) 
 
 ![animated-banner-2](https://github.com/user-attachments/assets/dd55130f-1710-475e-96a6-b6fc9d4c07c4)
 
