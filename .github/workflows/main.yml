@@ -1,57 +1,221 @@
 name: Build and Release
-
 on:
   push:
     branches:
       - default
-
 permissions:
   contents: write
   discussions: write
-
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'  # Changed from 23 to 20 for better compatibility
+          node-version: '20'
           cache: 'npm'
           cache-dependency-path: web/package-lock.json
-
+      
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake build-essential
-
+      
       - name: Install dependencies
         working-directory: ./web
         run: |
-          npm install @libp2p/webrtc@5.0.18  # Pin to a specific version
+          npm install @libp2p/webrtc@5.0.18
           npm ci
         env:
           PREBUILD_INSTALL_FORCE_REBUILD: "true"
-
+      
       - name: Build
         working-directory: ./web
         run: npm run build
-
-      - name: Zip dist folder
+      
+      - name: Create local server bundle
         working-directory: ./web
-        run: zip -r dist.zip dist/
-
+        run: |
+          # Create Python launch script
+          cat > run-hashchan.py << 'EOF'
+          #!/usr/bin/env python3
+          import http.server
+          import socketserver
+          import webbrowser
+          import os
+          from pathlib import Path
+          
+          PORT = 3000
+          DIRECTORY = Path(__file__).parent / "dist"
+          
+          class Handler(http.server.SimpleHTTPRequestHandler):
+              def __init__(self, *args, **kwargs):
+                  super().__init__(*args, directory=str(DIRECTORY), **kwargs)
+              
+              # Disable caching for development
+              def end_headers(self):
+                  self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate')
+                  self.send_header('Expires', '0')
+                  super().end_headers()
+          
+          def main():
+              if not DIRECTORY.exists():
+                  print(f"Error: dist directory not found at {DIRECTORY}")
+                  print("Make sure you're running this from the hashchan directory")
+                  input("Press Enter to exit...")
+                  return
+              
+              print("=" * 50)
+              print(f"🚀 Starting HashChan on http://localhost:{PORT}")
+              print("=" * 50)
+              print("\nHashChan is running locally!")
+              print("Your browser should open automatically.")
+              print("\nPress Ctrl+C to stop the server")
+              print("=" * 50)
+              
+              try:
+                  with socketserver.TCPServer(("127.0.0.1", PORT), Handler) as httpd:
+                      # Open browser after server starts
+                      webbrowser.open(f"http://localhost:{PORT}")
+                      httpd.serve_forever()
+              except KeyboardInterrupt:
+                  print("\n\n👋 Shutting down HashChan. Goodbye!")
+              except OSError as e:
+                  if e.errno == 48 or e.errno == 98:  # Address already in use
+                      print(f"\n❌ Error: Port {PORT} is already in use!")
+                      print(f"Another application is using port {PORT}.")
+                      print("Try closing other applications or change the PORT in this script.")
+                  else:
+                      print(f"\n❌ Error: {e}")
+                  input("\nPress Enter to exit...")
+          
+          if __name__ == "__main__":
+              main()
+          EOF
+          
+          chmod +x run-hashchan.py
+          
+          # Create README for users
+          cat > README.txt << 'EOF'
+          HashChan - Local Installation
+          ==============================
+          
+          This is a standalone version of HashChan that runs entirely on your computer.
+          
+          REQUIREMENTS:
+          - Python 3.6 or higher (pre-installed on macOS/Linux, easy to install on Windows)
+          
+          HOW TO RUN:
+          
+          macOS/Linux:
+            1. Unzip this file
+            2. Open Terminal in the unzipped folder
+            3. Run: python3 run-hashchan.py
+            4. Your browser will open automatically to HashChan
+          
+          Windows:
+            1. Unzip this file
+            2. Double-click run-hashchan.py
+            (If it doesn't work, right-click → "Open with" → Python)
+            3. Your browser will open automatically to HashChan
+          
+          Alternative (any OS):
+            1. Open Command Prompt/Terminal in the unzipped folder
+            2. Run: python run-hashchan.py
+          
+          STOPPING:
+            Press Ctrl+C in the terminal window
+          
+          TROUBLESHOOTING:
+          - If port 3000 is in use, edit run-hashchan.py and change PORT = 3000 to another number
+          - Make sure Python 3 is installed: python3 --version or python --version
+          - Windows users: Download Python from python.org if needed
+          
+          PRIVACY:
+            HashChan runs entirely on your computer. No data is sent to external servers
+            unless you interact with blockchain features.
+          
+          For more information: https://github.com/hashchan/hashchan
+          EOF
+          
+          # Create Windows batch file wrapper (optional, makes it easier for Windows users)
+          cat > run-hashchan.bat << 'EOF'
+          @echo off
+          echo Checking for Python...
+          python --version >nul 2>&1
+          if %errorlevel% neq 0 (
+              echo Python is not installed or not in PATH
+              echo Please install Python from https://www.python.org/downloads/
+              echo Make sure to check "Add Python to PATH" during installation
+              pause
+              exit /b 1
+          )
+          
+          echo Starting HashChan...
+          python run-hashchan.py
+          pause
+          EOF
+          
+          # Bundle everything
+          zip -r hashchan-local.zip dist/ run-hashchan.py run-hashchan.bat README.txt
+          
+          # Also create the original dist.zip for backwards compatibility
+          zip -r dist.zip dist/
+      
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          cat > release_notes.md << 'EOF'
+          ## HashChan Local Release
+          
+          ### 📦 Downloads
+          
+          **For running HashChan locally on your computer:**
+          - `hashchan-local.zip` - Includes web server (recommended for most users)
+            - Just unzip and run `run-hashchan.py`
+            - Requires Python 3 (pre-installed on Mac/Linux)
+          
+          **For developers/advanced users:**
+          - `dist.zip` - Static files only (bring your own web server)
+          
+          ### 🚀 Quick Start (Local Version)
+          
+          1. Download `hashchan-local.zip`
+          2. Unzip the file
+          3. Run the launcher:
+             - **macOS/Linux**: `python3 run-hashchan.py` or `./run-hashchan.py`
+             - **Windows**: Double-click `run-hashchan.bat` or `run-hashchan.py`
+          4. Your browser will open to HashChan running at `http://localhost:3000`
+          
+          ### 📝 What's New
+          
+          Built from commit: ${{ github.sha }}
+          
+          ### 🔒 Privacy
+          
+          The local version runs entirely on your computer. No data is sent to external servers unless you interact with blockchain features (which require connecting to Ethereum networks).
+          
+          ### 🐛 Issues?
+          
+          Report bugs at: https://github.com/hashchan/hashchan/issues
+          EOF
+          
+          echo "release_notes<<EOF" >> $GITHUB_OUTPUT
+          cat release_notes.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      
       - name: Create Release
-        id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: web/dist.zip
-          tag_name: v0.0.${{ github.run_number }}
-          name: Release v0.0.${{ github.run_number }}
+          files: |
+            ./web/hashchan-local.zip
+            ./web/dist.zip
+          tag_name: v${{ github.run_number }}
+          name: Release v${{ github.run_number }}
+          body: ${{ steps.release_notes.outputs.release_notes }}
           draft: false
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
