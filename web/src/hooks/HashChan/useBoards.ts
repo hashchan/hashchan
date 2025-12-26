@@ -1,7 +1,7 @@
 import { useContext } from 'react'
 import { useQuery, useQueryClient, useMutation  } from '@tanstack/react-query'
 
-import { useAccount, useBlockNumber} from 'wagmi'
+import { useConnection, useAccount, useBlockNumber} from 'wagmi'
 
 import { IDBContext  } from '@/provider/IDBProvider'
 import { useContracts } from '@/hooks/useContracts'
@@ -33,7 +33,8 @@ interface BoardDependencies {
 
 
 export const useBoards = () => {
-  const { address, chain } =  useAccount()
+  const { address, chainId } = useConnection()
+  //const { address, chain } =  useAccount()
   const { db } = useContext(IDBContext)
   const blockNumber = useBlockNumber();
   const { hashchan } = useContracts();
@@ -48,38 +49,40 @@ export const useBoards = () => {
   } = useQuery({
     enabled: Boolean(
       address &&
-      chain?.id &&
+      chainId &&
       db &&
       blockNumber.data &&
       hashchan
     ),
     staleTime: 1000 * 60 * 5, // Consider data stale after 5 minutes
-    queryKey: ['boards', Number(chain?.id)],
+    queryKey: ['boards', Number(chainId)],
     queryFn: async () => {
-      let boardsSync = await db.boardsSync.where('chainId').equals(chain.id).first()
+      console.log('fetching boards')
+      let boardsSync = await db.boardsSync.where('chainId').equals(chainId).first()
       if (!boardsSync) {
         boardsSync = {
-          chainId: chain.id,
+          chainId: chainId,
           lastSynced: 0,
           boardIterator: 0
         }
         await db.boardsSync.add(boardsSync)
       }
       // get cached boards
-      const boards = await db.boards.where('chainId').equals(chain.id).toArray()
-
+      const boards = await db.boards.where('chainId').equals(chainId).toArray()
+      console.log('trying to fetch board count')
       const boardCount = await hashchan.read.boardCount()
+      console.log('boardCount', boardCount)
 
       // get new boards
       //
       for (let i = boards.length; i < boardCount; i++) {
         const ethBoard = await hashchan.read.getBoard([i])
         // in case of bad cache
-        const exist = await db.boards.where('[boardId+chainId]').equals([i, chain.id]).first()
+        const exist = await db.boards.where('[boardId+chainId]').equals([i, chainId]).first()
         if (!exist) {
           const board = {
             boardId: Number(i),
-            chainId: chain.id,
+            chainId: chainId,
             favourite: 0,
             name: ethBoard.name,
             symbol: ethBoard.symbol,
@@ -100,7 +103,7 @@ export const useBoards = () => {
         }
       }
       // update sync status
-      await db.boardsSync.where('chainId').equals(chain.id).modify({
+      await db.boardsSync.where('chainId').equals(chainId).modify({
         lastSynced: Number(blockNumber.data),
         boardIterator: Number(boardCount)
       })
@@ -113,14 +116,14 @@ export const useBoards = () => {
   } = useQuery({
     enabled: Boolean(
       address &&
-      chain?.id &&
+      chainId &&
       db
     ),
-    queryKey: ['favouriteBoards', Number(chain?.id)],
+    queryKey: ['favouriteBoards', Number(chainId)],
     queryFn: async () => {
       return db.boards
         .where('[chainId+favourite]')
-        .equals([chain?.id, 1])
+        .equals([chainId, 1])
         .toArray()
     }
   })
@@ -136,8 +139,8 @@ export const useBoards = () => {
     },
     onSuccess: () => {
       // Invalidate both queries to ensure UI updates
-      queryClient.invalidateQueries({ queryKey: ['boards', Number(chain?.id)] })
-      queryClient.invalidateQueries({ queryKey: ['favouriteBoards', Number(chain?.id)] })
+      queryClient.invalidateQueries({ queryKey: ['boards', Number(chainId)] })
+      queryClient.invalidateQueries({ queryKey: ['favouriteBoards', Number(chainId)] })
     }
   })
 
@@ -148,8 +151,8 @@ export const useBoards = () => {
     favouriteBoards,
     toggleFavourite: toggleFavouriteMutation.mutate,
     refetch: () => {
-      queryClient.invalidateQueries({ queryKey: ['boards', Number(chain?.id)] })
-      queryClient.invalidateQueries({ queryKey: ['favouriteBoards', Number(chain?.id)] })
+      queryClient.invalidateQueries({ queryKey: ['boards', Number(chainId)] })
+      queryClient.invalidateQueries({ queryKey: ['favouriteBoards', Number(chainId)] })
     }
   }
 }

@@ -17,7 +17,6 @@ import { identify  } from "@libp2p/identify";
 import { webSockets  } from '@libp2p/websockets'
 import { webRTC  } from '@libp2p/webrtc'
 
-import * as filters from '@libp2p/websockets/filters'
 import { circuitRelayTransport  } from '@libp2p/circuit-relay-v2'
 
 import { getWalletInterface } from '@/utils/blockchain'
@@ -90,7 +89,6 @@ export const HeliaProvider = ({ children }) => {
         },
         transports: [
           webSockets({
-            filter: filters.all
           }),
           webRTC(),
           circuitRelayTransport()

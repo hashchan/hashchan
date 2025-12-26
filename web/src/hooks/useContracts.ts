@@ -22,15 +22,19 @@ export const useContracts = () => {
   const [moderationServiceFactory, setModerationServiceFactory] = useState(null)
 
   const fetchContracts = useCallback(async () => {
+    console.log('fetching contracts')
+    console.log(chain?.id, publicClient, walletClient?.data)
     if (publicClient && walletClient?.data && chain?.id) {
-      setHashchan(getContract({
+      const hashchanInstance = getContract({
         address: HashChan3[chain.id].address,
         abi: HashChan3.abi,
         client: {
           public: publicClient,
           wallet: walletClient.data
         }
-      }))
+      })
+      console.log(hashchanInstance)
+      setHashchan(hashchanInstance)
       const modFactory = getContract({
         address: ModerationServiceFactory[chain.id].address,
         abi: ModerationServiceFactory.abi,
@@ -50,6 +54,13 @@ export const useContracts = () => {
   }, [chain?.id])
 
   useEffect(() => {
+    console.log("initializing contract")
+    console.log(
+      isInitialized,
+      !chain?.id,
+      !publicClient,
+      !walletClient?.data
+    )
     if (
       isInitialized ||
       !chain?.id ||

@@ -34,6 +34,45 @@ const createQueryKey = (
   return ['chain', chainId, 'board', boardId, 'thread', threadId, blockNumber ? Number(blockNumber) : undefined] as const
 }
 
+const SANITIZE_CONFIG = {
+	allowedTags: ['p', 'div', 'img'],
+	allowedAttributes: {
+		img: ['src', 'alt'],
+		p: [],
+		div: []
+	}
+} as const
+
+const debugEnabledConditions = (
+  publicClient: any,
+  address: string | undefined,
+  hashchan: any,
+  threadIdParam: string | undefined,
+  chainId: number | undefined,
+  db: any,
+  boardIdParam: string | undefined,
+  blockNumber: bigint | undefined,
+) => {
+  const conditions = {
+    publicClient: Boolean(publicClient),
+    address: Boolean(address),
+    hashchan: Boolean(hashchan),
+    threadIdParam: Boolean(threadIdParam),
+    chainId: Boolean(chainId),
+    db: Boolean(db),
+    boardIdParam: Boolean(boardIdParam),
+    blockNumber: Boolean(blockNumber),
+  }
+  
+  const allEnabled = Object.values(conditions).every(Boolean)
+  
+  if (!allEnabled) {
+    console.log('[useThread] Query disabled. Conditions:', conditions)
+  }
+  
+  return allEnabled
+}
+
 export const useThread = () => {
 	const { chainId: chainIdParam, boardId: boardIdParam, threadId: threadIdParam } = useParams()
 	const { db } = useContext(IDBContext)
@@ -54,6 +93,7 @@ export const useThread = () => {
 	} = useQuery({
 		queryKey: createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data)),
 		queryFn: async () => {
+			console.log('fetching thread', threadIdParam)
 			// Initialize refs and logs objects
 			const refsObj: Record<string, any> = {}
 			const logsObj: Record<string, Post> = {}
@@ -63,19 +103,21 @@ export const useThread = () => {
 			let thread
 
 			if (cachedThread) {
+				console.log('cached thread detected', cachedThread)
 				thread = {
 					lastSynced: cachedThread.lastSynced,
 					creator: cachedThread.creator,
 					threadId: cachedThread.threadId,
 					imgUrl: cachedThread.imgUrl,
 					imgCID: cachedThread.imgCID,
-					content: sanitizeMarkdown(cachedThread.content, { allowedTags: ['p', 'div', 'img'] }),
+					content: sanitizeMarkdown(cachedThread.content, SANITIZE_CONFIG),
 					bookmarked: cachedThread.bookmarked,
 					replies: [],
 					janitoredBy: [],
 					timestamp: Number(cachedThread.timestamp)
 				}
 			} else {
+				console.log('no cached thread detected, fetching from chain')
 				const filterArgs = {
 					address: hashchan.address,
 					abi: hashchan.abi,
@@ -100,7 +142,7 @@ export const useThread = () => {
 					replyIds,
 					replies: [],
 					janitoredBy: [],
-					content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
+					content: sanitizeMarkdown(content, SANITIZE_CONFIG),
 					bookmarked: 0,
 					timestamp: Number(timestamp)
 				}
@@ -115,20 +157,21 @@ export const useThread = () => {
 
 			// Get and process cached posts
 			let cachedPosts = await db.posts.where('threadId').equals(threadIdParam).sortBy('timestamp')
-
-			cachedPosts = await Promise.all(
-				cachedPosts.map(async (post) => ({
-					...post,
-					janitoredBy: (await Promise.all(
-						Object.values(moderationServices).map(async (ms) => {
-							const orbitDb = await orbitDbs[ms.address]
-							if (orbitDb) {
-								return await orbitDb.get(post.postId)
-							}
-						})
-					)).filter(Boolean)
-				}))
-			)
+			if (moderationServices != null) {
+				cachedPosts = await Promise.all(
+					cachedPosts.map(async (post) => ({
+						...post,
+						janitoredBy: (await Promise.all(
+							Object.values(moderationServices).map(async (ms) => {
+								const orbitDb = await orbitDbs[ms.address]
+								if (orbitDb) {
+									return await orbitDb.get(post.postId)
+								}
+							})
+						)).filter(Boolean)
+					}))
+				)
+			}
 
 			// Process cached posts
 			cachedPosts.forEach((post) => {
@@ -178,7 +221,7 @@ export const useThread = () => {
 						replies: [],
 						janitoredBy: [],
 						bookmarked: 0,
-						content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
+						content: sanitizeMarkdown(content, SANITIZE_CONFIG),
 						ref: refsObj[postId],
 						replyIds
 					}
@@ -222,16 +265,15 @@ export const useThread = () => {
 				isReducedMode: isReduced
 			}
 		},
-		enabled: Boolean(
-			publicClient &&
-				address &&
-				hashchan &&
-				threadIdParam &&
-				chain?.id &&
-				db &&
-				boardIdParam &&
-				blockNumber.data &&
-				moderationServices
+		enabled: debugEnabledConditions(
+			publicClient,
+			address,
+			hashchan,
+			threadIdParam,
+			chain?.id,
+			db,
+			boardIdParam,
+			blockNumber.data,
 		)
 	})
 
@@ -248,7 +290,7 @@ export const useThread = () => {
 				onLogs: async (logs) => {
 					const { creator, content, postId, imgUrl, imgCID, timestamp } = logs[0].args
 
-					const sanitizedContent = sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] })
+					const sanitizedContent = sanitizeMarkdown(content, SANITIZE_CONFIG)
 					const replyIds = parseContent(sanitizedContent)	
 					const newPost = {
 						creator,
@@ -295,9 +337,9 @@ export const useThread = () => {
 							imgUrl,
 							imgCID,
 							bookmarked: 0,
-							content: sanitizeMarkdown(content, { allowedTags: ['p', 'div', 'img'] }),
+							content: sanitizedContent,
 							timestamp: Number(timestamp),
-							replyIds: parseContent(content)
+							replyIds: parseContent(sanitizedContent)
 						})
 
 						updateMetadata({ postCount: 1 })
