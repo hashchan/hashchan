@@ -100,7 +100,7 @@ export const Modal = ({
   return (
     <>
       <BrowserView>
-        <Draggable handle=".modal-header">
+        <Draggable handle=".modal-header" nodeRef={modalRef}>
           <div
             ref={modalRef}
             className="modal-container"

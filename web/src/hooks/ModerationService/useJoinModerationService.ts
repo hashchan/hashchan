@@ -26,6 +26,7 @@ import {
 } from '@/provider/ModerationServicesProvider'
 
 import { multiaddr  } from '@multiformats/multiaddr'
+
 export const useJoinModerationService = (ms: any) => {
   const { helia, startOrbitDb } = useContext(HeliaContext)
   const { chain } = useAccount()
@@ -75,7 +76,11 @@ export const useJoinModerationService = (ms: any) => {
           })
         })
 
-        const dial = await helia.libp2p.dial(multiaddr(`/dns4/${ms.uri}/tcp/${ms.port}/wss`))
+        const ma = multiaddr(`/dns4/${ms.uri}/tcp/${ms.port}/wss`)
+        console.log('ma', ma)
+        // dial() accepts a single multiaddr or array of multiaddr objects
+        const dial = await helia.libp2p.dial(ma)
+        console.log('dial', dial)
         await helia.libp2p.services.pubsub.subscribe(baseUrl)
         await helia.libp2p.services.pubsub.subscribe(`${baseUrl}/ping`)
         setTimeout(async () => {
