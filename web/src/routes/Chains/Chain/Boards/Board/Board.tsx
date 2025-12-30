@@ -28,7 +28,17 @@ const Banner = ({
 
   const handleFetchCID = useCallback(async (cid) => {
     const {blob, type}  = await fetchCID(cid)
-    setURI(URL.createObjectURL(blob))
+    if (blob) {
+      try {
+        setURI(URL.createObjectURL(blob))
+      } catch (e) {
+        console.log('Error creating object URL:', e)
+        setURI(null)
+      }
+    } else {
+      console.log('No blob returned from fetchCID')
+      setURI(null)
+    }
   }, [fetchCID])
 
   useEffect(() => {
