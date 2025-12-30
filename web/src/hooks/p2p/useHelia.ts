@@ -1,5 +1,4 @@
 import {
-	useEffect,
 	useState,
 	useContext,
 	useCallback
@@ -10,11 +9,6 @@ import {
 } from '@/provider/HeliaProvider'
 
 import { CID  } from 'multiformats/cid'
-import { getCodec, getName  } from 'multiformats/multicodec'
-
-import * as base32 from 'multiformats/bases/base32'
-import * as raw from 'multiformats/codecs/raw'
-import { sha256  } from 'multiformats/hashes/sha2'
 
 function detectFileType(bytes) {
 	const signatures = {
@@ -41,22 +35,6 @@ function detectFileType(bytes) {
 }
 
 
-function iteratorToStream(asyncIterator) {
-	return new ReadableStream({
-		async pull(controller) {
-			try {
-				const { value, done  } = await asyncIterator.next()
-				if (done) {
-					controller.close()
-				} else {
-					controller.enqueue(value)
-				}
-			} catch (error) {
-				controller.error(error)
-			}
-		}
-	})
-}
 
 export const useHelia = () => {
 	const {helia, fs} = useContext(HeliaContext)
@@ -67,13 +45,26 @@ export const useHelia = () => {
 			try {
 				console.log('cidString', cidString)
 				const cid = CID.parse(cidString)
-				const res = await fs.cat(cid)
-				const stream = iteratorToStream(res)
-				// Create blob from stream
-				const response = new Response(stream)
-				const blob = await response.blob()
-		
-				return { blob: blob, type:null }
+				console.log('cid', cid)
+				// fs.cat() returns an async iterable, not a promise - iterate over it
+				const chunks: Uint8Array[] = []
+				for await (const chunk of fs.cat(cid)) {
+					chunks.push(chunk)
+				}
+				// Combine all chunks into a single Uint8Array
+				const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0)
+				const bytes = new Uint8Array(totalLength)
+				let offset = 0
+				for (const chunk of chunks) {
+					bytes.set(chunk, offset)
+					offset += chunk.length
+				}
+				// Detect file type first
+				const type = detectFileType(bytes)
+				// Create blob from bytes with proper MIME type
+				const blob = new Blob([bytes], { type })
+				console.log('Created blob', { blobSize: blob.size, type, bytesLength: bytes.length })
+				return { blob, type }
 
 			} catch (e) {
 				console.log('e', e)
