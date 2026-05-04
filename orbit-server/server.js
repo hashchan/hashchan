@@ -43,7 +43,7 @@ const main = async () => {
     datastore,
     addresses: {
       listen: [
-        `/ip4/127.0.0.1/tcp/${process.env.PORT}/ws`,
+        `/ip4/0.0.0.0/tcp/${process.env.PORT}/ws`,
         `/ip4/0.0.0.0/tcp/4002/`
       ],
       announce: [
@@ -96,9 +96,16 @@ const main = async () => {
     helia.libp2p.services.pubsub.subscribe(baseUrl)
   }
 
-  helia.libp2p.handle('/hashchan/orbitdb/1.0.0', async (stream) => {
+  helia.libp2p.handle('/hashchan/orbitdb/1.0.0', async ({ stream }) => {
     const lp = lpStream(stream)
     await lp.write(new TextEncoder().encode(JSON.stringify({ orbitDbAddr: db.address.toString() })))
+    try {
+      while (true) {
+        await lp.read()
+      }
+    } catch (_) {
+      // stream closed
+    }
   })
 
   helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
