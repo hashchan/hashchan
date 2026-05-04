@@ -22,6 +22,7 @@
     "@libp2p/peer-id": "^6.0.8",
     "@libp2p/peer-id-factory": "^4.2.4",
     "@libp2p/tcp": "^11.0.18",
+    "@libp2p/utils": "^7.1.0",
     "@libp2p/websockets": "^10.1.11",
     "@orbitdb/core": "^3.0.2",
     "@orbitdb/identity-provider-ethereum": "^1.0.3",
