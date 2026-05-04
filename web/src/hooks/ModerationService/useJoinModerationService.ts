@@ -4,11 +4,6 @@ import {
   useCallback,
   useContext
 } from 'react'
-
-import {
-  useContracts
-} from '@/hooks/useContracts'
-
 import {
   useAccount
 } from 'wagmi'
@@ -21,73 +16,57 @@ import {
   IDBContext
 } from '@/provider/IDBProvider'
 
-import {
-  ModerationServicesContext
-} from '@/provider/ModerationServicesProvider'
-
+import { lpStream } from '@libp2p/utils'
 import { multiaddr  } from '@multiformats/multiaddr'
 
 export const useJoinModerationService = (ms: any) => {
   const { helia, startOrbitDb } = useContext(HeliaContext)
   const { chain } = useAccount()
-  const { addPubsubHandle } = useContext(ModerationServicesContext)
   const { db } = useContext(IDBContext)
   const [joined, setJoined] = useState(false)
   const [dial, setDial] = useState(null)
   const [dialErrors, setDialErrors] = useState([])
 
   const joinModerationService = useCallback(async () => {
+    console.log(Boolean(helia), Boolean(db), Boolean(ms), Boolean(chain?.id))
     if ( helia && db && ms && chain?.id ) {  
       try {
-        const baseUrl = `/chainId/${chain.id}/address/${ms.address}`
-        await helia.libp2p.services.pubsub.addEventListener("message", async (event) => {
-          console.log('topic', event.detail.topic)
-          const {topic ,data} = event.detail
-          if (topic === `${baseUrl}/ping`) {
-            const json = JSON.parse(new TextDecoder().decode(data))
-            const exists = await db.moderationServices.where({
-              chainId: Number(chain.id),
-              address: ms.address
-            }).count() > 0
-            if (exists) {
-              await db.moderationServices.where({
-                chainId: Number(chain.id),
-                address: ms.address
-              }).modify({subscribed: 1})
-            } else {
-
-
-              await db.moderationServices.add({
-                subscribed: 1,
-                uri: ms.uri,
-                name: ms.name,
-                port: ms.port,
-                address: ms.address,
-                chainId: Number(chain.id),
-                owner: ms.owner,
-                orbitDbAddr: json.orbitDbAddr
-              })
-            }
-            await startOrbitDb()
-            setJoined(true)
-          }
-          await helia.libp2p.services.pubsub.removeEventListener("message", async () => {
-            console.log('removed listener')
-          })
-        })
-
         const ma = multiaddr(`/dns4/${ms.uri}/tcp/${ms.port}/wss`)
-        console.log('ma', ma)
-        // dial() accepts a single multiaddr or array of multiaddr objects
         const dial = await helia.libp2p.dial(ma)
-        console.log('dial', dial)
-        await helia.libp2p.services.pubsub.subscribe(baseUrl)
-        await helia.libp2p.services.pubsub.subscribe(`${baseUrl}/ping`)
-        setTimeout(async () => {
-          console.log('publishing ping')
-          await helia.libp2p.services.pubsub.publish(`${baseUrl}/ping`, null)
-        }, 618)
+        const stream = await helia.libp2p.dialProtocol(
+          dial.remotePeer,
+          '/hashchan/orbitdb/1.0.0'
+        )
 
+        const lp = lpStream(stream)
+        const msg = await lp.read()
+        const { orbitDbAddr } = JSON.parse(new TextDecoder().decode(msg.subarray()))
+        await lp.write(new TextEncoder().encode(JSON.stringify({ ready: true })))
+        console.log('orbitDbAddr', orbitDbAddr)
+
+        const exists = await db.moderationServices.where({
+          chainId: Number(chain.id),
+          address: ms.address
+        }).count() > 0
+        if (exists) {
+          await db.moderationServices.where({
+            chainId: Number(chain.id),
+            address: ms.address
+          }).modify({ subscribed: 1, orbitDbAddr })
+        } else {
+          await db.moderationServices.add({
+            subscribed: 1,
+            uri: ms.uri,
+            name: ms.name,
+            port: ms.port,
+            address: ms.address,
+            chainId: Number(chain.id),
+            owner: ms.owner,
+            orbitDbAddr
+          })
+        }
+        await startOrbitDb()
+        setJoined(true)
         setDial(dial)
 
 
@@ -97,7 +76,7 @@ export const useJoinModerationService = (ms: any) => {
       }
     }
   },[helia, db, ms, chain?.id, startOrbitDb])
-  
+
   const leaveModerationService = useCallback(async () => {
     if ( helia && db && ms && chain?.id ) {  
       try {
@@ -106,8 +85,8 @@ export const useJoinModerationService = (ms: any) => {
         helia.libp2p.services.pubsub.unsubscribe(ms.address)
         try {
           await db.moderationServices
-            .where('[address+chainId]')
-            .equals([ms.address,Number(chain.id)]).modify({subscribed: 0})
+          .where('[address+chainId]')
+          .equals([ms.address,Number(chain.id)]).modify({subscribed: 0})
         } catch (e) {
           console.log(e)
           setDialErrors(old => [...old, e.message])
@@ -124,11 +103,11 @@ export const useJoinModerationService = (ms: any) => {
       const getJoined = async () => {
         const modService = await db.moderationServices.where('[address+chainId]').equals([ms.address, Number(chain.id)]).first()
         if (!modService) return
-        if (modService.subscribed === 1) {
-          setJoined(true)
-        } else {
-          setJoined(false)
-        }
+          if (modService.subscribed === 1) {
+            setJoined(true)
+          } else {
+            setJoined(false)
+          }
       }
 
       getJoined()

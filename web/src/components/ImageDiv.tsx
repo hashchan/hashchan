@@ -36,6 +36,7 @@ export const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
   };
 
   const handleFetchCID = useCallback(async (cid) => {
+    console.log('Fetching CID:', cid)
     const {blob, type}  = await fetchCID(cid)
     console.log('blob', blob, 'type', type)
     
