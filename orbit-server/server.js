@@ -96,10 +96,8 @@ const main = async () => {
     helia.libp2p.services.pubsub.subscribe(baseUrl)
   }
 
-  helia.libp2p.handle('/hashchan/orbitdb/1.0.0', async ({ stream, connection }) => {
+  helia.libp2p.handle('/hashchan/orbitdb/1.0.0', async (stream, connection) => {
     try {
-      console.log('stream keys', Object.keys(stream))
-      console.log('stream', stream)
       const lp = lpStream(stream)
       await lp.write(new TextEncoder().encode(JSON.stringify({ orbitDbAddr: db.address.toString() })))
       const msg = await lp.read()
