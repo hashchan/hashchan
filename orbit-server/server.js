@@ -13,7 +13,7 @@ import { createOrbitDB, IPFSAccessController, useIdentityProvider  } from '@orbi
 import { identify } from "@libp2p/identify";
 import { circuitRelayServer  } from '@libp2p/circuit-relay-v2'
 
-import * as filters from "@libp2p/websockets/filters";
+//import * as filters from "@libp2p/websockets/filters";
 import { loadOrCreatePeerId } from  "./src/loadOrCreatePeerId.js"
 
 import { publicClients, instances } from './src/config.js'
@@ -52,7 +52,7 @@ const main = async () => {
     },
     transports: [
       webSockets({
-        filter: filters.all
+        //filter: filters.all
       }),
       //tcp()
     ],
