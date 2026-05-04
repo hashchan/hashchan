@@ -97,16 +97,16 @@ const main = async () => {
   }
 
   helia.libp2p.handle('/hashchan/orbitdb/1.0.0', async ({ stream, connection }) => {
-    const lp = lpStream(stream)
-    await lp.write(new TextEncoder().encode(JSON.stringify({ orbitDbAddr: db.address.toString() })))
     try {
+      const lp = lpStream(stream)
+      await lp.write(new TextEncoder().encode(JSON.stringify({ orbitDbAddr: db.address.toString() })))
       const msg = await lp.read()
       const { ready } = JSON.parse(new TextDecoder().decode(msg.subarray()))
       if (ready) {
         console.log('peer ready', connection.remotePeer.toString())
       }
     } catch (e) {
-      console.log('handshake error', e.message)
+      console.error('handshake error', e)
     }
   })
 
