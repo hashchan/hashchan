@@ -90,15 +90,15 @@ const main = async () => {
     console.log(addr.toString())
   })
 
-
   for (const instance in instances) {
     const baseUrl =`/chainId/${(await publicClients[instance].getChainId())}/address/${instances[instance].address}`
     helia.libp2p.services.pubsub.subscribe(baseUrl)
-
-    helia.libp2p.services.pubsub.subscribe(`${baseUrl}/ping`)
-
   }
 
+  await helia.libp2p.handle('/hashchan/orbitdb/1.0.0', async ({ stream }) => {
+    const data = new TextEncoder().encode(JSON.stringify({ orbitDbAddr: db.address.toString() }))
+    await stream.sink((async function * () { yield data })())
+  })
 
   helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
     const { topic, data } = event.detail
@@ -141,22 +141,10 @@ const main = async () => {
           )
         }
         break;
-      case (`ping`):
-        console.log(db.address.toString())
-        helia.libp2p.services.pubsub.publish(
-          topic,
-          new TextEncoder().encode(JSON.stringify({
-            orbitDbAddr: db.address.toString()
-          }))
-        )
-        break;
       default:
         console.log('topic', topic)
         console.log('data', data)
-
-
     }
-
   })
 
   helia.libp2p.addEventListener('peer:discovery', (event) => {
