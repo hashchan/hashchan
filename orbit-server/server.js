@@ -14,6 +14,7 @@ import { identify } from "@libp2p/identify";
 import { circuitRelayServer  } from '@libp2p/circuit-relay-v2'
 
 //import * as filters from "@libp2p/websockets/filters";
+import { lpStream } from '@libp2p/utils'
 import { loadOrCreatePeerId } from  "./src/loadOrCreatePeerId.js"
 
 import { publicClients, instances } from './src/config.js'
@@ -95,9 +96,9 @@ const main = async () => {
     helia.libp2p.services.pubsub.subscribe(baseUrl)
   }
 
-  await helia.libp2p.handle('/hashchan/orbitdb/1.0.0', async ({ stream }) => {
-    const data = new TextEncoder().encode(JSON.stringify({ orbitDbAddr: db.address.toString() }))
-    await stream.sink((async function * () { yield data })())
+  helia.libp2p.handle('/hashchan/orbitdb/1.0.0', async (stream) => {
+    const lp = lpStream(stream)
+    await lp.write(new TextEncoder().encode(JSON.stringify({ orbitDbAddr: db.address.toString() })))
   })
 
   helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
