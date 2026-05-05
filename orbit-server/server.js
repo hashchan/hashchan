@@ -96,7 +96,44 @@ const main = async () => {
     helia.libp2p.services.pubsub.subscribe(baseUrl)
   }
 
-  helia.libp2p.handle('/hashchan/orbitdb/1.0.0', async (stream, connection) => {
+  helia.libp2p.handle('/hashchan/janny/1.0.0', async ({ stream, connection }) => {
+    try {
+      const lp = lpStream(stream)
+      const msg = await lp.read()
+      const json = JSON.parse(new TextDecoder().decode(msg.subarray()))
+      console.log('[janny] received from', connection.remotePeer.toString(), json)
+
+      const { topic, ...typedDataPayload } = json
+      const [, , chainId] = topic.split('/')
+
+      const valid = await publicClients[chainId].verifyTypedData(typedDataPayload)
+      if (!valid) {
+        console.log('[janny] invalid signature')
+        await lp.write(new TextEncoder().encode(JSON.stringify({ success: false, error: 'invalid signature' })))
+        return
+      }
+
+      const { affirmData, affirmSig } = await affirmJanny({
+        janitor: typedDataPayload.address,
+        postId: typedDataPayload.message.postId,
+        signature: typedDataPayload.signature,
+        chainId
+      })
+
+      const record = {
+        janny: typedDataPayload,
+        affirmation: { data: affirmData, signature: affirmSig }
+      }
+
+      await db.put(typedDataPayload.message.postId, record)
+      console.log('[janny] stored record for', typedDataPayload.message.postId)
+      await lp.write(new TextEncoder().encode(JSON.stringify({ success: true, record })))
+    } catch (e) {
+      console.error('[janny] handler error', e)
+    }
+  })
+
+  helia.libp2p.handle('/hashchan/orbitdb/1.0.0', async ({ stream, connection }) => {
     try {
       const lp = lpStream(stream)
       await lp.write(new TextEncoder().encode(JSON.stringify({ orbitDbAddr: db.address.toString() })))
