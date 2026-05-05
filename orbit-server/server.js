@@ -96,7 +96,7 @@ const main = async () => {
     helia.libp2p.services.pubsub.subscribe(baseUrl)
   }
 
-  helia.libp2p.handle('/hashchan/janny/1.0.0', async ({ stream, connection }) => {
+  helia.libp2p.handle('/hashchan/janny/1.0.0', async (stream, connection) => {
     try {
       const lp = lpStream(stream)
       const msg = await lp.read()
