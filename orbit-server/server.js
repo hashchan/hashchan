@@ -86,6 +86,19 @@ const main = async () => {
   )
   console.log('db addr', db.address.toString())
 
+  // Verify manifest block is in blockstore
+  const { CID } = await import('multiformats/cid')
+  const { base58btc } = await import('multiformats/bases/base58')
+  const manifestCidStr = db.address.toString().replace('/orbitdb/', '').split('/')[0]
+  const manifestCid = CID.parse(manifestCidStr, base58btc)
+  try {
+    let bytes
+    for await (const chunk of blockstore.get(manifestCid)) { bytes = chunk }
+    console.log('[server] manifest block in blockstore:', bytes?.byteLength, 'bytes')
+  } catch (e) {
+    console.log('[server] manifest block NOT in blockstore:', e.message)
+  }
+
   console.log('serverlistening on: ')
   helia.libp2p.getMultiaddrs().forEach((addr) => {
     console.log(addr.toString())
