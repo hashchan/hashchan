@@ -172,10 +172,16 @@ const main = async () => {
 
   helia.libp2p.addEventListener('peer:connect', (event) => {
     const peerId = event.detail.toString()
-    const conns = helia.libp2p.getConnections()
-    const conn = conns.find(c => c.remotePeer.toString() === peerId)
-    console.log("peer:connect", peerId, 'protocols:', conn?.streams?.map(s => s.protocol) ?? [])
+    console.log("peer:connect", peerId)
     console.log('[pubsub] mesh peers after connect:', helia.libp2p.services.pubsub.getMeshPeers())
+  })
+
+  helia.libp2p.addEventListener('peer:identify', (event) => {
+    const { peerId, protocols } = event.detail
+    console.log('[identify] peer', peerId.toString(), 'supports:', protocols)
+    console.log('[pubsub] subscribers after identify:', helia.libp2p.services.pubsub.getSubscribers(
+      `/chainId/${[...Object.keys(instances)][0]}/address/${instances[[...Object.keys(instances)][0]]?.address}`
+    ).map(p => p.toString()))
   })
 
   db.events.on('peer:join', (peerId) => {
