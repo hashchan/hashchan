@@ -9,6 +9,7 @@ import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 import { createLibp2p } from 'libp2p'
 import { createHelia } from 'helia'
 import { webSockets } from '@libp2p/websockets'
+import { bitswap } from '@helia/block-brokers'
 import { createOrbitDB, IPFSAccessController, useIdentityProvider  } from '@orbitdb/core'
 import { identify } from "@libp2p/identify";
 import { circuitRelayServer  } from '@libp2p/circuit-relay-v2'
@@ -71,7 +72,8 @@ const main = async () => {
   const helia = await createHelia({
     datastore,
     blockstore,
-    libp2p
+    libp2p,
+    blockBrokers: [bitswap()]
   })
   const orbit = await createOrbitDB({
     ipfs:helia,
