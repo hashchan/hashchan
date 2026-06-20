@@ -64,7 +64,11 @@ const main = async () => {
         allowPublishToZeroTopicPeers: true,
         emitSelf: false,
       }),
-      relay: circuitRelayServer(),
+      relay: circuitRelayServer({
+        reservations: {
+          maxReservations: Infinity
+        }
+      }),
       identify: identify()
     }
   })

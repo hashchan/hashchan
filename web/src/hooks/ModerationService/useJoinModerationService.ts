@@ -85,8 +85,9 @@ export const useJoinModerationService = (ms: any) => {
         await helia.libp2p.services.pubsub.subscribe(`${baseUrl}/ping`)
         setTimeout(async () => {
           console.log('publishing ping')
-          await helia.libp2p.services.pubsub.publish(`${baseUrl}/ping`, null)
-        }, 618)
+          const ping = await helia.libp2p.services.pubsub.publish(`${baseUrl}/ping`, null)
+          console.log('ping', ping)
+        }, 1618)
 
         setDial(dial)
 
