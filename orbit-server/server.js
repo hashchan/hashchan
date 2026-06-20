@@ -13,6 +13,7 @@ import { createOrbitDB, IPFSAccessController, useIdentityProvider  } from '@orbi
 import { identify, identifyPush } from "@libp2p/identify";
 import { lpStream } from '@libp2p/utils'
 import { circuitRelayServer  } from '@libp2p/circuit-relay-v2'
+import { CID } from 'multiformats/cid'
 
 //import * as filters from "@libp2p/websockets/filters";
 import { loadOrCreatePeerId } from  "./src/loadOrCreatePeerId.js"
@@ -145,11 +146,25 @@ const main = async () => {
     }
   })
 
-  // OrbitDB handshake: server pushes orbitDbAddr, client confirms ready
+  // OrbitDB handshake: server pushes orbitDbAddr + raw manifest block, client confirms ready
   await helia.libp2p.handle('/hashchan/orbitdb/1.0.0', async (stream, connection) => {
     try {
       const lp = lpStream(stream)
-      await lp.write(new TextEncoder().encode(JSON.stringify({ orbitDbAddr: db.address.toString() })))
+      const orbitDbAddr = db.address.toString()
+
+      // Read the manifest block from the local blockstore so the client can
+      // seed its own blockstore without needing bitswap for the manifest CID.
+      let manifestBlock = null
+      try {
+        const manifestCid = CID.parse(db.address.hash)
+        for await (const chunk of blockstore.get(manifestCid)) {
+          manifestBlock = Array.from(chunk)
+        }
+      } catch (e) {
+        console.error('[orbitdb] could not read manifest block:', e.message)
+      }
+
+      await lp.write(new TextEncoder().encode(JSON.stringify({ orbitDbAddr, manifestBlock })))
       const msg = await lp.read()
       const { ready } = JSON.parse(new TextDecoder().decode(msg.subarray()))
       if (ready) {

@@ -9,6 +9,8 @@ import { getContract } from 'viem'
 import { usePublicClient, useWalletClient } from 'wagmi'
 
 import { multiaddr  } from '@multiformats/multiaddr'
+import { CID } from 'multiformats/cid'
+import { lpStream } from '@libp2p/utils'
 import ModerationService from '@/assets/abi/ModerationService.json'
 import { HeliaContext } from '@/provider/HeliaProvider'
 import { IDBContext } from '@/provider/IDBProvider'
@@ -110,15 +112,32 @@ export const ModerationServicesProvider = ({ children }) => {
       addPubsubHandle()
       const modServices = {}
 
-      subscribedModerationServices.forEach(async (ms) => {
+      for (const ms of subscribedModerationServices) {
         try {
-          const dial = await helia.libp2p.dial(multiaddr(`/dns4/${ms.uri}/tcp/${ms.port}/wss`))
+          const ma = multiaddr(`/dns4/${ms.uri}/tcp/${ms.port}/wss`)
+
+          // Establish the connection first so dialProtocol reuses it.
+          const connection = await helia.libp2p.dial(ma)
+
+          // Fetch the manifest block directly from the server over our custom
+          // protocol. Seeding the local blockstore before orbit.open() avoids
+          // a 30-second bitswap timeout: the server peer isn't yet in bitswap's
+          // internal peer map at the moment orbit.open() tries to fetch the CID.
+          const stream = await helia.libp2p.dialProtocol(ma, '/hashchan/orbitdb/1.0.0')
+          const lp = lpStream(stream)
+          const msg = await lp.read()
+          const { orbitDbAddr, manifestBlock: manifestBlockArray } = JSON.parse(
+            new TextDecoder().decode(msg.subarray())
+          )
+          if (manifestBlockArray) {
+            const manifestCid = CID.parse(orbitDbAddr.split('/orbitdb/')[1])
+            await helia.blockstore.put(manifestCid, Uint8Array.from(manifestBlockArray))
+          }
+          await lp.write(new TextEncoder().encode(JSON.stringify({ ready: true })))
+
           const baseUrl = `/chainId/${ms.chainId}/address/${ms.address}`
           await helia.libp2p.services.pubsub.subscribe(baseUrl)
-          await helia.libp2p.services.pubsub.subscribe(`${baseUrl}/ping`)
-          setTimeout(() => {
-            helia.libp2p.services.pubsub.publish(`${ms.address}/ping`, '')
-          }, 618)
+
           const instance = getContract({
             address: ms.address,
             abi: ModerationService.abi,
@@ -131,27 +150,28 @@ export const ModerationServicesProvider = ({ children }) => {
           modServices[ms.address] = {
             ...ms,
             instance,
-            dialed: dial
+            connection
           }
-          console.log('ms.orbitDbAddr', ms.orbitDbAddr)
-          const orbitDb = await orbit.open(ms.orbitDbAddr)
-          setOrbitDbs((old) => {
-            return {
-              ...old,
-              [ms.address]: orbitDb
-            }
-          }) 
+
+          console.log('ms.orbitDbAddr', orbitDbAddr)
+          const orbitDb = await orbit.open(orbitDbAddr)
+          orbitDb.events.on('update', (entry) => {
+            console.log('[orbit] update', entry)
+          })
+          setOrbitDbs((old) => ({
+            ...old,
+            [ms.address]: orbitDb
+          }))
 
         } catch (e) {
           console.log('error', e)
-
           modServices[ms.address] = {
             ...ms,
-            dailed: false,
+            connection: null,
             instance: null
           }
         }
-      })
+      }
 
       console.log('adding event listener')
       setModerationServices(modServices)

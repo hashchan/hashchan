@@ -23,6 +23,7 @@ import {
 
 import { multiaddr } from '@multiformats/multiaddr'
 import { lpStream } from '@libp2p/utils'
+import { CID } from 'multiformats/cid'
 
 const ORBITDB_PROTOCOL = '/hashchan/orbitdb/1.0.0'
 
@@ -45,9 +46,17 @@ export const useJoinModerationService = (ms: any) => {
       const stream = await helia.libp2p.dialProtocol(ma, ORBITDB_PROTOCOL)
       const lp = lpStream(stream)
 
-      // Server writes orbitDbAddr first, we read it
+      // Server writes orbitDbAddr + raw manifest block bytes
       const msg = await lp.read()
-      const { orbitDbAddr, error } = JSON.parse(new TextDecoder().decode(msg.subarray()))
+      const { orbitDbAddr, manifestBlock: manifestBlockArray, error } = JSON.parse(
+        new TextDecoder().decode(msg.subarray())
+      )
+
+      // Seed local blockstore so orbit.open() never needs bitswap for the manifest
+      if (manifestBlockArray) {
+        const manifestCid = CID.parse(orbitDbAddr.split('/orbitdb/')[1])
+        await helia.blockstore.put(manifestCid, Uint8Array.from(manifestBlockArray))
+      }
 
       // Confirm ready so server knows we received it
       await lp.write(new TextEncoder().encode(JSON.stringify({ ready: true })))

@@ -29,9 +29,10 @@ const createQueryKey = (
   chainId: string | undefined,
   boardId: string | undefined,
   threadId: string | undefined,
-  blockNumber: number | undefined
+  blockNumber: number | undefined,
+  orbitDbsCount: number = 0
 ) => {
-  return ['chain', chainId, 'board', boardId, 'thread', threadId, blockNumber ? Number(blockNumber) : undefined] as const
+  return ['chain', chainId, 'board', boardId, 'thread', threadId, blockNumber ? Number(blockNumber) : undefined, orbitDbsCount] as const
 }
 
 const SANITIZE_CONFIG = {
@@ -85,13 +86,41 @@ export const useThread = () => {
 	const unwatchRef = useRef<(() => void) | null>(null)
 	const { updateMetadata } = useBoard()
 
+	const orbitDbsCount = Object.keys(orbitDbs || {}).length
+
+	const getJanitoredBy = async (postId: string) => {
+		if (!moderationServices || !orbitDbs) return []
+		return (await Promise.all(
+			Object.values(moderationServices).map(async (ms: any) => {
+				const orbitDb = orbitDbs[ms.address]
+				if (orbitDb) return await orbitDb.get(postId)
+			})
+		)).filter(Boolean)
+	}
+
+	// Invalidate this thread query whenever any open OrbitDB gets an update
+	useEffect(() => {
+		if (!orbitDbs) return
+		const listeners: Array<() => void> = []
+		Object.values(orbitDbs).forEach((orbitDb: any) => {
+			const handler = () => {
+				queryClient.invalidateQueries({
+					queryKey: createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data), orbitDbsCount)
+				})
+			}
+			orbitDb.events.on('update', handler)
+			listeners.push(() => orbitDb.events.off('update', handler))
+		})
+		return () => listeners.forEach(off => off())
+	}, [orbitDbs, orbitDbsCount, chainIdParam, boardIdParam, threadIdParam, blockNumber.data])
+
 	// Main query for thread and posts
 	const {
 		data: { posts = [], isReducedMode = false } = {},
 		error,
 		isLoading,
 	} = useQuery({
-		queryKey: createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data)),
+		queryKey: createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data), orbitDbsCount),
 		queryFn: async () => {
 			console.log('fetching thread', threadIdParam)
 			// Initialize refs and logs objects
@@ -157,21 +186,12 @@ export const useThread = () => {
 
 			// Get and process cached posts
 			let cachedPosts = await db.posts.where('threadId').equals(threadIdParam).sortBy('timestamp')
-			if (moderationServices != null) {
-				cachedPosts = await Promise.all(
-					cachedPosts.map(async (post) => ({
-						...post,
-						janitoredBy: (await Promise.all(
-							Object.values(moderationServices).map(async (ms) => {
-								const orbitDb = await orbitDbs[ms.address]
-								if (orbitDb) {
-									return await orbitDb.get(post.postId)
-								}
-							})
-						)).filter(Boolean)
-					}))
-				)
-			}
+			cachedPosts = await Promise.all(
+				cachedPosts.map(async (post) => ({
+					...post,
+					janitoredBy: await getJanitoredBy(post.postId)
+				}))
+			)
 
 			// Process cached posts
 			cachedPosts.forEach((post) => {
@@ -219,7 +239,7 @@ export const useThread = () => {
 						imgCID,
 						timestamp: Number(timestamp),
 						replies: [],
-						janitoredBy: [],
+						janitoredBy: await getJanitoredBy(postId),
 						bookmarked: 0,
 						content: sanitizeMarkdown(content, SANITIZE_CONFIG),
 						ref: refsObj[postId],
@@ -307,7 +327,7 @@ export const useThread = () => {
 					}
 
 					queryClient.setQueryData(
-						createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data)),
+						createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data), orbitDbsCount),
 						(old: { posts: Post[] } = { posts: [] }) => {
 							// Update replies in existing posts
 							const updatedPosts = old.posts.map(post => {
@@ -399,7 +419,7 @@ export const useThread = () => {
 			if (result) {
 				// Update the query cache to reflect the bookmark change
 				queryClient.setQueryData(
-					createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data)),
+					createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data), orbitDbsCount),
 					(old: { posts: Post[] } = { posts: [] }) => {
 						const updatedPosts = old.posts.map(post => {
 							const postIdentifier = post.postId || post.threadId
