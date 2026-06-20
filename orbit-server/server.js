@@ -145,16 +145,12 @@ const main = async () => {
     }
   })
 
-  // OrbitDB handshake: server pushes orbitDbAddr, client confirms ready
+  // OrbitDB handshake: server pushes orbitDbAddr, no acknowledgment needed
   await helia.libp2p.handle('/hashchan/orbitdb/1.0.0', async (stream, connection) => {
     try {
       const lp = lpStream(stream)
       await lp.write(new TextEncoder().encode(JSON.stringify({ orbitDbAddr: db.address.toString() })))
-      const msg = await lp.read()
-      const { ready } = JSON.parse(new TextDecoder().decode(msg.subarray()))
-      if (ready) {
-        console.log('peer ready:', connection.remotePeer.toString())
-      }
+      console.log('sent orbitDbAddr to:', connection.remotePeer.toString())
     } catch (e) {
       console.error('orbitdb handler error:', e)
     }
