@@ -17,7 +17,6 @@ export const JoinModerationService = ({ms}: {ms: any}) => {
 
   const {
     joined,
-    dial,
     joinModerationService,
     leaveModerationService,
     dialErrors
@@ -35,16 +34,11 @@ export const JoinModerationService = ({ms}: {ms: any}) => {
       await leaveModerationService()
     } else {
       await joinModerationService()
-
     }
   }
 
   useEffect(() => {
-    if (dial) setWait(2)
-  }, [dial])
-
-  useEffect(() => {
-    if (joined) setWait(3)
+    if (joined) setWait(2)
   }, [joined])
 
 
@@ -72,9 +66,8 @@ export const JoinModerationService = ({ms}: {ms: any}) => {
             </button>
           </div>
         <div>
-        {(wait > 0 && !joined ) && <label htmlFor="hash">Dailing:</label>}
-        {(wait > 1) && <label htmlFor="logs">{dial ? 'Dialed: awaiting orbit db connection' : 'Disconnected'}!</label>}
-        {(wait > 2) && <div>{joined ? 'Connected' : 'Disconnected'}!</div>}
+        {(wait > 0 && !joined) && <label>Connecting...</label>}
+        {(wait > 1) && <div>{joined ? 'Connected' : 'Disconnected'}!</div>}
         {dialErrors.map((e, i) => <div key={i}>{e}</div>)}
         </div>
       </form>

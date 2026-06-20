@@ -98,93 +98,71 @@ const main = async () => {
 
 
   for (const instance in instances) {
-    const baseUrl =`/chainId/${(await publicClients[instance].getChainId())}/address/${instances[instance].address}`
-    console.log('subscribing to topics:', baseUrl, `${baseUrl}/ping`)
+    const baseUrl = `/chainId/${(await publicClients[instance].getChainId())}/address/${instances[instance].address}`
+    console.log('subscribing to topic:', baseUrl)
     helia.libp2p.services.pubsub.subscribe(baseUrl)
-    helia.libp2p.services.pubsub.subscribe(`${baseUrl}/ping`)
   }
 
-  console.log('pubsub topics after subscribe:', helia.libp2p.services.pubsub.getTopics())
+  // Join handshake: browser sends { chainId, address }, server responds with { orbitDbAddr }
+  helia.libp2p.handle('/hashchan/join/1.0.0', async ({ stream }) => {
+    try {
+      const chunks = []
+      for await (const chunk of stream.source) {
+        chunks.push(chunk.subarray ? chunk.subarray() : chunk)
+      }
+      const total = chunks.reduce((n, c) => n + c.length, 0)
+      const buf = new Uint8Array(total)
+      let off = 0
+      for (const chunk of chunks) { buf.set(chunk, off); off += chunk.length }
 
-  helia.libp2p.services.pubsub.addEventListener('subscription-change', (event) => {
-    const { peerId, subscriptions } = event.detail
-    console.log('subscription-change from peer:', peerId.toString())
-    console.log('subscriptions:', subscriptions.map(s => `${s.topic} (${s.subscribe ? 'sub' : 'unsub'})`))
-    for (const topic of helia.libp2p.services.pubsub.getTopics()) {
-      console.log(`  getSubscribers(${topic}):`, helia.libp2p.services.pubsub.getSubscribers(topic).map(p => p.toString()))
+      const { chainId, address } = JSON.parse(new TextDecoder().decode(buf))
+      if (!instances[chainId] || instances[chainId].address.toLowerCase() !== address.toLowerCase()) {
+        await stream.sink([new TextEncoder().encode(JSON.stringify({ error: 'unknown moderation service' }))])
+        return
+      }
+
+      console.log(`join: chainId=${chainId} address=${address}`)
+      await stream.sink([new TextEncoder().encode(JSON.stringify({ orbitDbAddr: db.address.toString() }))])
+    } catch (e) {
+      console.error('join handler error:', e)
+    } finally {
+      try { await stream.close() } catch {}
     }
   })
 
+  // Moderation action submissions from browser nodes via gossipsub
   helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
     const { topic, data } = event.detail
-    console.log('message received!', topic, data)
-    const [, , chainId, , address , action] = topic.split('/')
-    switch (action) {
-      case (undefined):
-        const json = JSON.parse(new TextDecoder().decode(data))
-        const valid = await publicClients[chainId].verifyTypedData(json)
-        if (valid) {
-          const {affirmData, affirmSig} = await affirmJanny({
-            janitor: json.address,
-            postId: json.message.postId,
-            signature: json.signature,
-            chainId: chainId
-          })
-
-          const record = {
-            janny: json,
-            affirmation: {
-              data: affirmData,
-              signature: affirmSig
-            }
-          }
-
-          await db.put(json.message.postId, record)
-          helia.libp2p.services.pubsub.publish(
-            topic, 
-            new TextEncoder().encode(
-              JSON.stringify({
-                success: true,
-                record,
-              })
-            ))
-        } else {
-          helia.libp2p.services.pubsub.publish(
-            topic,
-            new TextEncoder().encode(
-              JSON.stringify({success: false})
-            )
-          )
-        }
-        break;
-      case (`ping`):
-        console.log(db.address.toString())
-        helia.libp2p.services.pubsub.publish(
-          topic,
-          new TextEncoder().encode(JSON.stringify({
-            orbitDbAddr: db.address.toString()
-          }))
-        )
-        break;
-      default:
-        console.log('topic', topic)
-        console.log('data', data)
-
-
+    console.log('message received:', topic)
+    const [, , chainId, , address] = topic.split('/')
+    const json = JSON.parse(new TextDecoder().decode(data))
+    const valid = await publicClients[chainId].verifyTypedData(json)
+    if (valid) {
+      const { affirmData, affirmSig } = await affirmJanny({
+        janitor: json.address,
+        postId: json.message.postId,
+        signature: json.signature,
+        chainId: chainId
+      })
+      const record = {
+        janny: json,
+        affirmation: { data: affirmData, signature: affirmSig }
+      }
+      await db.put(json.message.postId, record)
+      helia.libp2p.services.pubsub.publish(
+        topic,
+        new TextEncoder().encode(JSON.stringify({ success: true, record }))
+      )
+    } else {
+      helia.libp2p.services.pubsub.publish(
+        topic,
+        new TextEncoder().encode(JSON.stringify({ success: false }))
+      )
     }
-
-  })
-
-  helia.libp2p.addEventListener('peer:discovery', (event) => {
-    console.log("peer:discovery", event)
   })
 
   helia.libp2p.addEventListener('peer:connect', (event) => {
-    console.log("peer:connect", event.detail.toString())
-    console.log('pubsub peers after connect:', helia.libp2p.services.pubsub.getPeers().map(p => p.toString()))
-    for (const topic of helia.libp2p.services.pubsub.getTopics()) {
-      console.log(`  getSubscribers(${topic}):`, helia.libp2p.services.pubsub.getSubscribers(topic).map(p => p.toString()))
-    }
+    console.log('peer:connect', event.detail.toString())
   })
 
   db.events.on('peer:join', (peerId) => {

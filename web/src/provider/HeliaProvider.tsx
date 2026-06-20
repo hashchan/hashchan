@@ -13,7 +13,7 @@ import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 
 import { yamux  } from '@chainsafe/libp2p-yamux'
 import { noise  } from '@chainsafe/libp2p-noise'
-import { identify  } from "@libp2p/identify";
+import { identify, identifyPush } from "@libp2p/identify";
 import { webSockets  } from '@libp2p/websockets'
 import { webRTC  } from '@libp2p/webrtc'
 
@@ -105,6 +105,7 @@ export const HeliaProvider = ({ children }) => {
             allowPublishToZeroTopicPeers: true
           }),
           identify: identify(),
+          identifyPush: identifyPush(),
         }
       })
       let helia;
