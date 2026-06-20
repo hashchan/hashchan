@@ -131,7 +131,12 @@ export const ModerationServicesProvider = ({ children }) => {
           )
           if (manifestBlockArray) {
             const manifestCid = CID.parse(orbitDbAddr.split('/orbitdb/')[1])
+            console.log('[orbit] seeding manifest block', manifestCid.toString(), 'bytes:', manifestBlockArray.length)
             await helia.blockstore.put(manifestCid, Uint8Array.from(manifestBlockArray))
+            const hasBlock = await helia.blockstore.has(manifestCid)
+            console.log('[orbit] manifest block in store after put:', hasBlock)
+          } else {
+            console.warn('[orbit] server did not send manifest block — orbit.open() will use bitswap')
           }
           await lp.write(new TextEncoder().encode(JSON.stringify({ ready: true })))
 

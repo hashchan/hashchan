@@ -157,9 +157,11 @@ const main = async () => {
       let manifestBlock = null
       try {
         const manifestCid = CID.parse(db.address.hash)
+        console.log('[orbitdb] reading manifest block for CID:', manifestCid.toString())
         for await (const chunk of blockstore.get(manifestCid)) {
           manifestBlock = Array.from(chunk)
         }
+        console.log('[orbitdb] manifest block read, bytes:', manifestBlock?.length)
       } catch (e) {
         console.error('[orbitdb] could not read manifest block:', e.message)
       }
