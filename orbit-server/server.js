@@ -98,12 +98,21 @@ const main = async () => {
 
   for (const instance in instances) {
     const baseUrl =`/chainId/${(await publicClients[instance].getChainId())}/address/${instances[instance].address}`
+    console.log('subscribing to topics:', baseUrl, `${baseUrl}/ping`)
     helia.libp2p.services.pubsub.subscribe(baseUrl)
-
     helia.libp2p.services.pubsub.subscribe(`${baseUrl}/ping`)
-
   }
 
+  console.log('pubsub topics after subscribe:', helia.libp2p.services.pubsub.getTopics())
+
+  helia.libp2p.services.pubsub.addEventListener('subscription-change', (event) => {
+    const { peerId, subscriptions } = event.detail
+    console.log('subscription-change from peer:', peerId.toString())
+    console.log('subscriptions:', subscriptions.map(s => `${s.topic} (${s.subscribe ? 'sub' : 'unsub'})`))
+    for (const topic of helia.libp2p.services.pubsub.getTopics()) {
+      console.log(`  getSubscribers(${topic}):`, helia.libp2p.services.pubsub.getSubscribers(topic).map(p => p.toString()))
+    }
+  })
 
   helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
     const { topic, data } = event.detail
@@ -170,7 +179,11 @@ const main = async () => {
   })
 
   helia.libp2p.addEventListener('peer:connect', (event) => {
-    console.log("peer:connect", event)
+    console.log("peer:connect", event.detail.toString())
+    console.log('pubsub peers after connect:', helia.libp2p.services.pubsub.getPeers().map(p => p.toString()))
+    for (const topic of helia.libp2p.services.pubsub.getTopics()) {
+      console.log(`  getSubscribers(${topic}):`, helia.libp2p.services.pubsub.getSubscribers(topic).map(p => p.toString()))
+    }
   })
 
   db.events.on('peer:join', (peerId) => {
