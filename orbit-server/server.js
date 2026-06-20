@@ -107,6 +107,7 @@ const main = async () => {
 
   helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
     const { topic, data } = event.detail
+    console.log('message received!', topic, data)
     const [, , chainId, , address , action] = topic.split('/')
     switch (action) {
       case (undefined):
