@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useForm } from "react-hook-form"
 import { useJannyPost } from '@/hooks/ModerationService/useJannyPost'
 import { useModerationServices } from '@/hooks/ModerationService/useModerationServices'
-import { truncateEthAddress } from '@/utils/address'
 import { Modal } from '@/components/Modal'
 import { useBoard } from '@/hooks/HashChan/useBoard'
 import { GiMagicBroom } from 'react-icons/gi'
@@ -19,13 +18,12 @@ interface JannyPostProps {
 export const JannyPost = ({ postId = '' }: JannyPostProps) => {
   const { board } = useBoard()
   const { chainId } = useParams()
-  const { 
-    jannyPost, 
-    isLoading, 
-    error, 
-    signature, 
+  const {
+    jannyPost,
+    isLoading,
+    error,
     response,
-    reset 
+    reset
   } = useJannyPost()
 
   const { moderationServices } = useModerationServices({
@@ -48,7 +46,7 @@ export const JannyPost = ({ postId = '' }: JannyPostProps) => {
 
   const handleClose = () => {
     setIsOpen(prev => !prev)
-    if (error || signature) {
+    if (error) {
       reset()
     }
   }
@@ -58,7 +56,7 @@ export const JannyPost = ({ postId = '' }: JannyPostProps) => {
     await jannyPost({
       moderationService: selectedService,
       postId: postId as `0x${string}`,
-      ruleIndex: data.rule
+      rule: Number(data.rule)
     })
   }
 
@@ -122,7 +120,7 @@ export const JannyPost = ({ postId = '' }: JannyPostProps) => {
                 <option value="" disabled>Select a rule</option>
                 {board?.rules.map((rule, i) => (
                   <option key={i} value={i}>
-                    {rule}
+                    {typeof rule === 'string' ? rule : String(rule)}
                   </option>
                 ))}
               </select>
@@ -142,10 +140,6 @@ export const JannyPost = ({ postId = '' }: JannyPostProps) => {
 
           {error && (
             <p style={{ color: 'red' }}>Error: {error.message}</p>
-          )}
-
-          {signature && (
-            <p>Signature: {truncateEthAddress(signature)}</p>
           )}
 
           {response && (

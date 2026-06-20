@@ -1,15 +1,19 @@
 import { useMutation } from '@tanstack/react-query'
-import { useAccount, useWalletClient } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { useParams } from 'react-router-dom'
 import { signTypedData } from '@wagmi/core'
 import { useContext } from 'react'
 import { config } from '@/config'
 import { HeliaContext } from '@/provider/HeliaProvider'
+import { multiaddr } from '@multiformats/multiaddr'
+import { lpStream } from '@libp2p/utils'
 
 interface ModerationService {
   address: `0x${string}`
   chainId: number
   name: string
+  uri: string
+  port: number
 }
 
 interface JannyPostParams {
@@ -20,8 +24,7 @@ interface JannyPostParams {
 
 export const useJannyPost = () => {
   const { boardId, threadId } = useParams()
-  const { chain } = useAccount()
-  const { address } = useAccount()
+  const { chain, address } = useAccount()
   const { helia } = useContext(HeliaContext)
 
   const jannyPostMutation = useMutation({
@@ -30,7 +33,8 @@ export const useJannyPost = () => {
         throw new Error('Missing required dependencies')
       }
 
-      // Create the typed data for signing
+      const topic = `/chainId/${moderationService.chainId}/address/${moderationService.address}`
+
       const typedData = {
         domain: {
           name: moderationService.name,
@@ -40,12 +44,12 @@ export const useJannyPost = () => {
         },
         message: {
           chainId: chain.id,
-          boardId: boardId,
-          threadId: threadId,
-          postId: postId,
-          reason: rule
+          boardId: Number(boardId),
+          threadId,
+          postId,
+          reason: Number(rule)
         },
-        primaryType: 'FlagData',
+        primaryType: 'FlagData' as const,
         types: {
           EIP712Domain: [
             { name: "name", type: "string" },
@@ -63,33 +67,28 @@ export const useJannyPost = () => {
         }
       }
 
-      try {
-        // Sign the data
-        const signature = await signTypedData(config, typedData)
+      const signature = await signTypedData(config, typedData)
 
-        // Publish to libp2p pubsub
-        const topic = `/chainId/${moderationService.chainId}/address/${moderationService.address}`
-        const message = {
-          address,
-          ...typedData,
-          signature
-        }
-
-        await helia.libp2p.services.pubsub.publish(
-          topic,
-          new TextEncoder().encode(JSON.stringify(message))
-        )
-
-        return {
-          signature,
-          topic,
-          message
-        }
-      } catch (error) {
-        // Enhance error with context
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-        throw new Error(`Failed to process janny post: ${errorMessage}`)
+      const payload = {
+        topic,
+        address,
+        ...typedData,
+        signature
       }
+
+      const ma = multiaddr(`/dns4/${moderationService.uri}/tcp/${moderationService.port}/wss`)
+      const stream = await helia.libp2p.dialProtocol(ma, '/hashchan/janny/1.0.0')
+      const lp = lpStream(stream)
+
+      await lp.write(new TextEncoder().encode(JSON.stringify(payload)))
+      const msg = await lp.read()
+      const response = JSON.parse(new TextDecoder().decode(msg.subarray()))
+
+      if (!response.success) {
+        throw new Error(response.error ?? 'Janny post rejected by moderation service')
+      }
+
+      return response
     }
   })
 
@@ -97,10 +96,7 @@ export const useJannyPost = () => {
     jannyPost: jannyPostMutation.mutate,
     isLoading: jannyPostMutation.isPending,
     error: jannyPostMutation.error,
-    // Return the signature from the mutation data
-    signature: jannyPostMutation.data?.signature,
-    reset: jannyPostMutation.reset,
-    // For debugging/monitoring purposes
-    data: jannyPostMutation.data
+    response: jannyPostMutation.data,
+    reset: jannyPostMutation.reset
   }
 }
