@@ -13,7 +13,6 @@ import { createOrbitDB, IPFSAccessController, useIdentityProvider  } from '@orbi
 import { identify, identifyPush } from "@libp2p/identify";
 import { lpStream } from '@libp2p/utils'
 import { circuitRelayServer  } from '@libp2p/circuit-relay-v2'
-import { CID } from 'multiformats/cid'
 
 //import * as filters from "@libp2p/websockets/filters";
 import { loadOrCreatePeerId } from  "./src/loadOrCreatePeerId.js"
@@ -146,42 +145,11 @@ const main = async () => {
     }
   })
 
-  // OrbitDB handshake: server pushes orbitDbAddr + raw manifest block, client confirms ready
+  // OrbitDB handshake: server pushes orbitDbAddr, client confirms ready
   await helia.libp2p.handle('/hashchan/orbitdb/1.0.0', async (stream, connection) => {
     try {
       const lp = lpStream(stream)
-      const orbitDbAddr = db.address.toString()
-
-      // Read the manifest block from the local blockstore so the client can
-      // seed its own blockstore without needing bitswap for the manifest CID.
-      // Helper: read a single block from the LevelBlockstore by CID string
-      const readBlock = async (cidStr) => {
-        try {
-          const cid = CID.parse(cidStr)
-          for await (const chunk of blockstore.get(cid)) {
-            return Array.from(chunk)
-          }
-        } catch (e) {
-          console.error(`[orbitdb] could not read block ${cidStr}:`, e.message)
-        }
-        return null
-      }
-
-      // db.address is a plain string '/orbitdb/<hash>'
-      const manifestBlock = await readBlock(orbitDbAddr.replace('/orbitdb/', ''))
-      console.log('[orbitdb] manifest block bytes:', manifestBlock?.length)
-
-      // IPFSAccessController also stores its config in IPFS as a separate block
-      const acHash = db.access?.address?.replace('/ipfs/', '')
-      const accessControllerBlock = acHash ? await readBlock(acHash) : null
-      console.log('[orbitdb] access controller block bytes:', accessControllerBlock?.length)
-
-      await lp.write(new TextEncoder().encode(JSON.stringify({
-        orbitDbAddr,
-        manifestBlock,
-        accessControllerBlock,
-        accessControllerCid: acHash ?? null
-      })))
+      await lp.write(new TextEncoder().encode(JSON.stringify({ orbitDbAddr: db.address.toString() })))
       const msg = await lp.read()
       const { ready } = JSON.parse(new TextDecoder().decode(msg.subarray()))
       if (ready) {
