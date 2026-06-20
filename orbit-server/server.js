@@ -154,21 +154,34 @@ const main = async () => {
 
       // Read the manifest block from the local blockstore so the client can
       // seed its own blockstore without needing bitswap for the manifest CID.
-      let manifestBlock = null
-      try {
-        // db.address is a plain string '/orbitdb/<hash>', not an OrbitDBAddress object
-        const addrHash = orbitDbAddr.replace('/orbitdb/', '')
-        const manifestCid = CID.parse(addrHash)
-        console.log('[orbitdb] reading manifest block for CID:', manifestCid.toString())
-        for await (const chunk of blockstore.get(manifestCid)) {
-          manifestBlock = Array.from(chunk)
+      // Helper: read a single block from the LevelBlockstore by CID string
+      const readBlock = async (cidStr) => {
+        try {
+          const cid = CID.parse(cidStr)
+          for await (const chunk of blockstore.get(cid)) {
+            return Array.from(chunk)
+          }
+        } catch (e) {
+          console.error(`[orbitdb] could not read block ${cidStr}:`, e.message)
         }
-        console.log('[orbitdb] manifest block read, bytes:', manifestBlock?.length)
-      } catch (e) {
-        console.error('[orbitdb] could not read manifest block:', e.message)
+        return null
       }
 
-      await lp.write(new TextEncoder().encode(JSON.stringify({ orbitDbAddr, manifestBlock })))
+      // db.address is a plain string '/orbitdb/<hash>'
+      const manifestBlock = await readBlock(orbitDbAddr.replace('/orbitdb/', ''))
+      console.log('[orbitdb] manifest block bytes:', manifestBlock?.length)
+
+      // IPFSAccessController also stores its config in IPFS as a separate block
+      const acHash = db.access?.address?.replace('/ipfs/', '')
+      const accessControllerBlock = acHash ? await readBlock(acHash) : null
+      console.log('[orbitdb] access controller block bytes:', accessControllerBlock?.length)
+
+      await lp.write(new TextEncoder().encode(JSON.stringify({
+        orbitDbAddr,
+        manifestBlock,
+        accessControllerBlock,
+        accessControllerCid: acHash ?? null
+      })))
       const msg = await lp.read()
       const { ready } = JSON.parse(new TextDecoder().decode(msg.subarray()))
       if (ready) {

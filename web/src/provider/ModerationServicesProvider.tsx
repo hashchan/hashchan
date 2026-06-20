@@ -126,17 +126,24 @@ export const ModerationServicesProvider = ({ children }) => {
           const stream = await helia.libp2p.dialProtocol(ma, '/hashchan/orbitdb/1.0.0')
           const lp = lpStream(stream)
           const msg = await lp.read()
-          const { orbitDbAddr, manifestBlock: manifestBlockArray } = JSON.parse(
-            new TextDecoder().decode(msg.subarray())
-          )
+          const {
+            orbitDbAddr,
+            manifestBlock: manifestBlockArray,
+            accessControllerBlock: acBlockArray,
+            accessControllerCid: acCidStr
+          } = JSON.parse(new TextDecoder().decode(msg.subarray()))
+
           if (manifestBlockArray) {
             const manifestCid = CID.parse(orbitDbAddr.split('/orbitdb/')[1])
             console.log('[orbit] seeding manifest block', manifestCid.toString(), 'bytes:', manifestBlockArray.length)
             await helia.blockstore.put(manifestCid, Uint8Array.from(manifestBlockArray))
-            const hasBlock = await helia.blockstore.has(manifestCid)
-            console.log('[orbit] manifest block in store after put:', hasBlock)
           } else {
-            console.warn('[orbit] server did not send manifest block — orbit.open() will use bitswap')
+            console.warn('[orbit] server did not send manifest block')
+          }
+          if (acBlockArray && acCidStr) {
+            const acCid = CID.parse(acCidStr)
+            console.log('[orbit] seeding access controller block', acCid.toString(), 'bytes:', acBlockArray.length)
+            await helia.blockstore.put(acCid, Uint8Array.from(acBlockArray))
           }
           await lp.write(new TextEncoder().encode(JSON.stringify({ ready: true })))
 
