@@ -156,7 +156,9 @@ const main = async () => {
       // seed its own blockstore without needing bitswap for the manifest CID.
       let manifestBlock = null
       try {
-        const manifestCid = CID.parse(db.address.hash)
+        // db.address is a plain string '/orbitdb/<hash>', not an OrbitDBAddress object
+        const addrHash = orbitDbAddr.replace('/orbitdb/', '')
+        const manifestCid = CID.parse(addrHash)
         console.log('[orbitdb] reading manifest block for CID:', manifestCid.toString())
         for await (const chunk of blockstore.get(manifestCid)) {
           manifestBlock = Array.from(chunk)
