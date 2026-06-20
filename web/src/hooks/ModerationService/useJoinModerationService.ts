@@ -22,20 +22,9 @@ import {
 } from '@/provider/ModerationServicesProvider'
 
 import { multiaddr } from '@multiformats/multiaddr'
+import { lpStream } from '@libp2p/utils'
 
-const JOIN_PROTOCOL = '/hashchan/join/1.0.0'
-
-async function collectStream(source: AsyncIterable<any>): Promise<Uint8Array> {
-  const chunks: Uint8Array[] = []
-  for await (const chunk of source) {
-    chunks.push(chunk.subarray ? chunk.subarray() : chunk)
-  }
-  const total = chunks.reduce((n, c) => n + c.length, 0)
-  const buf = new Uint8Array(total)
-  let off = 0
-  for (const chunk of chunks) { buf.set(chunk, off); off += chunk.length }
-  return buf
-}
+const ORBITDB_PROTOCOL = '/hashchan/orbitdb/1.0.0'
 
 export const useJoinModerationService = (ms: any) => {
   const { helia, startOrbitDb } = useContext(HeliaContext)
@@ -53,17 +42,15 @@ export const useJoinModerationService = (ms: any) => {
       console.log('dialing', ma.toString())
 
       // Open a direct protocol stream — no gossipsub mesh needed
-      const stream = await helia.libp2p.dialProtocol(ma, JOIN_PROTOCOL)
+      const stream = await helia.libp2p.dialProtocol(ma, ORBITDB_PROTOCOL)
+      const lp = lpStream(stream)
 
-      // Send join request
-      const request = new TextEncoder().encode(
-        JSON.stringify({ chainId: chain.id, address: ms.address })
-      )
-      await stream.sink([request])
+      // Server writes orbitDbAddr first, we read it
+      const msg = await lp.read()
+      const { orbitDbAddr, error } = JSON.parse(new TextDecoder().decode(msg.subarray()))
 
-      // Read response
-      const buf = await collectStream(stream.source)
-      const { orbitDbAddr, error } = JSON.parse(new TextDecoder().decode(buf))
+      // Confirm ready so server knows we received it
+      await lp.write(new TextEncoder().encode(JSON.stringify({ ready: true })))
 
       if (error) {
         setDialErrors(old => [...old, error])

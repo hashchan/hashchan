@@ -11,6 +11,7 @@ import { createHelia } from 'helia'
 import { webSockets } from '@libp2p/websockets'
 import { createOrbitDB, IPFSAccessController, useIdentityProvider  } from '@orbitdb/core'
 import { identify, identifyPush } from "@libp2p/identify";
+import { lpStream } from '@libp2p/utils'
 import { circuitRelayServer  } from '@libp2p/circuit-relay-v2'
 
 //import * as filters from "@libp2p/websockets/filters";
@@ -103,30 +104,18 @@ const main = async () => {
     helia.libp2p.services.pubsub.subscribe(baseUrl)
   }
 
-  // Join handshake: browser sends { chainId, address }, server responds with { orbitDbAddr }
-  helia.libp2p.handle('/hashchan/join/1.0.0', async ({ stream }) => {
+  // OrbitDB handshake: server pushes orbitDbAddr, client confirms ready
+  helia.libp2p.handle('/hashchan/orbitdb/1.0.0', async (stream, connection) => {
     try {
-      const chunks = []
-      for await (const chunk of stream.source) {
-        chunks.push(chunk.subarray ? chunk.subarray() : chunk)
+      const lp = lpStream(stream)
+      await lp.write(new TextEncoder().encode(JSON.stringify({ orbitDbAddr: db.address.toString() })))
+      const msg = await lp.read()
+      const { ready } = JSON.parse(new TextDecoder().decode(msg.subarray()))
+      if (ready) {
+        console.log('peer ready:', connection.remotePeer.toString())
       }
-      const total = chunks.reduce((n, c) => n + c.length, 0)
-      const buf = new Uint8Array(total)
-      let off = 0
-      for (const chunk of chunks) { buf.set(chunk, off); off += chunk.length }
-
-      const { chainId, address } = JSON.parse(new TextDecoder().decode(buf))
-      if (!instances[chainId] || instances[chainId].address.toLowerCase() !== address.toLowerCase()) {
-        await stream.sink([new TextEncoder().encode(JSON.stringify({ error: 'unknown moderation service' }))])
-        return
-      }
-
-      console.log(`join: chainId=${chainId} address=${address}`)
-      await stream.sink([new TextEncoder().encode(JSON.stringify({ orbitDbAddr: db.address.toString() }))])
     } catch (e) {
-      console.error('join handler error:', e)
-    } finally {
-      try { await stream.close() } catch {}
+      console.error('orbitdb handler error:', e)
     }
   })
 
