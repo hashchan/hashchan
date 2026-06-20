@@ -42,7 +42,8 @@ const main = async () => {
     datastore,
     addresses: {
       listen: [
-        `/ip4/127.0.0.1/tcp/${process.env.PORT}/ws`,
+        //`/ip4/127.0.0.1/tcp/${process.env.PORT}/ws`,
+        `/ip4/0.0.0.0/tcp/${process.env.PORT}/ws`,
         `/ip4/0.0.0.0/tcp/4002/`
       ],
       announce: [
