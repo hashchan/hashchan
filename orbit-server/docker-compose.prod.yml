@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:17-alpine
+    env_file: .env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  orbit-server:
+    build: .
+    env_file: .env
+    ports:
+      - "${PORT}:${PORT}"
+      - "4002:4002"
+    volumes:
+      - orbit_data:/app/hashchan
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pg_data:
+  orbit_data:

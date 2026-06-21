@@ -8,8 +8,7 @@ import { webSockets } from '@libp2p/websockets'
 import { identify, identifyPush } from "@libp2p/identify"
 import { lpStream } from '@libp2p/utils'
 import { circuitRelayServer } from '@libp2p/circuit-relay-v2'
-import { readFile, writeFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
+import pg from 'pg'
 
 import { loadOrCreatePeerId } from "./src/loadOrCreatePeerId.js"
 import { publicClients, instances } from './src/config.js'
@@ -19,23 +18,21 @@ const QUERY_PROTOCOL = '/hashchan/query/1.0.0'
 const QUERY_BATCH_PROTOCOL = '/hashchan/query-batch/1.0.0'
 const JANNY_PROTOCOL = '/hashchan/janny/1.0.0'
 
-const DB_DIR = './hashchan'
-const DB_PATH = `${DB_DIR}/moderation.json`
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
 
-const loadRecords = async () => {
-  if (!existsSync(DB_PATH)) return {}
-  const raw = await readFile(DB_PATH, 'utf8')
-  return JSON.parse(raw)
-}
-
-const saveRecords = async (records) => {
-  await mkdir(DB_DIR, { recursive: true })
-  await writeFile(DB_PATH, JSON.stringify(records))
+const initDb = async () => {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS moderation_records (
+      post_id TEXT PRIMARY KEY,
+      record  JSONB NOT NULL
+    )
+  `)
 }
 
 const main = async () => {
-  const moderationRecords = await loadRecords()
-  console.log(`[db] loaded ${Object.keys(moderationRecords).length} moderation records`)
+  await initDb()
+  const { rows: [{ count }] } = await pool.query('SELECT COUNT(*) FROM moderation_records')
+  console.log(`[db] connected, ${count} moderation records`)
 
   const peerId = await loadOrCreatePeerId()
   const datastore = new LevelDatastore('./hashchan/datastore')
@@ -87,7 +84,8 @@ const main = async () => {
       const lp = lpStream(stream)
       const msg = await lp.read()
       const { postId } = JSON.parse(new TextDecoder().decode(msg.subarray()))
-      const record = moderationRecords[postId] ?? null
+      const { rows } = await pool.query('SELECT record FROM moderation_records WHERE post_id = $1', [postId])
+      const record = rows[0]?.record ?? null
       await lp.write(new TextEncoder().encode(JSON.stringify({ record })))
     } catch (e) {
       console.error('[query] handler error:', e)
@@ -100,10 +98,11 @@ const main = async () => {
       const lp = lpStream(stream)
       const msg = await lp.read()
       const { postIds } = JSON.parse(new TextDecoder().decode(msg.subarray()))
-      const records = {}
-      for (const postId of postIds) {
-        if (moderationRecords[postId]) records[postId] = moderationRecords[postId]
-      }
+      const { rows } = await pool.query(
+        'SELECT post_id, record FROM moderation_records WHERE post_id = ANY($1)',
+        [postIds]
+      )
+      const records = Object.fromEntries(rows.map(r => [r.post_id, r.record]))
       await lp.write(new TextEncoder().encode(JSON.stringify({ records })))
     } catch (e) {
       console.error('[query-batch] handler error:', e)
@@ -140,8 +139,12 @@ const main = async () => {
       }
 
       const postId = typedDataPayload.message.postId
-      moderationRecords[postId] = record
-      await saveRecords(moderationRecords)
+      await pool.query(
+        `INSERT INTO moderation_records (post_id, record)
+         VALUES ($1, $2)
+         ON CONFLICT (post_id) DO UPDATE SET record = $2`,
+        [postId, record]
+      )
 
       console.log('[janny] stored record for', postId)
       await lp.write(new TextEncoder().encode(JSON.stringify({ success: true, record })))
@@ -157,6 +160,7 @@ const main = async () => {
   process.on('SIGINT', async () => {
     await libp2p.stop()
     await datastore.close()
+    await pool.end()
     process.exit()
   })
 }
