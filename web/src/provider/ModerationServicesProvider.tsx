@@ -9,9 +9,12 @@ import { getContract } from 'viem'
 import { usePublicClient, useWalletClient } from 'wagmi'
 
 import { multiaddr  } from '@multiformats/multiaddr'
-import { CID } from 'multiformats/cid'
 import { lpStream } from '@libp2p/utils'
+import { CID } from 'multiformats/cid'
+import { base58btc } from 'multiformats/bases/base58'
 import ModerationService from '@/assets/abi/ModerationService.json'
+
+const ORBITDB_PROTOCOL = '/hashchan/orbitdb/1.0.0'
 import { HeliaContext } from '@/provider/HeliaProvider'
 import { IDBContext } from '@/provider/IDBProvider'
 import { useAccount } from 'wagmi'
@@ -35,11 +38,8 @@ export const ModerationServicesProvider = ({ children }) => {
   const walletClient = useWalletClient();
 
   const addPubsubHandle = useCallback(async () => {
-    if (!helia && !db && !orbit) return 
-    //const listenerCount = helia.libp2p.services.pubsub.listenerCount('message')
-    //console.log('listenerCount', listenerCount)
-    //if (listenerCount > 1) return
-    
+    if (!helia && !db && !orbit) return
+
     helia.libp2p.services.pubsub.addEventListener('message', async (event) => {
       let { topic, data } = event.detail
 
@@ -58,13 +58,9 @@ export const ModerationServicesProvider = ({ children }) => {
         await db.moderationServices
           .where('[address+chainId]')
           .equals([addr, chainId]).modify({orbitDbAddr: data.orbitDbAddr})
-        
+        console.log('open modservice provider')
         const orbitdb = await orbit.open(data.orbitDbAddr)
 
-
-        orbitdb.events.on('ready', async () => {
-          console.log(' orbit ready')
-        })
         orbitdb.events.on('update', async (entry) => {
           console.log('update', entry)
         })
@@ -72,26 +68,9 @@ export const ModerationServicesProvider = ({ children }) => {
           ...old,
           [addr]: orbitdb
         }))
-        console.log('pubsub::message', topic, data)
-
       } else {
         if (data.success) {
           console.log('success')
-          console.log('pubsub::message', topic, data)
-          /*
-           * Ideally now handled by orbit db replication
-          try {
-            const janitored = await db.janitored.add({
-              moderationServiceAddress: data.record.janny.domain.verifyingContract,
-              moderationServiceChainId: data.record.janny.message.chainId,
-              threadId: data.typedData.message.threadId,
-              postId: data.typedData.message.postId,
-              reason: data.typedData.message.reason
-            })
-          } catch (e) {
-            console.log('error creating janitor entry', e.message)
-          }
-           */
         }
       }
     })
@@ -111,45 +90,13 @@ export const ModerationServicesProvider = ({ children }) => {
 
       addPubsubHandle()
       const modServices = {}
+      const newOrbitDbs = {}
 
       for (const ms of subscribedModerationServices) {
         try {
-          const ma = multiaddr(`/dns4/${ms.uri}/tcp/${ms.port}/wss`)
-
-          // Establish the connection first so dialProtocol reuses it.
-          const connection = await helia.libp2p.dial(ma)
-
-          // Fetch the manifest block directly from the server over our custom
-          // protocol. Seeding the local blockstore before orbit.open() avoids
-          // a 30-second bitswap timeout: the server peer isn't yet in bitswap's
-          // internal peer map at the moment orbit.open() tries to fetch the CID.
-          const stream = await helia.libp2p.dialProtocol(ma, '/hashchan/orbitdb/1.0.0')
-          const lp = lpStream(stream)
-          const msg = await lp.read()
-          const {
-            orbitDbAddr,
-            manifestBlock: manifestBlockArray,
-            accessControllerBlock: acBlockArray,
-            accessControllerCid: acCidStr
-          } = JSON.parse(new TextDecoder().decode(msg.subarray()))
-
-          if (manifestBlockArray) {
-            const manifestCid = CID.parse(orbitDbAddr.split('/orbitdb/')[1])
-            console.log('[orbit] seeding manifest block', manifestCid.toString(), 'bytes:', manifestBlockArray.length)
-            await helia.blockstore.put(manifestCid, Uint8Array.from(manifestBlockArray))
-          } else {
-            console.warn('[orbit] server did not send manifest block')
-          }
-          if (acBlockArray && acCidStr) {
-            const acCid = CID.parse(acCidStr)
-            console.log('[orbit] seeding access controller block', acCid.toString(), 'bytes:', acBlockArray.length)
-            await helia.blockstore.put(acCid, Uint8Array.from(acBlockArray))
-          }
-          await lp.write(new TextEncoder().encode(JSON.stringify({ ready: true })))
-
+          const dial = await helia.libp2p.dial(multiaddr(`/dns4/${ms.uri}/tcp/${ms.port}/wss`))
           const baseUrl = `/chainId/${ms.chainId}/address/${ms.address}`
           await helia.libp2p.services.pubsub.subscribe(baseUrl)
-
           const instance = getContract({
             address: ms.address,
             abi: ModerationService.abi,
@@ -162,30 +109,49 @@ export const ModerationServicesProvider = ({ children }) => {
           modServices[ms.address] = {
             ...ms,
             instance,
-            connection
+            dialed: dial
           }
 
-          console.log('ms.orbitDbAddr', orbitDbAddr)
-          const orbitDb = await orbit.open(orbitDbAddr)
-          orbitDb.events.on('update', (entry) => {
-            console.log('[orbit] update', entry)
-          })
-          setOrbitDbs((old) => ({
-            ...old,
-            [ms.address]: orbitDb
-          }))
+          // Fetch manifest + ACL bytes directly over the protocol so orbit.open()
+          // finds them in the local blockstore instead of going through Bitswap
+          try {
+            const stream = await helia.libp2p.dialProtocol(
+              multiaddr(`/dns4/${ms.uri}/tcp/${ms.port}/wss`),
+              ORBITDB_PROTOCOL
+            )
+            const lp = lpStream(stream)
+            const msg = await lp.read()
+            const { orbitDbAddr, manifestBytes, aclAddr, aclBytes } = JSON.parse(
+              new TextDecoder().decode(msg.subarray())
+            )
+            if (manifestBytes) {
+              const manifestCid = CID.parse(orbitDbAddr.replace('/orbitdb/', ''), base58btc)
+              await helia.blockstore.put(manifestCid, new Uint8Array(manifestBytes))
+            }
+            if (aclBytes && aclAddr) {
+              const aclCid = CID.parse(aclAddr.replace('/ipfs/', ''), base58btc)
+              await helia.blockstore.put(aclCid, new Uint8Array(aclBytes))
+            }
+          } catch (e) {
+            console.warn('[orbit] block pre-populate failed, Bitswap fallback:', e)
+          }
+
+          console.log('[orbit] open', ms.orbitDbAddr)
+          const orbitDb = await orbit.open(ms.orbitDbAddr)
+          console.log('opened maybe', orbitDb)
+          newOrbitDbs[ms.address] = orbitDb
 
         } catch (e) {
           console.log('error', e)
           modServices[ms.address] = {
             ...ms,
-            connection: null,
+            dailed: false,
             instance: null
           }
         }
       }
 
-      console.log('adding event listener')
+      setOrbitDbs(newOrbitDbs)
       setModerationServices(modServices)
     }
   }, [
@@ -235,6 +201,4 @@ export const ModerationServicesProvider = ({ children }) => {
       {children}
     </ModerationServicesContext.Provider>
   )
-
-  
 }

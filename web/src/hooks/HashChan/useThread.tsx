@@ -9,7 +9,6 @@ import { parseContent } from '@/utils/content'
 import { tryRecurseBlockFilter } from '@/utils/blockchain'
 import { ModerationServicesContext } from '@/provider/ModerationServicesProvider'
 import { useBoard } from '@/hooks/HashChan/useBoard'
-
 interface Post {
 	creator: string
 	postId?: string
@@ -29,10 +28,9 @@ const createQueryKey = (
   chainId: string | undefined,
   boardId: string | undefined,
   threadId: string | undefined,
-  blockNumber: number | undefined,
-  orbitDbsCount: number = 0
+  blockNumber: number | undefined
 ) => {
-  return ['chain', chainId, 'board', boardId, 'thread', threadId, blockNumber ? Number(blockNumber) : undefined, orbitDbsCount] as const
+  return ['chain', chainId, 'board', boardId, 'thread', threadId, blockNumber ? Number(blockNumber) : undefined] as const
 }
 
 const SANITIZE_CONFIG = {
@@ -53,6 +51,7 @@ const debugEnabledConditions = (
   db: any,
   boardIdParam: string | undefined,
   blockNumber: bigint | undefined,
+  moderationServices: any,
 ) => {
   const conditions = {
     publicClient: Boolean(publicClient),
@@ -63,10 +62,13 @@ const debugEnabledConditions = (
     db: Boolean(db),
     boardIdParam: Boolean(boardIdParam),
     blockNumber: Boolean(blockNumber),
+    moderationServices: Boolean(moderationServices),
+
   }
   
   const allEnabled = Object.values(conditions).every(Boolean)
-  
+
+  console.log('useThread::allEnabled', allEnabled)
   if (!allEnabled) {
     console.log('[useThread] Query disabled. Conditions:', conditions)
   }
@@ -85,44 +87,16 @@ export const useThread = () => {
 	const queryClient = useQueryClient()
 	const unwatchRef = useRef<(() => void) | null>(null)
 	const { updateMetadata } = useBoard()
-
-	const orbitDbsCount = Object.keys(orbitDbs || {}).length
-
-	const getJanitoredBy = async (postId: string) => {
-		if (!moderationServices || !orbitDbs) return []
-		return (await Promise.all(
-			Object.values(moderationServices).map(async (ms: any) => {
-				const orbitDb = orbitDbs[ms.address]
-				if (orbitDb) return await orbitDb.get(postId)
-			})
-		)).filter(Boolean)
-	}
-
-	// Invalidate this thread query whenever any open OrbitDB gets an update
-	useEffect(() => {
-		if (!orbitDbs) return
-		const listeners: Array<() => void> = []
-		Object.values(orbitDbs).forEach((orbitDb: any) => {
-			const handler = () => {
-				queryClient.invalidateQueries({
-					queryKey: createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data), orbitDbsCount)
-				})
-			}
-			orbitDb.events.on('update', handler)
-			listeners.push(() => orbitDb.events.off('update', handler))
-		})
-		return () => listeners.forEach(off => off())
-	}, [orbitDbs, orbitDbsCount, chainIdParam, boardIdParam, threadIdParam, blockNumber.data])
-
-	// Main query for thread and posts
+	
+  // Main query for thread and posts
 	const {
 		data: { posts = [], isReducedMode = false } = {},
 		error,
 		isLoading,
 	} = useQuery({
-		queryKey: createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data), orbitDbsCount),
+		queryKey: createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data)),
 		queryFn: async () => {
-			console.log('fetching thread', threadIdParam)
+      console.log('useThread::fetching thread', threadIdParam)
 			// Initialize refs and logs objects
 			const refsObj: Record<string, any> = {}
 			const logsObj: Record<string, Post> = {}
@@ -186,12 +160,48 @@ export const useThread = () => {
 
 			// Get and process cached posts
 			let cachedPosts = await db.posts.where('threadId').equals(threadIdParam).sortBy('timestamp')
-			cachedPosts = await Promise.all(
-				cachedPosts.map(async (post) => ({
-					...post,
-					janitoredBy: await getJanitoredBy(post.postId)
-				}))
-			)
+      console.log('useThread::moderationServices', moderationServices)
+			if (moderationServices != null && Object.keys(moderationServices).length > 0) {
+        console.log("useThread::threadJanitoredBy")
+				// Check thread OP against orbit DB
+				const threadJanitoredBy = (await Promise.all(
+					Object.values(moderationServices).map(async (ms) => {
+            console.log('useThread::ms', ms)
+						const orbitDb = orbitDbs[ms.address]
+            console.log('useThread::orbitDb', orbitDb)
+						if (orbitDb) {
+              console.log("useThread::orbitDb", orbitDb)
+              try {
+                const record = await orbitDb.get(thread.threadId)
+                return record
+              } catch (e) {
+                console.error(e)
+              }
+						}
+					})
+				)).filter(Boolean)
+				if (threadJanitoredBy.length > 0) {
+					logsObj[thread.threadId] = {
+						...logsObj[thread.threadId],
+						janitoredBy: threadJanitoredBy
+					}
+				}
+
+				// Check replies against orbit DB
+				cachedPosts = await Promise.all(
+					cachedPosts.map(async (post) => ({
+						...post,
+						janitoredBy: (await Promise.all(
+							Object.values(moderationServices).map(async (ms) => {
+								const orbitDb = orbitDbs[ms.address]
+								if (orbitDb) {
+									return await orbitDb.get(post.postId)
+								}
+							})
+						)).filter(Boolean)
+					}))
+				)
+			}
 
 			// Process cached posts
 			cachedPosts.forEach((post) => {
@@ -222,62 +232,67 @@ export const useThread = () => {
 				toBlock: blockNumber.data
 			}
 
-			const { filter, isReduced } = await tryRecurseBlockFilter(publicClient, postFilterArgs)
-			const logs = await publicClient.getFilterLogs({ filter })
+			let logs = []
+			let isReduced = false
+			try {
+				const { filter, isReduced: r } = await tryRecurseBlockFilter(publicClient, postFilterArgs)
+				logs = await publicClient.getFilterLogs({ filter })
+				isReduced = r
 
-			// Process new posts
-			for (const log of logs) {
-				const { creator, postId, imgUrl, imgCID, content, replyIds, timestamp } = log.args
+				// Process new posts
+				for (const log of logs) {
+					const { creator, postId, imgUrl, imgCID, content, replyIds, timestamp } = log.args
 
-				if (!logsObj[postId]) {
-					refsObj[postId] = createRef()
+					if (!logsObj[postId]) {
+						refsObj[postId] = createRef()
 
-					const newPost = {
-						creator,
-						postId,
-						imgUrl,
-						imgCID,
-						timestamp: Number(timestamp),
-						replies: [],
-						janitoredBy: await getJanitoredBy(postId),
-						bookmarked: 0,
-						content: sanitizeMarkdown(content, SANITIZE_CONFIG),
-						ref: refsObj[postId],
-						replyIds
-					}
-
-					logsObj[postId] = newPost
-
-					replyIds.forEach((replyId) => {
-						if (logsObj[replyId]) {
-							logsObj[replyId].replies.push({
-								ref: refsObj[postId],
-								id: postId
-							})
+						const newPost = {
+							creator,
+							postId,
+							imgUrl,
+							imgCID,
+							timestamp: Number(timestamp),
+							replies: [],
+							janitoredBy: [],
+							bookmarked: 0,
+							content: sanitizeMarkdown(content, SANITIZE_CONFIG),
+							ref: refsObj[postId],
+							replyIds
 						}
-					})
 
-					// Add to database if not cached
-					try {
-						await db.posts.add({
-							boardId: boardIdParam,
-							threadId: threadIdParam,
-							...newPost
+						logsObj[postId] = newPost
+
+						replyIds.forEach((replyId) => {
+							if (logsObj[replyId]) {
+								logsObj[replyId].replies.push({
+									ref: refsObj[postId],
+									id: postId
+								})
+							}
 						})
-					} catch (e) {
-						console.log('Duplicate post, skipping')
+
+						try {
+							await db.posts.add({
+								boardId: boardIdParam,
+								threadId: threadIdParam,
+								...newPost
+							})
+						} catch (e) {
+							console.log('Duplicate post, skipping')
+						}
 					}
 				}
-			}
 
-			// Update thread's last synced time
-			await db.threads.where('threadId').equals(threadIdParam).modify({
-				lastSynced: Number(blockNumber.data)
-			})
+				await db.threads.where('threadId').equals(threadIdParam).modify({
+					lastSynced: Number(blockNumber.data)
+				})
 
-			// Update board's post count using the mutation
-			if (logs.length > 0) {
-				updateMetadata({ postCount: logs.length })
+				if (logs.length > 0) {
+					updateMetadata({ postCount: logs.length })
+				}
+			} catch (e) {
+				console.log('Failed to fetch new posts from chain:', e)
+				isReduced = true
 			}
 
 			return {
@@ -285,7 +300,7 @@ export const useThread = () => {
 				isReducedMode: isReduced
 			}
 		},
-		enabled: debugEnabledConditions(
+		enabled:debugEnabledConditions(
 			publicClient,
 			address,
 			hashchan,
@@ -294,6 +309,7 @@ export const useThread = () => {
 			db,
 			boardIdParam,
 			blockNumber.data,
+      moderationServices
 		)
 	})
 
@@ -327,7 +343,7 @@ export const useThread = () => {
 					}
 
 					queryClient.setQueryData(
-						createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data), orbitDbsCount),
+						createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data)),
 						(old: { posts: Post[] } = { posts: [] }) => {
 							// Update replies in existing posts
 							const updatedPosts = old.posts.map(post => {
@@ -419,7 +435,7 @@ export const useThread = () => {
 			if (result) {
 				// Update the query cache to reflect the bookmark change
 				queryClient.setQueryData(
-					createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data), orbitDbsCount),
+					createQueryKey(chainIdParam, boardIdParam, threadIdParam, Number(blockNumber.data)),
 					(old: { posts: Post[] } = { posts: [] }) => {
 						const updatedPosts = old.posts.map(post => {
 							const postIdentifier = post.postId || post.threadId
@@ -450,7 +466,7 @@ export const useThread = () => {
 	return {
 		posts,
 		error,
-		isLoading,
+		isLoading: isLoading,
 		isReducedMode,
 		bookmark: bookmarkMutation.mutate
 	}

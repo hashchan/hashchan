@@ -24,6 +24,7 @@ import {
 import { multiaddr } from '@multiformats/multiaddr'
 import { lpStream } from '@libp2p/utils'
 import { CID } from 'multiformats/cid'
+import { base58btc } from 'multiformats/bases/base58'
 
 const ORBITDB_PROTOCOL = '/hashchan/orbitdb/1.0.0'
 
@@ -46,32 +47,25 @@ export const useJoinModerationService = (ms: any) => {
       const stream = await helia.libp2p.dialProtocol(ma, ORBITDB_PROTOCOL)
       const lp = lpStream(stream)
 
-      // Server writes orbitDbAddr + raw manifest + access controller block bytes
+      // Server writes orbitDbAddr + raw manifest/ACL blocks
       const msg = await lp.read()
-      const {
-        orbitDbAddr,
-        manifestBlock: manifestBlockArray,
-        accessControllerBlock: acBlockArray,
-        accessControllerCid: acCidStr,
-        error
-      } = JSON.parse(new TextDecoder().decode(msg.subarray()))
-
-      // Seed local blockstore so orbit.open() never needs bitswap for these blocks
-      if (manifestBlockArray) {
-        const manifestCid = CID.parse(orbitDbAddr.split('/orbitdb/')[1])
-        await helia.blockstore.put(manifestCid, Uint8Array.from(manifestBlockArray))
-      }
-      if (acBlockArray && acCidStr) {
-        const acCid = CID.parse(acCidStr)
-        await helia.blockstore.put(acCid, Uint8Array.from(acBlockArray))
-      }
-
-      // Confirm ready so server knows we received it
-      await lp.write(new TextEncoder().encode(JSON.stringify({ ready: true })))
+      const { orbitDbAddr, manifestBytes, aclAddr, aclBytes, error } = JSON.parse(
+        new TextDecoder().decode(msg.subarray())
+      )
 
       if (error) {
         setDialErrors(old => [...old, error])
         return
+      }
+
+      // Pre-populate the local Helia blockstore so orbit.open() works without Bitswap
+      if (manifestBytes) {
+        const manifestCid = CID.parse(orbitDbAddr.replace('/orbitdb/', ''), base58btc)
+        await helia.blockstore.put(manifestCid, new Uint8Array(manifestBytes))
+      }
+      if (aclBytes && aclAddr) {
+        const aclCid = CID.parse(aclAddr.replace('/ipfs/', ''), base58btc)
+        await helia.blockstore.put(aclCid, new Uint8Array(aclBytes))
       }
 
       console.log('join success, orbitDbAddr:', orbitDbAddr)

@@ -1,6 +1,8 @@
 import "dotenv/config"
 import { LevelBlockstore } from 'blockstore-level'
 import { LevelDatastore } from 'datastore-level'
+import { CID } from 'multiformats/cid'
+import { base58btc } from 'multiformats/bases/base58'
 
 import { yamux  } from '@chainsafe/libp2p-yamux'
 import { noise  } from '@chainsafe/libp2p-noise'
@@ -145,11 +147,26 @@ const main = async () => {
     }
   })
 
-  // OrbitDB handshake: server pushes orbitDbAddr, no acknowledgment needed
+  // OrbitDB handshake: server pushes orbitDbAddr + raw blocks so client can open without Bitswap
   await helia.libp2p.handle('/hashchan/orbitdb/1.0.0', async (stream, connection) => {
     try {
       const lp = lpStream(stream)
-      await lp.write(new TextEncoder().encode(JSON.stringify({ orbitDbAddr: db.address.toString() })))
+
+      const manifestHashStr = db.address.toString().replace('/orbitdb/', '')
+      const manifestCid = CID.parse(manifestHashStr, base58btc)
+      const manifestBytes = Array.from(await helia.blockstore.get(manifestCid))
+
+      const aclAddr = db.access.address // e.g. '/ipfs/<CID>'
+      const aclHashStr = aclAddr.replace('/ipfs/', '')
+      const aclCid = CID.parse(aclHashStr, base58btc)
+      const aclBytes = Array.from(await helia.blockstore.get(aclCid))
+
+      await lp.write(new TextEncoder().encode(JSON.stringify({
+        orbitDbAddr: db.address.toString(),
+        manifestBytes,
+        aclAddr,
+        aclBytes
+      })))
       console.log('sent orbitDbAddr to:', connection.remotePeer.toString())
     } catch (e) {
       console.error('orbitdb handler error:', e)

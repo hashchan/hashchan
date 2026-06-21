@@ -8,6 +8,7 @@ import { heliaWithRemotePins  } from '@helia/remote-pinning'
 
 import { createOrbitDB, useIdentityProvider } from '@orbitdb/core'
 import * as OrbitDBIdentityProviderEthereum from '@orbitdb/identity-provider-ethereum'
+import { circuitRelayServer } from '@libp2p/circuit-relay-v2'
 
 import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 
@@ -73,7 +74,7 @@ export const HeliaProvider = ({ children }) => {
     // Use consistent names for the datastores
     const datastoreName = 'hashchan-datastore'
     const blockstoreName = 'hashchan-blockstore'
-    
+
     const datastore = new IDBDatastore(datastoreName)
     const blockstore = new IDBBlockstore(blockstoreName)
 
@@ -91,7 +92,8 @@ export const HeliaProvider = ({ children }) => {
           webSockets({
           }),
           webRTC(),
-          circuitRelayTransport()
+          circuitRelayTransport({
+          })
         ],
         connectionEncrypters: [noise()],
         streamMuxers: [yamux()],
@@ -104,8 +106,8 @@ export const HeliaProvider = ({ children }) => {
           pubsub: gossipsub({
             allowPublishToZeroTopicPeers: true
           }),
+          relay: circuitRelayServer(),
           identify: identify(),
-          identifyPush: identifyPush(),
         }
       })
       let helia;
