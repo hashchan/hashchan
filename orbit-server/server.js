@@ -100,7 +100,7 @@ const main = async () => {
       const lp = lpStream(stream)
       const msg = await lp.read()
       const { postIds } = JSON.parse(new TextDecoder().decode(msg.subarray()))
-      const records: Record<string, any> = {}
+      const records = {}
       for (const postId of postIds) {
         if (moderationRecords[postId]) records[postId] = moderationRecords[postId]
       }
