@@ -81,7 +81,7 @@ const main = async () => {
   }
 
   // Query: client sends { postId }, server responds with moderation record or null
-  await libp2p.handle(QUERY_PROTOCOL, async ({ stream }) => {
+  await libp2p.handle(QUERY_PROTOCOL, async (stream) => {
     try {
       const lp = lpStream(stream)
       const msg = await lp.read()
@@ -94,7 +94,7 @@ const main = async () => {
   })
 
   // Janny: browser sends signed moderation action, server verifies and persists
-  await libp2p.handle(JANNY_PROTOCOL, async ({ stream, connection }) => {
+  await libp2p.handle(JANNY_PROTOCOL, async (stream, connection) => {
     try {
       const lp = lpStream(stream)
       const msg = await lp.read()
@@ -138,8 +138,8 @@ const main = async () => {
   })
 
   process.on('SIGINT', async () => {
-    await datastore.close()
     await libp2p.stop()
+    await datastore.close()
     process.exit()
   })
 }
