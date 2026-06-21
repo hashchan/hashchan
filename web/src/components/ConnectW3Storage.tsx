@@ -10,7 +10,6 @@ const ConnectW3StorageModal = ({handleClose}:{handleClose : () => void }) => {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors, isSubmitting  }  } = useForm();
 
     const {
@@ -19,12 +18,12 @@ const ConnectW3StorageModal = ({handleClose}:{handleClose : () => void }) => {
     } = useW3Storage()
 
     const onSubmit = async (data) => {
-      await loginUser(data.privateKey, data.email)
+      await loginUser(data.email)
     }
 
 
     return (
-        <Modal name="Connect W3Storage" handleClose={handleClose}>
+        <Modal name="Connect Storacha" handleClose={handleClose}>
           <form
             className="flex-wrap-center"
             style={{
@@ -36,17 +35,13 @@ const ConnectW3StorageModal = ({handleClose}:{handleClose : () => void }) => {
               style={{
                 flexDirection: 'column',
               }}>
-              <h3>Create an <i>optional</i> Epheremeral <a target="_blank" href="https://web3.storage">W3Storage</a> Session</h3>
-              <p>web3.storage is an ipfs pinning provider, if your comfortable providing your email to them this makes adding images to your posts more convenient</p>
+              <h3>Create an <i>optional</i> Ephemeral <a target="_blank" href="https://storacha.network">Storacha</a> Session</h3>
+              <p>Storacha is an IPFS pinning provider. Sign up at <a target="_blank" href="https://storacha.network">storacha.network</a> first, then enter your email below to connect.</p>
               <label htmlFor="email">Email</label>
               <input style={{width:'261px'}} defaultValue="" {...register("email", { required: true })} />
               {errors.email && <span>This field is required</span>}
-              <label htmlFor="privateKey">PrivateKey</label>
-              <p>you can create this with <u>npx ucan-key ed --json</u></p>
-              <input style={{width:'261px'}} defaultValue="" {...register("privateKey", { required: true })} />
-              {errors.privateKey && <span>This field is required</span>}
               <button disabled={isSubmitting} type="submit">Submit</button>
-              { emailWaiting && <p>logging in... please check your email to register with web3.storage</p> }
+              { emailWaiting && <p>logging in... please check your email to register with Storacha</p> }
             </div>
           </form>
         </Modal>
@@ -65,7 +60,7 @@ export const ConnectW3Storage = () => {
     <button
       onClick={() => handleShowModal()}
     >
-      {account ? account.model.id: 'Connect W3Storage'}
+      {account ? account.model.id: 'Connect Storacha'}
     </button>
     {showModal && <ConnectW3StorageModal handleClose={handleShowModal} />}
   </>)

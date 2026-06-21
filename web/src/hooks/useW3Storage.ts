@@ -5,8 +5,6 @@ import { W3UpContext
 export const useW3Storage = () => {
   const {
    emailWaiting,
-   principal,
-   store,
    client,
    account,
    space,
@@ -15,14 +13,10 @@ export const useW3Storage = () => {
   } = useContext(W3UpContext)
 
   const loginUser = useCallback(async (
-    privateKey: string,
     email: `${string}@${string}`
   ) => {
     try {
-      console.log('attempting login')
-      console.log(privateKey, email)
-      const res = await handleLogin(privateKey, email)
-      console.log(res)
+      await handleLogin(email)
     } catch (e) {
       console.log(e)
     }
@@ -30,8 +24,6 @@ export const useW3Storage = () => {
 
   return {
     emailWaiting,
-    principal,
-    store,
     client,
     account,
     space,
