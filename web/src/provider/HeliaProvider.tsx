@@ -6,8 +6,6 @@ import { createLibp2p  } from 'libp2p'
 import { createHelia } from 'helia'
 import { heliaWithRemotePins  } from '@helia/remote-pinning'
 
-import { createOrbitDB, useIdentityProvider } from '@orbitdb/core'
-import * as OrbitDBIdentityProviderEthereum from '@orbitdb/identity-provider-ethereum'
 import { circuitRelayServer } from '@libp2p/circuit-relay-v2'
 
 import { gossipsub } from '@chainsafe/libp2p-gossipsub'
@@ -20,7 +18,6 @@ import { webRTC  } from '@libp2p/webrtc'
 
 import { circuitRelayTransport  } from '@libp2p/circuit-relay-v2'
 
-import { getWalletInterface } from '@/utils/blockchain'
 import { unixfs } from '@helia/unixfs'
 import {dagJson} from '@helia/dag-json'
 import PropTypes from 'prop-types'
@@ -41,24 +38,18 @@ export const HeliaContext = createContext({
   helia: null,
   dj: null,
   fs: null,
-  orbit: null,
   error: false,
   starting: true,
-  startOrbitDb: async () => {},
   startHelia: async () => {}
 })
 
 export const HeliaProvider = ({ children }) => {
-  useIdentityProvider(OrbitDBIdentityProviderEthereum.default)
   const {address} = useAccount()
   const walletClient = useWalletClient()
   const [isInitialized, setIsInitialized] = useState(false)
   const { db } = useContext(IDBContext)
   const [libp2p, setLibp2p] = useState(null)
   const [helia, setHelia] = useState(null)
-  const [orbit, setOrbit] = useState(null)
-  //const [orbitDB, setOrbitDB] = useState(null)
-
   const [fs, setFs] = useState(null)
   const [dj, setDj] = useState(null)
   const [starting, setStarting] = useState(true)
@@ -160,42 +151,6 @@ export const HeliaProvider = ({ children }) => {
     walletClient?.data
   ])
 
-  const startOrbitDb = useCallback(async () => {
-    console.log('start orbit')
-    console.log(Boolean(address), Boolean(helia), Boolean(db), Boolean(walletClient.data))
-    if(!address || !helia || !db || !walletClient.data) return
-      let orbit = null
-      if (await db.moderationServices.count() > 0) {
-        const walletInterface =  getWalletInterface({
-          address,
-          walletClient: walletClient.data
-        })
-        const ethProvider = OrbitDBIdentityProviderEthereum.default({ wallet: walletInterface  })
-        try  {
-          orbit = await createOrbitDB({
-            ipfs:helia,
-            identity: {provider: ethProvider}
-          })
-
-        } catch (e) {
-          console.log('orbit signature reject janny service offline')
-        }
-      } else {
-        orbit = await createOrbitDB({
-          ipfs:helia
-        })
-      }
-
-      setOrbit(orbit)
-
-  }, [helia, db, address, walletClient.data])
-
-  useEffect(() => {
-    if (!helia) return
-
-    startOrbitDb()
-  }, [helia, startOrbitDb])
-
   useEffect(() => {
     if (isInitialized ||
         !address ||
@@ -213,12 +168,10 @@ export const HeliaProvider = ({ children }) => {
       value={{
         libp2p,
         helia,
-        orbit,
         dj,
         fs,
         error,
         starting,
-        startOrbitDb,
         startHelia
       }}
     >{children}</HeliaContext.Provider>

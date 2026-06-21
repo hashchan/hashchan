@@ -79,7 +79,7 @@ const debugEnabledConditions = (
 export const useThread = () => {
 	const { chainId: chainIdParam, boardId: boardIdParam, threadId: threadIdParam } = useParams()
 	const { db } = useContext(IDBContext)
-	const { moderationServices, orbitDbs } = useContext(ModerationServicesContext)
+	const { moderationServices, queryModerationRecord } = useContext(ModerationServicesContext)
 	const { address, chain } = useAccount()
 	const blockNumber = useBlockNumber()
 	const publicClient = usePublicClient()
@@ -163,21 +163,10 @@ export const useThread = () => {
       console.log('useThread::moderationServices', moderationServices)
 			if (moderationServices != null && Object.keys(moderationServices).length > 0) {
         console.log("useThread::threadJanitoredBy")
-				// Check thread OP against orbit DB
+					// Check thread OP against moderation service
 				const threadJanitoredBy = (await Promise.all(
-					Object.values(moderationServices).map(async (ms) => {
-            console.log('useThread::ms', ms)
-						const orbitDb = orbitDbs[ms.address]
-            console.log('useThread::orbitDb', orbitDb)
-						if (orbitDb) {
-              console.log("useThread::orbitDb", orbitDb)
-              try {
-                const record = await orbitDb.get(thread.threadId)
-                return record
-              } catch (e) {
-                console.error(e)
-              }
-						}
+					Object.values(moderationServices).map(async (ms: any) => {
+						return await queryModerationRecord(ms.address, thread.threadId)
 					})
 				)).filter(Boolean)
 				if (threadJanitoredBy.length > 0) {
@@ -187,17 +176,14 @@ export const useThread = () => {
 					}
 				}
 
-				// Check replies against orbit DB
+				// Check replies against moderation service
 				cachedPosts = await Promise.all(
 					cachedPosts.map(async (post) => ({
 						...post,
 						janitoredBy: (await Promise.all(
-							Object.values(moderationServices).map(async (ms) => {
-								const orbitDb = orbitDbs[ms.address]
-								if (orbitDb) {
-									return await orbitDb.get(post.postId)
-								}
-							})
+							Object.values(moderationServices).map(async (ms: any) =>
+								queryModerationRecord(ms.address, post.postId)
+							)
 						)).filter(Boolean)
 					}))
 				)
