@@ -20,7 +20,7 @@ export const Thread = () => {
   const {threadId, boardId, chainId: urlChainId } = useParams()
   const { chain } = useAccount()
   const { isConnected } = useAccount()
-  const { posts, isReducedMode, isLoading, bookmark } = useThread()
+  const { posts, janitoredMap, isReducedMode, isLoading, bookmark } = useThread()
 
   const handleBookmark = (chainId: string, boardId: string, threadId: string, postId: string) => {
     bookmark({ threadId, postId })
@@ -66,7 +66,7 @@ export const Thread = () => {
             bookmarked={post?.bookmarked}
             handleOpenPost={handleOpenPost}
             ref={post?.ref}
-            janitoredBy={post?.janitoredBy}
+            janitoredBy={janitoredMap[post?.postId ?? post?.threadId] ? [janitoredMap[post.postId ?? post.threadId]] : []}
             bookmark={handleBookmark}
           />
         )

@@ -272,10 +272,12 @@ export const useThread = () => {
 		queryKey: ['moderation', chainIdParam, boardIdParam, threadIdParam, posts.length, msMsAddresses],
 		queryFn: async () => {
 			const allIds = posts.map(p => p.postId ?? p.threadId).filter(Boolean) as string[]
+			console.log('[moderation] querying', allIds.length, 'posts across', Object.keys(moderationServices!).length, 'services')
 			const result: Record<string, any> = {}
 			await Promise.all(
 				Object.values(moderationServices!).map(async (ms: any) => {
 					const records = await queryModerationRecords(ms.address, allIds)
+					console.log('[moderation] records from', ms.address, records)
 					Object.assign(result, records)
 				})
 			)
