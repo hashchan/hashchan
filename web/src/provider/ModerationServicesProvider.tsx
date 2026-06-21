@@ -15,10 +15,12 @@ import { IDBContext } from '@/provider/IDBProvider'
 import { useAccount } from 'wagmi'
 
 const QUERY_PROTOCOL = '/hashchan/query/1.0.0'
+const QUERY_BATCH_PROTOCOL = '/hashchan/query-batch/1.0.0'
 
 export const ModerationServicesContext = createContext({
   moderationServices: {} as Record<string, any> | null,
   queryModerationRecord: async (_msAddress: string, _postId: string): Promise<any> => null,
+  queryModerationRecords: async (_msAddress: string, _postIds: string[]): Promise<Record<string, any>> => ({}),
   addPubsubHandle: () => {},
 })
 
@@ -48,6 +50,23 @@ export const ModerationServicesProvider = ({ children }) => {
     } catch (e) {
       console.error('[query] failed:', e)
       return null
+    }
+  }, [moderationServices, helia])
+
+  const queryModerationRecords = useCallback(async (msAddress: string, postIds: string[]) => {
+    const ms = moderationServices?.[msAddress]
+    if (!ms || !helia || !postIds.length) return {}
+    try {
+      const ma = multiaddr(`/dns4/${ms.uri}/tcp/${ms.port}/wss`)
+      const stream = await helia.libp2p.dialProtocol(ma, QUERY_BATCH_PROTOCOL)
+      const lp = lpStream(stream)
+      await lp.write(new TextEncoder().encode(JSON.stringify({ postIds })))
+      const msg = await lp.read()
+      const { records } = JSON.parse(new TextDecoder().decode(msg.subarray()))
+      return records ?? {}
+    } catch (e) {
+      console.error('[query-batch] failed:', e)
+      return {}
     }
   }, [moderationServices, helia])
 
@@ -108,7 +127,7 @@ export const ModerationServicesProvider = ({ children }) => {
 
   return (
     <ModerationServicesContext.Provider
-      value={{ addPubsubHandle, moderationServices, queryModerationRecord }}
+      value={{ addPubsubHandle, moderationServices, queryModerationRecord, queryModerationRecords }}
     >
       {children}
     </ModerationServicesContext.Provider>

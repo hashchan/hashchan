@@ -16,6 +16,7 @@ import { publicClients, instances } from './src/config.js'
 import { affirmJanny } from './src/affirmJanny.js'
 
 const QUERY_PROTOCOL = '/hashchan/query/1.0.0'
+const QUERY_BATCH_PROTOCOL = '/hashchan/query-batch/1.0.0'
 const JANNY_PROTOCOL = '/hashchan/janny/1.0.0'
 
 const DB_DIR = './hashchan'
@@ -80,7 +81,7 @@ const main = async () => {
     }
   }
 
-  // Query: client sends { postId }, server responds with moderation record or null
+  // Query single: client sends { postId }, server responds with record or null
   await libp2p.handle(QUERY_PROTOCOL, async (stream) => {
     try {
       const lp = lpStream(stream)
@@ -90,6 +91,22 @@ const main = async () => {
       await lp.write(new TextEncoder().encode(JSON.stringify({ record })))
     } catch (e) {
       console.error('[query] handler error:', e)
+    }
+  })
+
+  // Query batch: client sends { postIds: string[] }, server responds with { records: Record<string, any> }
+  await libp2p.handle(QUERY_BATCH_PROTOCOL, async (stream) => {
+    try {
+      const lp = lpStream(stream)
+      const msg = await lp.read()
+      const { postIds } = JSON.parse(new TextDecoder().decode(msg.subarray()))
+      const records: Record<string, any> = {}
+      for (const postId of postIds) {
+        if (moderationRecords[postId]) records[postId] = moderationRecords[postId]
+      }
+      await lp.write(new TextEncoder().encode(JSON.stringify({ records })))
+    } catch (e) {
+      console.error('[query-batch] handler error:', e)
     }
   })
 

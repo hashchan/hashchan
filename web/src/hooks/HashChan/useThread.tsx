@@ -51,7 +51,6 @@ const debugEnabledConditions = (
   db: any,
   boardIdParam: string | undefined,
   blockNumber: bigint | undefined,
-  moderationServices: any,
 ) => {
   const conditions = {
     publicClient: Boolean(publicClient),
@@ -62,24 +61,19 @@ const debugEnabledConditions = (
     db: Boolean(db),
     boardIdParam: Boolean(boardIdParam),
     blockNumber: Boolean(blockNumber),
-    moderationServices: Boolean(moderationServices),
-
   }
-  
-  const allEnabled = Object.values(conditions).every(Boolean)
 
-  console.log('useThread::allEnabled', allEnabled)
+  const allEnabled = Object.values(conditions).every(Boolean)
   if (!allEnabled) {
     console.log('[useThread] Query disabled. Conditions:', conditions)
   }
-  
   return allEnabled
 }
 
 export const useThread = () => {
 	const { chainId: chainIdParam, boardId: boardIdParam, threadId: threadIdParam } = useParams()
 	const { db } = useContext(IDBContext)
-	const { moderationServices, queryModerationRecord } = useContext(ModerationServicesContext)
+	const { moderationServices, queryModerationRecords } = useContext(ModerationServicesContext)
 	const { address, chain } = useAccount()
 	const blockNumber = useBlockNumber()
 	const publicClient = usePublicClient()
@@ -159,35 +153,7 @@ export const useThread = () => {
 			}
 
 			// Get and process cached posts
-			let cachedPosts = await db.posts.where('threadId').equals(threadIdParam).sortBy('timestamp')
-      console.log('useThread::moderationServices', moderationServices)
-			if (moderationServices != null && Object.keys(moderationServices).length > 0) {
-        console.log("useThread::threadJanitoredBy")
-					// Check thread OP against moderation service
-				const threadJanitoredBy = (await Promise.all(
-					Object.values(moderationServices).map(async (ms: any) => {
-						return await queryModerationRecord(ms.address, thread.threadId)
-					})
-				)).filter(Boolean)
-				if (threadJanitoredBy.length > 0) {
-					logsObj[thread.threadId] = {
-						...logsObj[thread.threadId],
-						janitoredBy: threadJanitoredBy
-					}
-				}
-
-				// Check replies against moderation service
-				cachedPosts = await Promise.all(
-					cachedPosts.map(async (post) => ({
-						...post,
-						janitoredBy: (await Promise.all(
-							Object.values(moderationServices).map(async (ms: any) =>
-								queryModerationRecord(ms.address, post.postId)
-							)
-						)).filter(Boolean)
-					}))
-				)
-			}
+			const cachedPosts = await db.posts.where('threadId').equals(threadIdParam).sortBy('timestamp')
 
 			// Process cached posts
 			cachedPosts.forEach((post) => {
@@ -286,7 +252,7 @@ export const useThread = () => {
 				isReducedMode: isReduced
 			}
 		},
-		enabled:debugEnabledConditions(
+		enabled: debugEnabledConditions(
 			publicClient,
 			address,
 			hashchan,
@@ -295,8 +261,28 @@ export const useThread = () => {
 			db,
 			boardIdParam,
 			blockNumber.data,
-      moderationServices
 		)
+	})
+
+	// Separate moderation query — O(M) round trips (one per service), result is a flat Record<postId, record>
+	// Keyed by post count + MS addresses so it re-runs when new posts arrive or services change,
+	// but never blocks or re-runs the main posts query.
+	const msMsAddresses = Object.keys(moderationServices ?? {}).sort().join(',')
+	const { data: janitoredMap = {} } = useQuery({
+		queryKey: ['moderation', chainIdParam, boardIdParam, threadIdParam, posts.length, msMsAddresses],
+		queryFn: async () => {
+			const allIds = posts.map(p => p.postId ?? p.threadId).filter(Boolean) as string[]
+			const result: Record<string, any> = {}
+			await Promise.all(
+				Object.values(moderationServices!).map(async (ms: any) => {
+					const records = await queryModerationRecords(ms.address, allIds)
+					Object.assign(result, records)
+				})
+			)
+			return result
+		},
+		enabled: posts.length > 0 && moderationServices != null && Object.keys(moderationServices).length > 0,
+		staleTime: Infinity, // moderation records don't change per-block — only re-fetch when key changes
 	})
 
 	// Set up real-time updates
@@ -451,8 +437,9 @@ export const useThread = () => {
 
 	return {
 		posts,
+		janitoredMap,
 		error,
-		isLoading: isLoading,
+		isLoading,
 		isReducedMode,
 		bookmark: bookmarkMutation.mutate
 	}
