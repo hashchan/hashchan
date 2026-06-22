@@ -7,6 +7,9 @@ export default defineConfig({
     alias: [{ find: '@', replacement: path.resolve(__dirname, '/src')   }],
 
   },
+  define: {
+  "process.env.DRAGGABLE_DEBUG": JSON.stringify(process.env.DRAGGABLE_DEBUG ?? false),
+  },
 
   plugins: [react()],
 })
