@@ -1,6 +1,56 @@
-import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import type { ReactNode } from 'react'
 import AddMetamask from '@/assets/video/metamask-add.webm'
+
+const Tip = ({ children }: { children: ReactNode }) => (
+  <div style={{
+    borderLeft: '2px solid #20C20E',
+    backgroundColor: 'rgba(32, 194, 14, 0.05)',
+    padding: `${Math.PHI}vh ${Math.PHI}vw`,
+    marginTop: `${Math.PHI}vh`,
+  }}>
+    <span style={{ color: '#20C20E', fontWeight: 'bold', fontSize: `${1/Math.PHI + 1/Math.PHI**3}em` }}>💡 tip</span>
+    <div style={{ marginTop: `${1 / Math.PHI}vh` }}>{children}</div>
+  </div>
+)
+
+const Step = ({ num, title, isLast = false, children }: {
+  num: number
+  title: string
+  isLast?: boolean
+  children: ReactNode
+}) => (
+  <div style={{ display: 'flex', flexDirection: 'row', gap: `${Math.PHI ** 2}vw` }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+      <div style={{
+        width: `${Math.PHI ** 3}vh`,
+        height: `${Math.PHI ** 3}vh`,
+        border: '1px solid #20C20E',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#20C20E',
+        flexShrink: 0,
+      }}>
+        {num}
+      </div>
+      {!isLast && (
+        <div style={{
+          width: '1px',
+          flex: 1,
+          backgroundColor: '#20C20E',
+          opacity: 0.25,
+          marginTop: `${1 / Math.PHI}vh`,
+        }} />
+      )}
+    </div>
+
+    <div style={{ flex: 1, paddingBottom: isLast ? 0 : `${Math.PHI ** 2}vh` }}>
+      <h4 style={{ marginTop: 0, marginBottom: `${Math.PHI}vh` }}>{title}</h4>
+      {children}
+    </div>
+  </div>
+)
 
 export const Instructions = () => {
   return (
@@ -9,50 +59,54 @@ export const Instructions = () => {
       style={{
         flexDirection: 'column',
         margin: '0 auto',
-        width: `${(100/ (Math.PHI) + (100/(Math.PHI**3)))}vw`,
+        width: `${(100 / Math.PHI) + (100 / Math.PHI ** 3)}vw`,
         justifyContent: 'center',
-        alignItems: 'center',
+        alignItems: 'flex-start',
       }}
     >
-      <div><h3>First Time Setup</h3></div>
-      <p>The following presents a step by step guide on how to get hashchan up and running.</p><br/>
-      <div>
-        <table>
-          <tbody>
-            <tr>
-              <td>Step</td>
-              <td>Description</td>
-            </tr>
-            <tr>
-              <td>1</td>
-              <td>Connect your wallet</td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td>Funding the Wallet</td>
-            </tr>
-            <tr>
-              <td>3</td>
-              <td>Dedicated RPC</td>
-            </tr>
-            <tr>
-              <td>4</td>
-              <td>Hotlinks/IPFS</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div>
-        <h4>1. Connect your wallet</h4>
-        <p>There are many options, though the most common is Metamask. Instructions and descriptions can be found <a href="https://support.metamask.io/getting-started/getting-started-with-metamask/" target="_blank">here</a> additionally, if you are on mobile, the metamask app has its own browser inside that lets you use the dapp on your phone</p>
-        <video style={{width: '100%'}} playsInline autoPlay controls src={AddMetamask} />
-        <h4>2. Funding the Wallet</h4>
-        <p>Funding a wallet is highly dependent on ones locality, I recommend to search "how to get etheruem in X country".  For now, If you reach out via discord I may be able to send you some testETH on the sepolia network to get you started trying the dapp out"</p>
-        <h4>3. Dedicated RPCs</h4>
-        <p>an RPC faciliates your communication with the blockchain.  While the dapp seems to be currently surviving on many default endpoints, it is not guaranteed.  And one may find they have to refresh the page to see new posts. While metamask and other wallet providers give you default ones, they are often restricted in what they can access due to rate limiting.  To guarantee you can access posts and threads, it is recommended to get a dedicated RPC url from a provider such as <a target="_blank" href="https://www.alchemy.com/">Alchemy</a>.  By editing the network in metamask you can add a new RPC and get much better log access</p>
-        <h4>4. Hotlinks/IPFS</h4>
-        <p>Hashchan avoids the issue of illegal content flooding by relying on existing service providers or the end users to provider their own images.  The process of piggybacking off another providers image hosting is refered to as hotlinking.  Simply provide the url to the image, and hashchan will record it on the blockchain.  Unfortunately some providers restrict access to hotlinking, and users have to rely on them not to swap the image behind the url.  For this reason it is recommended users leverage IPFS pinning services to host their images such as <a target="_blank" href="https://pinata.cloud/">Pinata</a> or <a target="_blank" href="https://web3.storage">Web3.Storage</a> Hashchan has a web3.storage integration that allows users to host their images rather conveinently, though it requires a user provider their email address. This part is optional but highly recommended</p>
-      </div>
+      <h3>First Time Setup</h3>
+      <p style={{ marginBottom: `${Math.PHI ** 2}vh`, opacity: 0.6 }}>
+        Four steps to get hashchan up and running.
+      </p>
+
+      <Step num={1} title="Connect your wallet">
+        <p>
+          The most common option is{' '}
+          <a href="https://support.metamask.io/getting-started/getting-started-with-metamask/" target="_blank">
+            MetaMask
+          </a>. Install the browser extension and create or import a wallet.
+        </p>
+        <video style={{ width: '100%', marginTop: `${Math.PHI}vh` }} playsInline autoPlay controls src={AddMetamask} />
+        <Tip>On mobile, the MetaMask app includes a built-in browser — use it to access the dapp directly from your phone.</Tip>
+      </Step>
+
+      <Step num={2} title="Fund the wallet">
+        <p>
+          Funding options vary by region. Search <em>"how to get Ethereum in [your country]"</em> for local exchanges or on-ramps.
+        </p>
+        <Tip>Want to try the dapp first? Reach out on Discord and we can send you some Sepolia testETH to get started.</Tip>
+      </Step>
+
+      <Step num={3} title="Dedicated RPC">
+        <p>
+          An RPC is your connection to the blockchain. Default wallet endpoints are often rate-limited — new posts may not appear without a page refresh.
+        </p>
+        <p style={{ marginTop: `${Math.PHI}vh` }}>
+          Get a free dedicated RPC from <a target="_blank" href="https://www.alchemy.com/">Alchemy</a>, then add it to your wallet's network settings for reliable access.
+        </p>
+      </Step>
+
+      <Step num={4} title="Hotlinks / IPFS" isLast>
+        <p>
+          Hashchan records image URLs on-chain rather than hosting images — paste any publicly accessible URL and it's stored on the blockchain.
+        </p>
+        <Tip>
+          For permanent, self-hosted images use an IPFS pinning service like{' '}
+          <a target="_blank" href="https://pinata.cloud/">Pinata</a> or{' '}
+          <a target="_blank" href="https://web3.storage">Web3.Storage</a>.
+          Hashchan has a built-in Web3.Storage integration (just needs your email) — optional but recommended.
+        </Tip>
+      </Step>
     </div>
   )
 }
