@@ -1,0 +1,78 @@
+import { useContext } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useAccount, usePublicClient } from 'wagmi'
+
+import { IDBContext } from '../provider/IDBProvider'
+import { useContracts } from './useContracts'
+
+export const useBoard = (boardId: number, chainId: number) => {
+  const { hashchan } = useContracts()
+  const publicClient = usePublicClient()
+  const { chain } = useAccount()
+  const { db } = useContext(IDBContext)
+  const queryClient = useQueryClient()
+
+  const { data: board } = useQuery({
+    queryKey: ['board', boardId, chainId],
+    enabled: Boolean(chain && db && boardId != null && chainId != null && publicClient && hashchan),
+    queryFn: async () => {
+      let board = await db!.boards
+        .where('[boardId+chainId]')
+        .equals([boardId, chainId])
+        .first()
+
+      if (!board) {
+        const logs = await hashchan.getEvents.NewBoard({ boardId: BigInt(boardId) })
+        const log = logs[0]
+        if (!log) return null
+
+        const { boardId: boardIdBigInt, name, symbol } = log.args
+        board = {
+          boardId: Number(boardIdBigInt),
+          chainId: chain!.id,
+          favourite: 0,
+          name,
+          symbol,
+          lastSynced: 0,
+          metadata: { stats: { threadCount: 0, postCount: 0 } },
+        } as any
+
+        try {
+          await db!.boards.add(board as any)
+        } catch (e) {
+          console.log('db error, skipping')
+        }
+      }
+
+      return board ?? null
+    },
+  })
+
+  const updateMetadataMutation = useMutation({
+    mutationFn: async (increment: { threadCount?: number; postCount?: number }) => {
+      if (!board) throw new Error('Board not loaded')
+
+      await db!.boards
+        .where('[boardId+chainId]')
+        .equals([board.boardId, board.chainId])
+        .modify((b) => {
+          if (!b.metadata) b.metadata = { stats: { threadCount: 0, postCount: 0 } }
+          if (increment.threadCount) b.metadata.stats.threadCount += increment.threadCount
+          if (increment.postCount) b.metadata.stats.postCount += increment.postCount
+        })
+
+      return db!.boards.where('[boardId+chainId]').equals([board.boardId, board.chainId]).first()
+    },
+    onSuccess: (updatedBoard) => {
+      if (updatedBoard) {
+        queryClient.setQueryData(['board', boardId, chainId], updatedBoard)
+      }
+      queryClient.invalidateQueries({ queryKey: ['boards', chainId] })
+    },
+  })
+
+  return {
+    board: board ?? null,
+    updateMetadata: updateMetadataMutation.mutate,
+  }
+}

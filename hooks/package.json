@@ -1,0 +1,54 @@
+{
+  "name": "@hashchan/hooks",
+  "version": "0.1.0",
+  "description": "Wagmi/viem hooks for the HashChan protocol",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:anvil": "TEST_NODE=anvil vitest run",
+    "test:geth": "TEST_NODE=geth vitest run"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": ">=5",
+    "react": ">=18",
+    "viem": ">=2",
+    "wagmi": ">=2"
+  },
+  "dependencies": {
+    "dexie": "^4.4.4",
+    "multiformats": "^14.0.0"
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "^5.101.0",
+    "@testing-library/react": "^16.0.0",
+    "@types/node": "^26.0.0",
+    "@types/react": "^19.2.17",
+    "@vitejs/plugin-react": "^4.0.0",
+    "fake-indexeddb": "^6.2.5",
+    "happy-dom": "^14.0.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "viem": "^2.53.1",
+    "vitest": "^2.0.0",
+    "wagmi": "^3.6.17"
+  }
+}
