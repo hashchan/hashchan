@@ -5,6 +5,7 @@ import { IDBContext } from '../provider/IDBProvider'
 import { useContracts } from './useContracts'
 import { useBoard } from './useBoard'
 import { computeImageCID } from '../utils/cids'
+import { type NewPostArgs } from '../types/events'
 
 export const useCreatePost = (boardId: number, chainId: number, threadId: string) => {
   const { db } = useContext(IDBContext)
@@ -29,10 +30,10 @@ export const useCreatePost = (boardId: number, chainId: number, threadId: string
         const unwatch = hashchan.watchEvent.NewPost(
           { threadId, creator: address },
           {
-            onError: (error: any) => {
+            onError: (error: Error) => {
               setLogErrors((old) => [...old, error.message])
             },
-            onLogs: async (newLogs: any[]) => {
+            onLogs: async (newLogs: Array<{ args: NewPostArgs }>) => {
               setLogs((old) => [...old, ...newLogs])
               unwatch()
             },

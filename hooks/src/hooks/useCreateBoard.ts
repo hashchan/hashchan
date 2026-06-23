@@ -4,6 +4,7 @@ import { useAccount } from 'wagmi'
 import { IDBContext } from '../provider/IDBProvider'
 import { useContracts } from './useContracts'
 import { computeImageCID } from '../utils/cids'
+import { type NewBoardArgs } from '../types/events'
 
 export const useCreateBoard = () => {
   const { db } = useContext(IDBContext)
@@ -37,10 +38,10 @@ export const useCreateBoard = () => {
         const unwatch = hashchan.watchEvent.NewBoard(
           {},
           {
-            onError: (error: any) => {
+            onError: (error: Error) => {
               setLogErrors((old) => [...old, error.message])
             },
-            onLogs: async (newLogs: any[]) => {
+            onLogs: async (newLogs: Array<{ args: NewBoardArgs }>) => {
               for (const log of newLogs) {
                 if (log.args.name !== name) continue
                 const { boardId, name: n, symbol: s, bannerUrl: bu, bannerCID, description: d, rules: r } = log.args

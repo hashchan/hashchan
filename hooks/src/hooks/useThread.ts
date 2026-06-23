@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { createRef, useRef, useEffect, useContext } from 'react'
+import { createRef, useRef, useEffect, useContext, type RefObject } from 'react'
 import { useAccount, usePublicClient, useBlockNumber } from 'wagmi'
 
 import { IDBContext } from '../provider/IDBProvider'
@@ -7,20 +7,10 @@ import { useContracts } from './useContracts'
 import { useBoard } from './useBoard'
 import { tryRecurseBlockFilter } from '../utils/blockchain'
 import { parseContent } from '../utils/content'
+import { type PostView, type ThreadView } from '../types/posts'
+import { type NewThreadArgs, type NewPostArgs, type FilterLog } from '../types/events'
 
-export interface PostView {
-  creator: string
-  postId?: string
-  threadId?: string
-  imgUrl: string
-  imgCID: string
-  content: string
-  timestamp: number
-  bookmarked: number
-  replyIds: string[]
-  replies: Array<{ ref: any; id: string }>
-  ref: any
-}
+export type { PostView } from '../types/posts'
 
 const createQueryKey = (chainId: number, boardId: number, threadId: string, blockNumber: number | undefined) =>
   ['chain', chainId, 'board', boardId, 'thread', threadId, blockNumber] as const
@@ -45,11 +35,11 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
       publicClient && address && hashchan && threadId && chain?.id && db && boardId && blockNumber.data
     ),
     queryFn: async () => {
-      const refsObj: Record<string, any> = {}
+      const refsObj: Record<string, RefObject<unknown>> = {}
       const logsObj: Record<string, PostView> = {}
 
       const cachedThread = await db!.threads.where('threadId').equals(threadId).first()
-      let thread: any
+      let thread: ThreadView
 
       if (cachedThread) {
         thread = {
@@ -74,7 +64,7 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
           toBlock: blockNumber.data,
         })
         const threadLogs = await publicClient!.getFilterLogs({ filter: threadFilter })
-        const { creator, content, threadId: tid, imgUrl, imgCID, timestamp } = (threadLogs[0] as any).args
+        const { creator, content, threadId: tid, imgUrl, imgCID, timestamp } = (threadLogs[0] as unknown as FilterLog<NewThreadArgs>).args
         thread = {
           lastSynced: 0,
           creator,
@@ -94,11 +84,21 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
 
       const cachedPosts = await db!.posts.where('threadId').equals(threadId).sortBy('timestamp')
 
-      cachedPosts.forEach((post: any) => {
-        post.replies = []
+      cachedPosts.forEach((post) => {
         refsObj[post.postId] = createRef()
-        logsObj[post.postId] = { ...post, ref: refsObj[post.postId] }
-        post.replyIds.forEach((replyId: string) => {
+        logsObj[post.postId] = {
+          creator: post.creator,
+          postId: post.postId,
+          imgUrl: post.imgUrl,
+          imgCID: post.imgCID,
+          content: post.content,
+          timestamp: post.timestamp,
+          bookmarked: post.bookmarked,
+          replyIds: post.replyIds,
+          replies: [],
+          ref: refsObj[post.postId],
+        }
+        post.replyIds.forEach((replyId) => {
           if (logsObj[replyId]) {
             logsObj[replyId].replies.push({ ref: refsObj[post.postId], id: post.postId })
           }
@@ -119,7 +119,7 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
         isReduced = r
 
         for (const log of logs) {
-          const { creator, postId, imgUrl, imgCID, content, replyIds, timestamp } = (log as any).args
+          const { creator, postId, imgUrl, imgCID, content, replyIds, timestamp } = (log as unknown as FilterLog<NewPostArgs>).args
           if (logsObj[postId]) continue
 
           refsObj[postId] = createRef()

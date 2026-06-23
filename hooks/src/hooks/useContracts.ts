@@ -17,9 +17,10 @@ export const useContracts = () => {
   const fetchContracts = useCallback(async () => {
     if (!publicClient || !walletClient?.data || !chain?.id) return
 
-    const chainKey = String(chain.id) as keyof typeof HashChan3
-    const hc3Address = (HashChan3 as any)[chainKey]?.address
-    const msfAddress = (ModerationServiceFactory as any)[chainKey]?.address
+    type AddressBook = Record<string, { address: `0x${string}` } | undefined>
+    const chainKey = String(chain.id)
+    const hc3Address = (HashChan3 as unknown as AddressBook)[chainKey]?.address
+    const msfAddress = (ModerationServiceFactory as unknown as AddressBook)[chainKey]?.address
 
     if (hc3Address) {
       setHashchan(

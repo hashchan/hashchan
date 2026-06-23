@@ -7,6 +7,7 @@ import { useContracts } from './useContracts'
 import { useBoard } from './useBoard'
 import { tryRecurseBlockFilter } from '../utils/blockchain'
 import type { Thread } from '../provider/IDBProvider'
+import { type NewThreadArgs, type FilterLog } from '../types/events'
 
 const createQueryKey = (boardId: number, chainId: number, blockNumber: bigint | undefined) =>
   ['threads', boardId, chainId, blockNumber ? Number(blockNumber) : undefined] as const
@@ -47,7 +48,7 @@ export const useThreads = (boardId: number, chainId: number) => {
         const logs = await publicClient!.getFilterLogs({ filter })
 
         for (const log of logs) {
-          const logArgs = (log as any).args
+          const logArgs = (log as unknown as FilterLog<NewThreadArgs>).args
           const existing = await db!.threads.where('threadId').equals(logArgs.threadId).first()
           if (existing) continue
 

@@ -26,19 +26,23 @@ export const useBoard = (boardId: number, chainId: number) => {
         const log = logs[0]
         if (!log) return null
 
-        const { boardId: boardIdBigInt, name, symbol } = log.args
+        const { boardId: boardIdBigInt, name, symbol, description, bannerUrl, bannerCID, rules } = log.args
         board = {
           boardId: Number(boardIdBigInt),
           chainId: chain!.id,
           favourite: 0,
-          name,
-          symbol,
+          name: name ?? '',
+          symbol: symbol ?? '',
+          description: description ?? '',
+          bannerUrl: bannerUrl ?? '',
+          bannerCID: bannerCID ?? '',
+          rules: rules ?? [],
           lastSynced: 0,
           metadata: { stats: { threadCount: 0, postCount: 0 } },
-        } as any
+        }
 
         try {
-          await db!.boards.add(board as any)
+          await db!.boards.add(board)
         } catch (e) {
           console.log('db error, skipping')
         }

@@ -36,9 +36,9 @@ export const useBoards = () => {
       for (let i = startId; i < endId; i++) {
         const logs = await hashchan.getEvents.NewBoard({ boardId: BigInt(i) })
         if (!logs[0]) continue
-        const { id, name, symbol, description, bannerUrl, bannerCID, rules } = logs[0].args
+        const { boardId: boardIdFromLog, name, symbol, description, bannerUrl, bannerCID, rules } = logs[0].args
         const newBoard = {
-          boardId: Number(id),
+          boardId: Number(boardIdFromLog),
           chainId: chainId!,
           name,
           symbol,
@@ -52,7 +52,7 @@ export const useBoards = () => {
         }
         try {
           await db!.boards.add(newBoard)
-          boards.push(newBoard as any)
+          boards.push(newBoard)
         } catch (e) {
           console.log('board already exists, skipping')
         }
