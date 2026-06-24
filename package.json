@@ -1,8 +1,0 @@
-{
-  "name": "hashchan",
-  "private": true,
-  "workspaces": [
-    "hooks",
-    "web"
-  ]
-}
