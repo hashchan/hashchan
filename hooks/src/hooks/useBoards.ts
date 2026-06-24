@@ -1,25 +1,31 @@
 import { useContext } from 'react'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-import { useAccount, useBlockNumber } from 'wagmi'
+import { useConnection, useBlockNumber } from 'wagmi'
 
 import { IDBContext } from '../provider/IDBProvider'
 import { useContracts } from './useContracts'
+import { useSettings } from './useSettings'
+import { useEnabled } from '../utils/enabled'
+import { boardsKey } from '../utils/queryKeys'
 
 export const useBoards = () => {
-  const { address, chainId } = useAccount()
+  const { address, chainId } = useConnection()
   const { db } = useContext(IDBContext)
   const blockNumber = useBlockNumber()
   const { hashchan } = useContracts()
   const queryClient = useQueryClient()
+  const { settings } = useSettings()
+  const strategy = settings?.indexingStrategy
+  const enabled = useEnabled({ address, chainId, db, blockNumber: blockNumber.data, hashchan, settings })
 
   const {
     data: boards = [],
     error,
     isLoading,
   } = useQuery({
-    enabled: Boolean(address && chainId && db && blockNumber.data && hashchan),
+    enabled,
     staleTime: 1000 * 60 * 5,
-    queryKey: ['boards', Number(chainId)],
+    queryKey: boardsKey({ chainId: chainId! }),
     queryFn: async () => {
       let boardsSync = await db!.boardsSync.where('chainId').equals(chainId!).first()
       if (!boardsSync) {
@@ -76,7 +82,7 @@ export const useBoards = () => {
       return { boardId, chainId: cid, favourite: newFavourite }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boards', Number(chainId)] })
+      queryClient.invalidateQueries({ queryKey: boardsKey({ chainId: chainId! }) })
     },
   })
 
@@ -84,6 +90,7 @@ export const useBoards = () => {
     boards,
     error,
     isLoading,
+    strategy,
     toggleFavourite: favouriteMutation.mutate,
   }
 }

@@ -1,5 +1,7 @@
 export { IDBProvider, IDBContext } from './provider/IDBProvider'
-export type { Board, Thread, Post, Settings } from './provider/IDBProvider'
+export type { Board, Thread, Post, Settings, IndexingStrategy, ModerationService } from './provider/IDBProvider'
+
+export { useSettings } from './hooks/useSettings'
 
 export { useContracts } from './hooks/useContracts'
 export { useBoards } from './hooks/useBoards'
@@ -12,6 +14,13 @@ export { useCreateThread } from './hooks/useCreateThread'
 export { useCreatePost } from './hooks/useCreatePost'
 export { useBookmarkedPosts } from './hooks/useBookmarkedPosts'
 export type { BookmarkedItem } from './hooks/useBookmarkedPosts'
+
+export { useCreateModerationService } from './hooks/useCreateModerationService'
+export { useEditModerationService } from './hooks/useEditModerationService'
+export { useModerationServices } from './hooks/useModerationServices'
+export { useModerationService } from './hooks/useModerationService'
+export { useJoinModerationService } from './hooks/useJoinModerationService'
+export type { ModerationServiceData, JanitorData } from './types/moderation'
 
 export { tryRecurseBlockFilter, chainIdToName } from './utils/blockchain'
 export { computeImageCID } from './utils/cids'

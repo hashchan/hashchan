@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useContext } from 'react'
 
 import { IDBContext } from '../provider/IDBProvider'
+import { bookmarkedPostsKey } from '../utils/queryKeys'
 
 interface BookmarkedThread {
   type: 'thread'
@@ -36,7 +37,7 @@ export const useBookmarkedPosts = (boardId: number, chainId: number) => {
   const { db } = useContext(IDBContext)
 
   const { data: bookmarkedItems = [], isLoading, error } = useQuery({
-    queryKey: ['bookmarked-posts', chainId, boardId],
+    queryKey: bookmarkedPostsKey({ chainId, boardId }),
     enabled: !!db && boardId != null && chainId != null,
     queryFn: async (): Promise<BookmarkedItem[]> => {
       const results: BookmarkedItem[] = []

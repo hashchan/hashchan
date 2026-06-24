@@ -3,6 +3,8 @@ import { resolve } from 'path'
 import { createPublicClient, createWalletClient, http } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import HashChan3 from '../src/abi/HashChan3.json'
+import ModerationServiceFactory from '../src/abi/ModerationServiceFactory.json'
+import ModerationServiceABI from '../src/abi/ModerationService.json'
 
 const NODE = (process.env.TEST_NODE ?? 'anvil') as 'anvil' | 'geth'
 
@@ -89,12 +91,51 @@ export async function setup() {
   const receipt = await publicClient.waitForTransactionReceipt({ hash: deployHash })
   console.log(`✓ HashChan3 deployed at ${receipt.contractAddress}`)
 
+  const msfDeployHash = await walletClient.deployContract({
+    abi: ModerationServiceFactory.abi,
+    bytecode: ModerationServiceFactory.bytecode as `0x${string}`,
+    args: [receipt.contractAddress!],
+    account,
+  })
+  const msfReceipt = await publicClient.waitForTransactionReceipt({ hash: msfDeployHash })
+  console.log(`✓ ModerationServiceFactory deployed at ${msfReceipt.contractAddress}`)
+
+  const createSvcHash = await walletClient.writeContract({
+    address: msfReceipt.contractAddress!,
+    abi: ModerationServiceFactory.abi,
+    functionName: 'createModerationService',
+    args: ['Basic Service', 'orbit.hashchan.org', 443n],
+    account,
+  })
+  await publicClient.waitForTransactionReceipt({ hash: createSvcHash })
+
+  const svcLogs = await publicClient.getContractEvents({
+    address: msfReceipt.contractAddress!,
+    abi: ModerationServiceFactory.abi,
+    eventName: 'NewModerationService',
+    fromBlock: 0n,
+  })
+  const serviceAddress = svcLogs[0].args.moderationService as `0x${string}`
+  console.log(`✓ ModerationService deployed at ${serviceAddress}`)
+
+  const addJanitorHash = await walletClient.writeContract({
+    address: serviceAddress,
+    abi: ModerationServiceABI.abi,
+    functionName: 'addJanitor',
+    args: [account.address],
+    account,
+  })
+  await publicClient.waitForTransactionReceipt({ hash: addJanitorHash })
+  console.log(`✓ Janitor added: ${account.address}`)
+
   // Expose to test processes via env
-  process.env.TEST_NODE_TYPE     = NODE
-  process.env.TEST_RPC_URL       = rpcUrl
-  process.env.TEST_CHAIN_ID      = String(chainId)
-  process.env.TEST_PRIVATE_KEY   = TEST_KEY
-  process.env.HASHCHAN3_ADDRESS  = receipt.contractAddress!
+  process.env.TEST_NODE_TYPE                     = NODE
+  process.env.TEST_RPC_URL                       = rpcUrl
+  process.env.TEST_CHAIN_ID                      = String(chainId)
+  process.env.TEST_PRIVATE_KEY                   = TEST_KEY
+  process.env.HASHCHAN3_ADDRESS                  = receipt.contractAddress!
+  process.env.MODERATION_SERVICE_FACTORY_ADDRESS = msfReceipt.contractAddress!
+  process.env.MODERATION_SERVICE_ADDRESS         = serviceAddress
 }
 
 export async function teardown() {

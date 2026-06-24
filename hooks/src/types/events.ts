@@ -32,6 +32,34 @@ export interface NewPostArgs {
   timestamp: bigint
 }
 
+// ModerationServiceFactory events
+export interface NewModerationServiceArgs {
+  owner: `0x${string}`
+  moderationService: `0x${string}`
+  blockNumber: bigint
+  name: string
+}
+
+// ModerationService events
+export interface NewJanitorArgs {
+  janitor: `0x${string}`
+}
+
+export interface OwnershipTransferredArgs {
+  previousOwner: `0x${string}`
+  newOwner: `0x${string}`
+}
+
+export interface URLUpdatedArgs {
+  uri: string
+  port: bigint
+}
+
 // getFilterLogs returns Log[] without typed .args — this wrapper expresses
 // what we know about the shape after createContractEventFilter.
 export type FilterLog<T> = { args: T }
+
+// Lifecycle of a submitted contract write:
+//   idle → submitting (wallet prompt) → pending (hash received, mining) → confirmed (event log received)
+//   Any phase can transition to error.
+export type TxStatus = 'idle' | 'submitting' | 'pending' | 'confirmed' | 'error'

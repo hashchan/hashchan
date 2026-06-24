@@ -1,13 +1,13 @@
 import { useEffect, useState, useCallback } from 'react'
 import { getContract } from 'viem'
-import { useAccount, usePublicClient, useWalletClient } from 'wagmi'
+import { useConnection, usePublicClient, useWalletClient } from 'wagmi'
 
 import HashChan3 from '../abi/HashChan3.json'
 import ModerationServiceFactory from '../abi/ModerationServiceFactory.json'
 
 export const useContracts = () => {
   const [isInitialized, setIsInitialized] = useState(false)
-  const { chain } = useAccount()
+  const { chain } = useConnection()
   const publicClient = usePublicClient()
   const walletClient = useWalletClient()
 

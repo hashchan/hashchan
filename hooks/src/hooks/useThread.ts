@@ -1,39 +1,42 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createRef, useRef, useEffect, useContext, type RefObject } from 'react'
-import { useAccount, usePublicClient, useBlockNumber } from 'wagmi'
+import { useConnection, usePublicClient, useBlockNumber } from 'wagmi'
 
 import { IDBContext } from '../provider/IDBProvider'
 import { useContracts } from './useContracts'
 import { useBoard } from './useBoard'
+import { useSettings } from './useSettings'
 import { tryRecurseBlockFilter } from '../utils/blockchain'
+import { useEnabled } from '../utils/enabled'
 import { parseContent } from '../utils/content'
 import { type PostView, type ThreadView } from '../types/posts'
 import { type NewThreadArgs, type NewPostArgs, type FilterLog } from '../types/events'
+import { threadKey, bookmarkedPostsKey } from '../utils/queryKeys'
 
 export type { PostView } from '../types/posts'
 
-const createQueryKey = (chainId: number, boardId: number, threadId: string, blockNumber: number | undefined) =>
-  ['chain', chainId, 'board', boardId, 'thread', threadId, blockNumber] as const
-
 export const useThread = (boardId: number, chainId: number, threadId: string) => {
   const { db } = useContext(IDBContext)
-  const { address, chain } = useAccount()
+  const { address, chain } = useConnection()
   const blockNumber = useBlockNumber()
   const publicClient = usePublicClient()
   const { hashchan } = useContracts()
   const queryClient = useQueryClient()
   const unwatchRef = useRef<(() => void) | null>(null)
   const { updateMetadata } = useBoard(boardId, chainId)
+  const { settings } = useSettings()
+
+  const strategy = settings?.indexingStrategy
+  const blockRangeLimit = settings ? BigInt(settings.blockRangeLimit) : 0n
+  const enabled = useEnabled({ publicClient, address, hashchan, threadId, chainId: chain?.id, db, boardId, blockNumber: blockNumber.data, settings })
 
   const {
     data: { posts = [], isReducedMode = false } = {},
     error,
     isLoading,
   } = useQuery({
-    queryKey: createQueryKey(chainId, boardId, threadId, Number(blockNumber.data)),
-    enabled: Boolean(
-      publicClient && address && hashchan && threadId && chain?.id && db && boardId && blockNumber.data
-    ),
+    queryKey: threadKey({ chainId, boardId, threadId, blockNumber: Number(blockNumber.data) }),
+    enabled,
     queryFn: async () => {
       const refsObj: Record<string, RefObject<unknown>> = {}
       const logsObj: Record<string, PostView> = {}
@@ -55,14 +58,30 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
           timestamp: Number(cachedThread.timestamp),
         }
       } else {
-        const { filter: threadFilter } = await tryRecurseBlockFilter(publicClient!, {
-          address: hashchan.address,
-          abi: hashchan.abi,
-          eventName: 'NewThread',
-          args: { threadId },
-          fromBlock: 0n,
-          toBlock: blockNumber.data,
-        })
+        const threadFromBlock = strategy === 'reverseChunked'
+          ? (blockNumber.data! > blockRangeLimit ? blockNumber.data! - blockRangeLimit : 0n)
+          : 0n
+        let threadFilter: any
+        if (strategy === 'reverseChunked') {
+          threadFilter = await publicClient!.createContractEventFilter({
+            address: hashchan.address,
+            abi: hashchan.abi,
+            eventName: 'NewThread',
+            args: { threadId },
+            fromBlock: threadFromBlock,
+            toBlock: blockNumber.data,
+          })
+        } else {
+          const { filter } = await tryRecurseBlockFilter(publicClient!, {
+            address: hashchan.address,
+            abi: hashchan.abi,
+            eventName: 'NewThread',
+            args: { threadId },
+            fromBlock: threadFromBlock,
+            toBlock: blockNumber.data,
+          })
+          threadFilter = filter
+        }
         const threadLogs = await publicClient!.getFilterLogs({ filter: threadFilter })
         const { creator, content, threadId: tid, imgUrl, imgCID, timestamp } = (threadLogs[0] as unknown as FilterLog<NewThreadArgs>).args
         thread = {
@@ -107,16 +126,33 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
 
       let isReduced = false
       try {
-        const { filter, isReduced: r } = await tryRecurseBlockFilter(publicClient!, {
-          address: hashchan.address,
-          abi: hashchan.abi,
-          eventName: 'NewPost',
-          args: { threadId },
-          fromBlock: BigInt(thread.lastSynced ? thread.lastSynced - 1 : 0),
-          toBlock: blockNumber.data,
-        })
+        const postsFromBlock = strategy === 'reverseChunked'
+          ? (blockNumber.data! > blockRangeLimit ? blockNumber.data! - blockRangeLimit : 0n)
+          : BigInt(thread.lastSynced ? thread.lastSynced - 1 : 0)
+
+        let filter: any
+        if (strategy === 'reverseChunked') {
+          filter = await publicClient!.createContractEventFilter({
+            address: hashchan.address,
+            abi: hashchan.abi,
+            eventName: 'NewPost',
+            args: { threadId },
+            fromBlock: postsFromBlock,
+            toBlock: blockNumber.data,
+          })
+        } else {
+          const result = await tryRecurseBlockFilter(publicClient!, {
+            address: hashchan.address,
+            abi: hashchan.abi,
+            eventName: 'NewPost',
+            args: { threadId },
+            fromBlock: postsFromBlock,
+            toBlock: blockNumber.data,
+          })
+          filter = result.filter
+          isReduced = result.isReduced
+        }
         const logs = await publicClient!.getFilterLogs({ filter })
-        isReduced = r
 
         for (const log of logs) {
           const { creator, postId, imgUrl, imgCID, content, replyIds, timestamp } = (log as unknown as FilterLog<NewPostArgs>).args
@@ -197,7 +233,7 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
         }
 
         queryClient.setQueryData(
-          createQueryKey(chainId, boardId, threadId, Number(blockNumber.data)),
+          threadKey({ chainId, boardId, threadId, blockNumber: Number(blockNumber.data) }),
           (old: { posts: PostView[] } = { posts: [] }) => ({
             ...old,
             posts: [
@@ -258,7 +294,7 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
     onSuccess: (result) => {
       if (!result) return
       queryClient.setQueryData(
-        createQueryKey(chainId, boardId, threadId, Number(blockNumber.data)),
+        threadKey({ chainId, boardId, threadId, blockNumber: Number(blockNumber.data) }),
         (old: { posts: PostView[] } = { posts: [] }) => ({
           ...old,
           posts: old.posts.map((post) => {
@@ -267,7 +303,7 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
           }),
         })
       )
-      queryClient.invalidateQueries({ queryKey: ['bookmarked-posts', chainId, boardId] })
+      queryClient.invalidateQueries({ queryKey: bookmarkedPostsKey({ chainId, boardId }) })
     },
   })
 
@@ -276,6 +312,7 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
     error,
     isLoading,
     isReducedMode,
+    strategy,
     bookmark: bookmarkMutation.mutate,
   }
 }

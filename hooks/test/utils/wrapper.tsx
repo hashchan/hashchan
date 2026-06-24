@@ -1,56 +1,29 @@
 import React, { useEffect } from 'react'
-import { request as nodeRequest } from 'node:http'
 import { WagmiProvider, createConfig, useConnect, useAccount } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { custom } from 'viem'
 import { injected } from 'wagmi/connectors'
 import { IDBProvider } from '../../src/provider/IDBProvider'
+import { createRpcCall } from './rpc'
 import HashChan3 from '../../src/abi/HashChan3.json'
+import ModerationServiceFactory from '../../src/abi/ModerationServiceFactory.json'
 
-// Inject the dynamically deployed test contract address so useContracts
-// can find it by chain ID (the JSON only has mainnet/testnet entries).
+// Inject dynamically deployed test contract addresses so useContracts
+// can find them by chain ID (the JSON only has mainnet/testnet entries).
 const _testChainId = process.env.TEST_CHAIN_ID
 const _testAddress = process.env.HASHCHAN3_ADDRESS
 if (_testChainId && _testAddress) {
   ;(HashChan3 as any)[_testChainId] = { address: _testAddress }
 }
+const _msfAddress = process.env.MODERATION_SERVICE_FACTORY_ADDRESS
+if (_testChainId && _msfAddress) {
+  ;(ModerationServiceFactory as any)[_testChainId] = { address: _msfAddress }
+}
 
 // Use node:http instead of fetch so happy-dom's Same Origin Policy
 // doesn't block requests to the local test node.
 function createTestEip1193(rpcUrl: string) {
-  const url = new URL(rpcUrl)
-
-  function rpcCall(method: string, params: unknown[] = []): Promise<unknown> {
-    return new Promise((resolve, reject) => {
-      const body = JSON.stringify({ jsonrpc: '2.0', method, params, id: Date.now() })
-      const req = nodeRequest(
-        {
-          hostname: url.hostname,
-          port: parseInt(url.port),
-          path: url.pathname || '/',
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-            'content-length': Buffer.byteLength(body),
-          },
-        },
-        (res) => {
-          let data = ''
-          res.on('data', (chunk: string) => { data += chunk })
-          res.on('end', () => {
-            try {
-              const { result, error } = JSON.parse(data)
-              if (error) reject(new Error(error.message))
-              else resolve(result)
-            } catch (e) { reject(e) }
-          })
-        }
-      )
-      req.on('error', reject)
-      req.write(body)
-      req.end()
-    })
-  }
+  const rpcCall = createRpcCall(rpcUrl)
 
   return {
     async request({ method, params = [] }: { method: string; params?: unknown[] }) {

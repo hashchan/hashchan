@@ -1,19 +1,20 @@
 import { useContext } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useAccount, usePublicClient } from 'wagmi'
+import { useConnection, usePublicClient } from 'wagmi'
 
 import { IDBContext } from '../provider/IDBProvider'
 import { useContracts } from './useContracts'
+import { boardKey, boardsKey } from '../utils/queryKeys'
 
 export const useBoard = (boardId: number, chainId: number) => {
   const { hashchan } = useContracts()
   const publicClient = usePublicClient()
-  const { chain } = useAccount()
+  const { chain } = useConnection()
   const { db } = useContext(IDBContext)
   const queryClient = useQueryClient()
 
   const { data: board } = useQuery({
-    queryKey: ['board', boardId, chainId],
+    queryKey: boardKey({ chainId, boardId }),
     enabled: Boolean(chain && db && boardId != null && chainId != null && publicClient && hashchan),
     queryFn: async () => {
       let board = await db!.boards
@@ -69,9 +70,9 @@ export const useBoard = (boardId: number, chainId: number) => {
     },
     onSuccess: (updatedBoard) => {
       if (updatedBoard) {
-        queryClient.setQueryData(['board', boardId, chainId], updatedBoard)
+        queryClient.setQueryData(boardKey({ chainId, boardId }), updatedBoard)
       }
-      queryClient.invalidateQueries({ queryKey: ['boards', chainId] })
+      queryClient.invalidateQueries({ queryKey: boardsKey({ chainId }) })
     },
   })
 

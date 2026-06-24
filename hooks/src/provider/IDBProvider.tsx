@@ -1,12 +1,16 @@
 import { createContext, useEffect, useState } from 'react'
 import Dexie, { type EntityTable } from 'dexie'
 
+export type IndexingStrategy = 'fullNode' | 'reverseChunked' | 'bulkScrape'
+
 export interface Settings {
   id?: number
   tosAccepted: boolean
   tosTimestamp: number
   defaultTipAmount: string
-  indexingStrategy: 'fullNode' | 'reverseChunked' | 'bulkScrape'
+  indexingStrategy: IndexingStrategy
+  // user-adjustable: lower when the RPC starts rejecting large ranges in reverseChunked mode
+  blockRangeLimit: number
 }
 
 export interface Board {
@@ -58,7 +62,7 @@ export interface Post {
   timestamp: number
 }
 
-interface ModerationService {
+export interface ModerationService {
   id?: number
   subscribed: number
   uri: string
@@ -106,7 +110,7 @@ export const IDBProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const db = new Dexie('hashchan') as HashchanDB
-    db.version(6).stores({
+    const STORES = {
       boardsSync: 'chainId',
       boards: '++id, boardId, &[boardId+chainId], chainId, [chainId+favourite]',
       threads: '++id, &threadId, bookmarked, [boardId+chainId], timestamp',
@@ -114,7 +118,14 @@ export const IDBProvider = ({ children }: { children: React.ReactNode }) => {
       settings: '++id',
       moderationServices: '++id, &[address+chainId], subscribed, address',
       janitored: '++id, moderationServiceAddress, postId, threadId',
-    })
+    }
+
+    db.version(6).stores(STORES)
+    db.version(7).stores(STORES).upgrade((tx) =>
+      tx.table('settings').toCollection().modify((s) => {
+        if (s.blockRangeLimit === undefined) s.blockRangeLimit = 10000
+      })
+    )
 
     ;(async () => {
       const settings = await db.settings.toArray()
@@ -124,6 +135,7 @@ export const IDBProvider = ({ children }: { children: React.ReactNode }) => {
           tosTimestamp: 0,
           defaultTipAmount: DEFAULT_TIP_AMOUNT,
           indexingStrategy: 'fullNode',
+          blockRangeLimit: 10000,
         })
       }
       setDb(db)
