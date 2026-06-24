@@ -16,7 +16,7 @@ import { threadKey, bookmarkedPostsKey } from '../utils/queryKeys'
 export type { PostView } from '../types/posts'
 
 export const useThread = (boardId: number, chainId: number, threadId: string) => {
-  const { db } = useContext(IDBContext)
+  const { db, sanitize } = useContext(IDBContext)
   const { address, chain } = useConnection()
   const blockNumber = useBlockNumber()
   const publicClient = usePublicClient()
@@ -28,7 +28,7 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
 
   const strategy = settings?.indexingStrategy
   const blockRangeLimit = settings ? BigInt(settings.blockRangeLimit) : 0n
-  const enabled = useEnabled({ publicClient, address, hashchan, threadId, chainId: chain?.id, db, boardId, blockNumber: blockNumber.data, settings })
+  const enabled = useEnabled({ publicClient, address, hashchan, threadId, chainId: chain?.id, db, blockNumber: blockNumber.data, settings })
 
   const {
     data: { posts = [], isReducedMode = false } = {},
@@ -203,7 +203,10 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
         isReduced = true
       }
 
-      return { posts: Object.values(logsObj), isReducedMode: isReduced }
+      return {
+        posts: Object.values(logsObj).map(p => ({ ...p, content: sanitize(p.content) })),
+        isReducedMode: isReduced,
+      }
     },
   })
 
@@ -224,7 +227,7 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
           postId: String(postId),
           imgUrl,
           imgCID,
-          content,
+          content: sanitize(content),
           timestamp: Number(timestamp),
           replyIds,
           bookmarked: 0,

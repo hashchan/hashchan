@@ -32,6 +32,7 @@
     "wagmi": ">=2"
   },
   "dependencies": {
+    "@multiformats/multiaddr": "^13.0.3",
     "dexie": "^4.4.4",
     "multiformats": "^14.0.0"
   },

@@ -1,11 +1,11 @@
 import { useState, useCallback, useEffect, useContext } from 'react'
 import { useConnection } from 'wagmi'
+import { multiaddr } from '@multiformats/multiaddr'
 
 import { IDBContext } from '../provider/IDBProvider'
 import type { ModerationService } from '../provider/IDBProvider'
 
-// helia is passed in rather than imported — the hooks package has no P2P dependencies.
-// libp2p dial() accepts multiaddr strings directly so no @multiformats/multiaddr import needed.
+// helia is passed in rather than imported — the hooks package has no helia/libp2p bundle dep.
 export const useJoinModerationService = (
   ms: ModerationService | null | undefined,
   helia: any,
@@ -29,7 +29,7 @@ export const useJoinModerationService = (
     if (!helia || !db || !ms || !chain?.id || !addPubsubHandle) return
 
     try {
-      await helia.libp2p.dial(`/dns4/${ms.uri}/tcp/${ms.port}/wss`)
+      await helia.libp2p.dial(multiaddr(`/dns4/${ms.uri}/tcp/${ms.port}/wss`))
 
       const exists =
         (await db.moderationServices

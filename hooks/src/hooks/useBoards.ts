@@ -4,7 +4,6 @@ import { useConnection, useBlockNumber } from 'wagmi'
 
 import { IDBContext } from '../provider/IDBProvider'
 import { useContracts } from './useContracts'
-import { useSettings } from './useSettings'
 import { useEnabled } from '../utils/enabled'
 import { boardsKey } from '../utils/queryKeys'
 
@@ -14,9 +13,9 @@ export const useBoards = () => {
   const blockNumber = useBlockNumber()
   const { hashchan } = useContracts()
   const queryClient = useQueryClient()
-  const { settings } = useSettings()
-  const strategy = settings?.indexingStrategy
-  const enabled = useEnabled({ address, chainId, db, blockNumber: blockNumber.data, hashchan, settings })
+  const enabled = useEnabled({ address, chainId, db, blockNumber: blockNumber.data, hashchan })
+
+  const { sanitize } = useContext(IDBContext)
 
   const {
     data: boards = [],
@@ -40,18 +39,17 @@ export const useBoards = () => {
       const endId = Number(boardCount)
 
       for (let i = startId; i < endId; i++) {
-        const logs = await hashchan.getEvents.NewBoard({ boardId: BigInt(i) })
-        if (!logs[0]) continue
-        const { boardId: boardIdFromLog, name, symbol, description, bannerUrl, bannerCID, rules } = logs[0].args
+        const ethBoard = await hashchan.read.getBoard([BigInt(i)])
+        if (!ethBoard) continue
         const newBoard = {
-          boardId: Number(boardIdFromLog),
+          boardId: i,
           chainId: chainId!,
-          name,
-          symbol,
-          description,
-          bannerUrl,
-          bannerCID,
-          rules,
+          name: ethBoard.name,
+          symbol: ethBoard.symbol,
+          description: ethBoard.description,
+          bannerUrl: ethBoard.bannerUrl,
+          bannerCID: ethBoard.bannerCID,
+          rules: ethBoard.rules,
           lastSynced: 0,
           favourite: 0,
           metadata: { stats: { threadCount: 0, postCount: 0 } },
@@ -69,7 +67,11 @@ export const useBoards = () => {
         lastSynced: Number(blockNumber.data),
       })
 
-      return boards
+      return boards.map(b => ({
+        ...b,
+        description: sanitize(b.description),
+        rules: b.rules.map(sanitize),
+      }))
     },
   })
 
@@ -90,7 +92,6 @@ export const useBoards = () => {
     boards,
     error,
     isLoading,
-    strategy,
     toggleFavourite: favouriteMutation.mutate,
   }
 }

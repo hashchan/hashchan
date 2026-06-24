@@ -10,7 +10,7 @@ export const useBoard = (boardId: number, chainId: number) => {
   const { hashchan } = useContracts()
   const publicClient = usePublicClient()
   const { chain } = useConnection()
-  const { db } = useContext(IDBContext)
+  const { db, sanitize } = useContext(IDBContext)
   const queryClient = useQueryClient()
 
   const { data: board } = useQuery({
@@ -49,7 +49,12 @@ export const useBoard = (boardId: number, chainId: number) => {
         }
       }
 
-      return board ?? null
+      if (!board) return null
+      return {
+        ...board,
+        description: sanitize(board.description),
+        rules: board.rules.map(sanitize),
+      }
     },
   })
 

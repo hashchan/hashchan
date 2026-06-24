@@ -33,7 +33,7 @@ const ListItem = ({ thread }: { thread: Thread }) => {
   return (
     <div
       style={{
-        filter: janitoredBy.length > 0 ? 'brightness(0%)' : 'none',
+        filter: (janitoredBy?.length ?? 0) > 0 ? 'brightness(0%)' : 'none',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start',

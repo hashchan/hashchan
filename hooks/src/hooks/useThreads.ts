@@ -14,7 +14,7 @@ import { threadsKey } from '../utils/queryKeys'
 
 export const useThreads = (boardId: number, chainId: number) => {
   const { board, updateMetadata } = useBoard(boardId, chainId)
-  const { db } = useContext(IDBContext)
+  const { db, sanitize } = useContext(IDBContext)
   const { address, chain } = useConnection()
   const publicClient = usePublicClient()
   const blockNumber = useBlockNumber()
@@ -105,7 +105,7 @@ export const useThreads = (boardId: number, chainId: number) => {
         if (logs.length > 0) updateMetadata({ threadCount: logs.length })
       }
 
-      return threads
+      return threads.map(t => ({ ...t, title: sanitize(t.title), content: sanitize(t.content) }))
     },
   })
 
@@ -199,7 +199,7 @@ export const useThreads = (boardId: number, chainId: number) => {
 
         queryClient.setQueryData(
           threadsKey({ chainId, boardId, blockNumber: blockNumber.data }),
-          (old: Thread[] = []) => [...old, newThread]
+          (old: Thread[] = []) => [...old, { ...newThread, title: sanitize(newThread.title), content: sanitize(newThread.content) }]
         )
       },
     })

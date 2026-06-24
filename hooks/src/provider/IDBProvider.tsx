@@ -101,11 +101,22 @@ type HashchanDB = Dexie & {
   janitored: EntityTable<Janitored, 'id'>
 }
 
-export const IDBContext = createContext<{ db: HashchanDB | null }>({ db: null })
+const identity = (s: string) => s
+
+export const IDBContext = createContext<{
+  db: HashchanDB | null
+  sanitize: (raw: string) => string
+}>({ db: null, sanitize: identity })
 
 const DEFAULT_TIP_AMOUNT = '1618033988749895'
 
-export const IDBProvider = ({ children }: { children: React.ReactNode }) => {
+export const IDBProvider = ({
+  children,
+  sanitize = identity,
+}: {
+  children: React.ReactNode
+  sanitize?: (raw: string) => string
+}) => {
   const [db, setDb] = useState<HashchanDB | null>(null)
 
   useEffect(() => {
@@ -144,5 +155,5 @@ export const IDBProvider = ({ children }: { children: React.ReactNode }) => {
     return () => db.close()
   }, [])
 
-  return <IDBContext.Provider value={{ db }}>{children}</IDBContext.Provider>
+  return <IDBContext.Provider value={{ db, sanitize }}>{children}</IDBContext.Provider>
 }
