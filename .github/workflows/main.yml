@@ -134,7 +134,9 @@ jobs:
             2. Run: python run-hashchan.py
           
           STOPPING:
-            Press Ctrl+C in the terminal window
+            Press Ctrl+C in the terminal window, or run the teardown script:
+            - macOS/Linux: bash stop-hashchan.sh
+            - Windows:     stop-hashchan.bat (double-click or run in Command Prompt)
           
           TROUBLESHOOTING:
           - If port 3000 is in use, edit run-hashchan.py and change PORT = 3000 to another number
@@ -148,7 +150,7 @@ jobs:
           For more information: https://github.com/hashchan/hashchan
           EOF
           
-          # Create Windows batch file wrapper (optional, makes it easier for Windows users)
+          # Create Windows batch file wrapper
           cat > run-hashchan.bat << 'EOF'
           @echo off
           echo Checking for Python...
@@ -160,14 +162,40 @@ jobs:
               pause
               exit /b 1
           )
-          
+
           echo Starting HashChan...
           python run-hashchan.py
           pause
           EOF
-          
+
+          # Create Windows stop script
+          cat > stop-hashchan.bat << 'EOF'
+          @echo off
+          echo Stopping HashChan on port 3000...
+          for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":3000 " ^| findstr "LISTENING"') do (
+              echo Killing PID %%p
+              taskkill /PID %%p /F
+          )
+          echo Done.
+          pause
+          EOF
+
+          # Create Linux/macOS stop script
+          cat > stop-hashchan.sh << 'EOF'
+          #!/usr/bin/env bash
+          PID=$(lsof -ti tcp:3000)
+          if [ -z "$PID" ]; then
+            echo "No process found on port 3000."
+          else
+            echo "Stopping HashChan (PID $PID)..."
+            kill "$PID"
+            echo "Done."
+          fi
+          EOF
+          chmod +x stop-hashchan.sh
+
           # Bundle everything
-          zip -r hashchan-local.zip dist/ run-hashchan.py run-hashchan.bat README.txt
+          zip -r hashchan-local.zip dist/ run-hashchan.py run-hashchan.bat stop-hashchan.bat stop-hashchan.sh README.txt
           
           # Also create the original dist.zip for backwards compatibility
           zip -r dist.zip dist/
