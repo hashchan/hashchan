@@ -46,9 +46,15 @@ jobs:
           import http.server
           import socketserver
           import webbrowser
+          import mimetypes
           import os
           from pathlib import Path
-          
+
+          # Fix Windows registry MIME type gaps for ES modules, CSS, and Wasm
+          mimetypes.add_type('text/javascript', '.js')
+          mimetypes.add_type('text/css', '.css')
+          mimetypes.add_type('application/wasm', '.wasm')
+
           PORT = 3000
           DIRECTORY = Path(__file__).parent / "dist"
           
