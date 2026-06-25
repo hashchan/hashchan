@@ -1,21 +1,19 @@
 import { Fragment } from 'react'
 import { useParams } from 'react-router-dom'
 import { useThreads } from '@/hooks/HashChan/useThreads'
+import { useReverseChunkedCursor } from '@/hooks/HashChan/useReverseChunkedCursor'
 import { useAccount } from 'wagmi'
 import { BoardHeader } from '@/components/BoardHeader'
 import { ReducedModeWarning } from '@/components/ReducedModeWarning'
 import { ChainSwitchNotification } from '@/components/ChainSwitchNotification'
 import { ThreadsList } from '@/components/HashChan/ThreadsList'
+import { ReverseChunkedCursor } from '@/components/ReverseChunkedCursor'
 
 export const Catalogue = () => {
 	const { address } = useAccount()
 	const { boardId } = useParams()
-	const { 
-		threads = [], 
-		isLoading, 
-		error, 
-		isReducedMode 
-	} = useThreads()
+	const { threads = [], isLoading, error, isReducedMode } = useThreads()
+	const cursor = useReverseChunkedCursor()
 
 	return (
 		<Fragment>
@@ -27,7 +25,8 @@ export const Catalogue = () => {
 				{isReducedMode && <ReducedModeWarning />}
 			</div>
 
-			<ThreadsList 
+			{cursor.isActive && <ReverseChunkedCursor {...cursor} />}
+			<ThreadsList
 				threads={threads}
 				isLoading={isLoading}
 				error={error}

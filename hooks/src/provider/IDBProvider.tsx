@@ -16,6 +16,7 @@ export interface Settings {
 export interface Board {
   id?: number
   lastSynced: number
+  scanBoundary?: number
   chainId: number
   boardId: number
   name: string
@@ -36,6 +37,7 @@ export interface Board {
 export interface Thread {
   id?: number
   lastSynced: number
+  scanBoundary?: number
   bookmarked: number
   boardId: number
   threadId: string

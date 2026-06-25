@@ -1,14 +1,15 @@
-import { useState,  } from 'react'
-import { useParams   } from 'react-router-dom'
+import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 
 import { useThread } from '@/hooks/HashChan/useThread'
+import { useReverseChunkedPostCursor } from '@/hooks/HashChan/useReverseChunkedPostCursor'
 import { CreatePost } from '@/components/HashChan/CreatePost'
 import { ChainSwitchNotification } from '@/components/ChainSwitchNotification'
 import { PleaseConnectWallet } from '@/components/PleaseConnectWallet'
 import { useAccount } from 'wagmi'
 
-import {BoardHeader} from '@/components/BoardHeader'
-
+import { BoardHeader } from '@/components/BoardHeader'
+import { ReverseChunkedCursor } from '@/components/ReverseChunkedCursor'
 import { ReducedModeWarning } from '@/components/ReducedModeWarning'
 import { Post } from '@/components/HashChan/Thread/Post'
 import { CacheFlusher } from '@/components/CacheFlusher'
@@ -21,6 +22,7 @@ export const Thread = () => {
   const { chain } = useAccount()
   const { isConnected } = useAccount()
   const { posts, janitoredMap, isReducedMode, isLoading, bookmark } = useThread()
+  const cursor = useReverseChunkedPostCursor()
 
   const handleBookmark = (chainId: string, boardId: string, threadId: string, postId: string) => {
     bookmark({ threadId, postId })
@@ -53,6 +55,7 @@ export const Thread = () => {
       {toggleReply && (<CreatePost threadId={threadId} replyIds={makeReply} handleClose={handleClose} />)}
       {isReducedMode && <ReducedModeWarning />}
       <h3 style={{wordWrap: 'break-word'}}>Thread {threadId}</h3>
+      {cursor.isActive && <ReverseChunkedCursor {...cursor} />}
       {posts && posts.map((post, i) => {
         return (
           <Post

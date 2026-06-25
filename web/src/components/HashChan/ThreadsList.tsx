@@ -43,14 +43,16 @@ const ListItem = ({ thread }: { thread: Thread }) => {
       }}
       onClick={() => navigate(`/chains/${chainId}/boards/${boardId}/threads/${threadId}`)}
     >
-      <img
-        style={{
-          objectFit: 'contain',
-          width: '100%',
-        }}
-        src={imgUrl}
-        alt={title}
-      />
+      {imgUrl && (
+        <img
+          style={{
+            objectFit: 'contain',
+            width: '100%',
+          }}
+          src={imgUrl}
+          alt={title}
+        />
+      )}
       <div 
         style={{
           overflow: 'hidden',

@@ -31,11 +31,14 @@ export const useThreads = (boardId: number, chainId: number) => {
   const [historyBoundary, setHistoryBoundary] = useState<bigint | null>(null)
 
   useEffect(() => {
-    setHistoryBoundary(null)
-  }, [boardId, chainId])
+    if (!db) return
+    db.boards.where('[boardId+chainId]').equals([boardId, chainId]).first().then((b) => {
+      setHistoryBoundary(b?.scanBoundary != null ? BigInt(b.scanBoundary) : null)
+    })
+  }, [boardId, chainId, db])
 
   const { data: threads = [], error, isLoading } = useQuery({
-    queryKey: threadsKey({ chainId, boardId, blockNumber: blockNumber.data }),
+    queryKey: threadsKey({ chainId, boardId }),
     enabled,
     staleTime: 1000 * 30,
     queryFn: async () => {
@@ -153,7 +156,8 @@ export const useThreads = (boardId: number, chainId: number) => {
 
       if (logs.length > 0) updateMetadata({ threadCount: logs.length })
       setHistoryBoundary(fromBlock)
-      queryClient.invalidateQueries({ queryKey: threadsKey({ chainId, boardId, blockNumber: blockNumber.data }) })
+      await db.boards.where('[boardId+chainId]').equals([boardId, chainId]).modify({ scanBoundary: Number(fromBlock) })
+      queryClient.invalidateQueries({ queryKey: threadsKey({ chainId, boardId }) })
     } catch (e) {
       console.log('Failed to fetch thread history:', e)
     }
@@ -198,7 +202,7 @@ export const useThreads = (boardId: number, chainId: number) => {
         }
 
         queryClient.setQueryData(
-          threadsKey({ chainId, boardId, blockNumber: blockNumber.data }),
+          threadsKey({ chainId, boardId }),
           (old: Thread[] = []) => [...old, { ...newThread, title: sanitize(newThread.title), content: sanitize(newThread.content) }]
         )
       },
@@ -222,6 +226,8 @@ export const useThreads = (boardId: number, chainId: number) => {
     strategy,
     fetchHistory,
     canFetchHistory,
-    refetch: () => queryClient.invalidateQueries({ queryKey: threadsKey({ chainId, boardId, blockNumber: blockNumber.data }) }),
+    historyBoundary,
+    blockNumber: blockNumber.data,
+    refetch: () => queryClient.invalidateQueries({ queryKey: threadsKey({ chainId, boardId }) }),
   }
 }

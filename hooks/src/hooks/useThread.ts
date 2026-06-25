@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { createRef, useRef, useEffect, useContext, type RefObject } from 'react'
+import { createRef, useRef, useEffect, useContext, useState, useCallback, type RefObject } from 'react'
 import { useConnection, usePublicClient, useBlockNumber } from 'wagmi'
 
 import { IDBContext } from '../provider/IDBProvider'
@@ -35,8 +35,9 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
     error,
     isLoading,
   } = useQuery({
-    queryKey: threadKey({ chainId, boardId, threadId, blockNumber: Number(blockNumber.data) }),
+    queryKey: threadKey({ chainId, boardId, threadId }),
     enabled,
+    staleTime: Infinity,
     queryFn: async () => {
       const refsObj: Record<string, RefObject<unknown>> = {}
       const logsObj: Record<string, PostView> = {}
@@ -236,7 +237,7 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
         }
 
         queryClient.setQueryData(
-          threadKey({ chainId, boardId, threadId, blockNumber: Number(blockNumber.data) }),
+          threadKey({ chainId, boardId, threadId }),
           (old: { posts: PostView[] } = { posts: [] }) => ({
             ...old,
             posts: [
@@ -277,6 +278,66 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
     }
   }, [hashchan, threadId, db, blockNumber.data])
 
+  const [historyBoundary, setHistoryBoundary] = useState<bigint | null>(null)
+
+  useEffect(() => {
+    if (!db || !threadId) return
+    db.threads.where('threadId').equals(threadId).first().then((t) => {
+      setHistoryBoundary(t?.scanBoundary != null ? BigInt(t.scanBoundary) : null)
+    })
+  }, [threadId, chainId, db])
+
+  const fetchHistory = useCallback(async () => {
+    if (!blockNumber.data || !publicClient || !hashchan || !db || blockRangeLimit === 0n) return
+
+    const toBlock = historyBoundary ?? (blockNumber.data > blockRangeLimit ? blockNumber.data - blockRangeLimit : 0n)
+    if (toBlock === 0n) return
+    const fromBlock = toBlock > blockRangeLimit ? toBlock - blockRangeLimit : 0n
+
+    try {
+      const filter: any = await publicClient.createContractEventFilter({
+        address: hashchan.address,
+        abi: hashchan.abi,
+        eventName: 'NewPost',
+        args: { threadId },
+        fromBlock,
+        toBlock,
+      })
+      const logs = await publicClient.getFilterLogs({ filter })
+
+      for (const log of logs) {
+        const logArgs = (log as unknown as FilterLog<NewPostArgs>).args
+        try {
+          await db.posts.add({
+            boardId,
+            threadId,
+            postId: logArgs.postId,
+            creator: logArgs.creator as `0x${string}`,
+            imgUrl: logArgs.imgUrl,
+            imgCID: logArgs.imgCID,
+            bookmarked: 0,
+            content: logArgs.content,
+            timestamp: Number(logArgs.timestamp),
+            replyIds: logArgs.replyIds,
+          })
+        } catch {
+          // duplicate, skip
+        }
+      }
+
+      if (logs.length > 0) updateMetadata({ postCount: logs.length })
+      setHistoryBoundary(fromBlock)
+      await db.threads.where('threadId').equals(threadId).modify({ scanBoundary: Number(fromBlock) })
+      queryClient.invalidateQueries({ queryKey: threadKey({ chainId, boardId, threadId }) })
+    } catch (e) {
+      console.log('[useThread] fetchHistory error:', e)
+    }
+  }, [historyBoundary, blockNumber.data, blockRangeLimit, publicClient, hashchan, db, threadId, boardId, chainId, queryClient, updateMetadata])
+
+  const canFetchHistory = strategy === 'reverseChunked'
+    && !!blockNumber.data
+    && (historyBoundary === null || historyBoundary > 0n)
+
   const bookmarkMutation = useMutation({
     mutationFn: async ({ postId }: { postId: string }) => {
       const isThread = postId === threadId
@@ -297,7 +358,7 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
     onSuccess: (result) => {
       if (!result) return
       queryClient.setQueryData(
-        threadKey({ chainId, boardId, threadId, blockNumber: Number(blockNumber.data) }),
+        threadKey({ chainId, boardId, threadId }),
         (old: { posts: PostView[] } = { posts: [] }) => ({
           ...old,
           posts: old.posts.map((post) => {
@@ -316,6 +377,10 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
     isLoading,
     isReducedMode,
     strategy,
+    fetchHistory,
+    canFetchHistory,
+    historyBoundary,
+    blockNumber: blockNumber.data,
     bookmark: bookmarkMutation.mutate,
   }
 }

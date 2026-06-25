@@ -91,9 +91,9 @@ export const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
   }, [])
 
   useEffect(() => {
+    if (!imgUrl) return
     const https = /^https?:\/\//;
     if (!https.test(imgUrl)) {
-      console.log('imgUrl', imgUrl)
       handleFetchCID(imgUrl)
     } else {
       handleFetchHTTPS(imgUrl)

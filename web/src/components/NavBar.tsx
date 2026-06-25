@@ -13,6 +13,7 @@ import { ConnectWallet } from './ConnectWallet'
 import { ConnectW3Storage } from './ConnectW3Storage'
 import { BoardsList } from '@/components/HashChan/BoardsList'
 import { OptionsModal } from './OptionsModal'
+import { RpcDoctorModal } from './RpcDoctorModal'
 
 const HomeButton = () => {
   const [homeHover, setHomeHover] = useState(false)
@@ -66,6 +67,7 @@ export const NavBar = () => {
       </div>
       <ConnectWallet />
       <ConnectW3Storage />
+      <RpcDoctorModal pxSize={pxSize} />
       <OptionsModal pxSize={pxSize} />
       <div
         className="flex-wrap-center"
