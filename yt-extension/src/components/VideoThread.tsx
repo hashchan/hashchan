@@ -1,36 +1,32 @@
 import { useState } from 'react'
-import { useAccount } from 'wagmi'
+import { useAccount, useBlockNumber } from 'wagmi'
 import { useThreads, useThread, useCreateThread } from '@hashchan/hooks'
 import { getYtSettings } from '../hooks/useYtSettings'
-import { Settings } from './Settings'
+import { useVideoTitle } from '../hooks/useVideoTitle'
+import { useVideoChannel } from '../hooks/useVideoChannel'
 import { Post } from './Post'
 import { PostForm } from './PostForm'
 import { TxResponse } from './TxResponse'
+import { ReverseChunkedCursor } from './ReverseChunkedCursor'
 import type { PostView } from '@hashchan/hooks'
 
 export const VideoThread = ({ videoId }: { videoId: string }) => {
-  const [showSettings, setShowSettings] = useState(false)
-  const [refreshKey, setRefreshKey] = useState(0)
   const settings = getYtSettings()
 
-  if (!settings || showSettings) {
+  if (!settings) {
     return (
-      <Settings
-        onSave={() => {
-          setShowSettings(false)
-          setRefreshKey(k => k + 1)
-        }}
-      />
+      <p style={{ color: '#fff' }}>
+        No /yt/ board configured — open Settings to get started.
+      </p>
     )
   }
 
   return (
     <BoardView
-      key={`${settings.chainId}-${settings.boardId}-${videoId}-${refreshKey}`}
+      key={`${settings.chainId}-${settings.boardId}-${videoId}`}
       boardId={settings.boardId}
       chainId={settings.chainId}
       videoId={videoId}
-      onOpenSettings={() => setShowSettings(true)}
     />
   )
 }
@@ -39,15 +35,14 @@ const BoardView = ({
   boardId,
   chainId,
   videoId,
-  onOpenSettings,
 }: {
   boardId: number
   chainId: number
   videoId: string
-  onOpenSettings: () => void
 }) => {
   const { isConnected } = useAccount()
-  const { threads, isLoading: threadsLoading } = useThreads(boardId, chainId)
+  const { threads, isLoading: threadsLoading, fetchHistory, canFetchHistory, strategy, historyBoundary } = useThreads(boardId, chainId)
+  const { data: blockNumber } = useBlockNumber({ watch: true })
   const {
     status: createStatus,
     hash: createHash,
@@ -56,17 +51,30 @@ const BoardView = ({
     threadId: newThreadId,
     createThread,
   } = useCreateThread(boardId, chainId)
+  const [showReply, setShowReply] = useState(false)
+  const [initialContent, setInitialContent] = useState('')
 
+  const videoTitle = useVideoTitle()
+  const videoChannel = useVideoChannel()
   const matchThread = threads.find(t => t.title === videoId)
   const activeThreadId = matchThread?.threadId ?? newThreadId ?? ''
 
   const handleStartDiscussion = () => {
-    createThread(videoId, '', `Thread for https://youtube.com/watch?v=${videoId}`)
+    const url = `https://www.youtube.com/watch?v=${videoId}`
+    const content = videoTitle ? `[${videoTitle}](${url})` : url
+    const imgUrl = document.querySelector<HTMLMetaElement>('meta[property="og:image"]')?.content ?? ''
+    createThread(videoId, imgUrl, content)
+  }
+
+  const toggleReply = () => {
+    if (showReply) { setShowReply(false); setInitialContent('') }
+    else { setInitialContent(''); setShowReply(true) }
   }
 
   const φ = Math.PHI
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: `${1 / φ}em` }}>
+      {/* header row */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -74,33 +82,64 @@ const BoardView = ({
         paddingBottom: `${1 / φ ** 2}em`,
         borderBottom: '1px solid #1a1a1a',
       }}>
-        <span style={{ fontSize: `${1 / φ}em`, color: '#fff', fontFamily: 'monospace' }}>
-          {videoId}
-        </span>
-        <button
-          onClick={onOpenSettings}
-          style={{ margin: 0, padding: `${1 / φ ** 3}em ${1 / φ ** 2}em` }}
-          title="Settings"
-        >
-          ⚙
-        </button>
+        <div style={{ display: 'flex', gap: `${1 / φ ** 2}em`, alignItems: 'baseline', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: `${1 / φ}em`, color: '#fff', fontFamily: 'monospace' }}>
+            {videoId}
+          </span>
+          {videoChannel && (
+            <span style={{ fontSize: `${1 / φ}em`, color: '#DF3DF1', fontFamily: 'monospace' }}>
+              @{videoChannel}
+            </span>
+          )}
+        </div>
+        {isConnected && activeThreadId && (
+          <button
+            onClick={toggleReply}
+            style={{ margin: 0, padding: `${1 / φ ** 3}em ${1 / φ ** 2}em`, color: showReply ? '#ff0000' : '#20C20E' }}
+            title={showReply ? 'Close' : 'Create Post'}
+          >
+            {showReply ? '✕' : '✚'}
+          </button>
+        )}
       </div>
 
-      {threadsLoading && (
-        <p style={{ color: '#fff' }}>Syncing threads...</p>
+      {/* video title */}
+      {videoTitle && (
+        <h3 style={{
+          margin: 0,
+          fontSize: `1em`,
+          fontWeight: 600,
+          color: '#fff',
+          lineHeight: φ,
+          borderBottom: '1px solid #1a1a1a',
+          paddingBottom: `${1 / φ ** 2}em`,
+        }}>
+          {videoTitle}
+        </h3>
       )}
 
-      {!threadsLoading && !matchThread && !newThreadId && (
+      {isConnected && strategy === 'reverseChunked' && (
+        <ReverseChunkedCursor
+          blockNumber={blockNumber}
+          historyBoundary={historyBoundary}
+          fetchHistory={fetchHistory}
+          canFetchHistory={canFetchHistory}
+        />
+      )}
+
+      {!isConnected ? (
+        <p style={{ color: '#fff' }}>Connect wallet to start.</p>
+      ) : threadsLoading ? (
+        <p style={{ color: '#fff' }}>Syncing threads...</p>
+      ) : !matchThread && !newThreadId ? (
         <NoThread
-          videoId={videoId}
-          isConnected={isConnected}
           createStatus={createStatus}
           createHash={createHash}
           createLogs={createLogs}
           createLogErrors={createLogErrors}
           onStart={handleStartDiscussion}
         />
-      )}
+      ) : null}
 
       {activeThreadId && (
         <ThreadDisplay
@@ -108,6 +147,15 @@ const BoardView = ({
           chainId={chainId}
           threadId={activeThreadId}
           isConnected={isConnected}
+          showReply={showReply}
+          initialContent={initialContent}
+          onToggleReply={toggleReply}
+          onReply={(postId) => {
+            const truncated = `${postId.slice(0, 9)}…${postId.slice(-7)}`
+            setInitialContent(`[${truncated}](#${postId})\n`)
+            setShowReply(true)
+          }}
+          onCloseReply={() => { setShowReply(false); setInitialContent('') }}
         />
       )}
     </div>
@@ -115,16 +163,12 @@ const BoardView = ({
 }
 
 const NoThread = ({
-  videoId,
-  isConnected,
   createStatus,
   createHash,
   createLogs,
   createLogErrors,
   onStart,
 }: {
-  videoId: string
-  isConnected: boolean
   createStatus: string
   createHash: string | null
   createLogs: any[]
@@ -142,24 +186,16 @@ const NoThread = ({
       <p style={{ marginBottom: `${1 / Math.PHI}em`, color: '#fff' }}>
         No thread yet for this video.
       </p>
-      {isConnected ? (
-        <>
-          <button onClick={onStart} disabled={busy} style={{ margin: 0 }}>
-            {busy ? 'Starting...' : 'Start Thread'}
-          </button>
-          {waitLevel > 0 && (
-            <TxResponse
-              wait={waitLevel}
-              hash={createHash ?? ''}
-              logs={createLogs}
-              logErrors={createLogErrors}
-            />
-          )}
-        </>
-      ) : (
-        <p style={{ color: '#fff' }}>
-          Connect wallet to start a thread.
-        </p>
+      <button onClick={onStart} disabled={busy} style={{ margin: 0 }}>
+        {busy ? 'Starting...' : 'Start Thread'}
+      </button>
+      {waitLevel > 0 && (
+        <TxResponse
+          wait={waitLevel}
+          hash={createHash ?? ''}
+          logs={createLogs}
+          logErrors={createLogErrors}
+        />
       )}
     </div>
   )
@@ -170,25 +206,25 @@ const ThreadDisplay = ({
   chainId,
   threadId,
   isConnected,
+  showReply,
+  initialContent,
+  onToggleReply,
+  onReply,
+  onCloseReply,
 }: {
   boardId: number
   chainId: number
   threadId: string
   isConnected: boolean
+  showReply: boolean
+  initialContent: string
+  onToggleReply: () => void
+  onReply: (postId: string) => void
+  onCloseReply: () => void
 }) => {
   const { posts, isLoading } = useThread(boardId, chainId, threadId)
-  const [initialContent, setInitialContent] = useState('')
-  const [showReply, setShowReply] = useState(false)
 
-  const handleReply = (postId: string) => {
-    const truncated = `${postId.slice(0, 9)}…${postId.slice(-7)}`
-    setInitialContent(`[${truncated}](#${postId})\n`)
-    setShowReply(true)
-  }
-
-  if (isLoading) {
-    return <p style={{ color: '#fff' }}>Loading posts...</p>
-  }
+  if (isLoading) return <p style={{ color: '#fff' }}>Loading posts...</p>
 
   const φ = Math.PHI
   return (
@@ -201,18 +237,12 @@ const ThreadDisplay = ({
           imgUrl={post.imgUrl}
           content={post.content}
           timestamp={post.timestamp}
-          onReply={handleReply}
+          onReply={onReply}
         />
       ))}
       {isConnected && (
         <div>
-          <button
-            onClick={() => {
-              if (showReply) { setShowReply(false); setInitialContent('') }
-              else { setInitialContent(''); setShowReply(true) }
-            }}
-            style={{ width: '100%', margin: 0, textAlign: 'center' }}
-          >
+          <button onClick={onToggleReply} style={{ width: '100%', margin: 0, textAlign: 'center' }}>
             {showReply ? 'Close' : 'Create Post'}
           </button>
           {showReply && (
@@ -222,7 +252,7 @@ const ThreadDisplay = ({
                 chainId={chainId}
                 threadId={threadId}
                 initialContent={initialContent}
-                onClose={() => { setShowReply(false); setInitialContent('') }}
+                onClose={onCloseReply}
               />
             </div>
           )}
