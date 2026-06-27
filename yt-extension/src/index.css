@@ -1,0 +1,95 @@
+:host {
+  font-family: Monospace, Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.618;
+  font-weight: 424;
+  color: #20C20E;
+  font-size: 18px;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+#root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 2147483647;
+  pointer-events: none;
+}
+
+a {
+  font-weight: 685;
+  color: #fff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #19e377;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  margin: 0.382vh 0.382vw;
+  padding: 0.382vh 0.382vw;
+  color: #ffffff;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #090909;
+  cursor: pointer;
+  border: 1px solid #333;
+  transition: border-color 0.25s;
+  pointer-events: all;
+}
+button:hover {
+  border-color: #20c20e;
+  color: #20c20e;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input,
+textarea {
+  background-color: #090909;
+  color: #20C20E;
+  border: 1px solid #333;
+  font-family: inherit;
+  font-size: 0.9em;
+  padding: 4px;
+  width: 100%;
+  box-sizing: border-box;
+  pointer-events: all;
+}
+input:focus,
+textarea:focus {
+  outline: 1px solid #20C20E;
+  border-color: #20C20E;
+}
+
+select {
+  background-color: #090909;
+  color: #20C20E;
+  border: 1px solid #333;
+  font-family: inherit;
+  font-size: 0.9em;
+  padding: 4px;
+  width: 100%;
+  pointer-events: all;
+}
+select:focus {
+  outline: 1px solid #20C20E;
+}

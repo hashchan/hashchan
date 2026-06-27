@@ -1,0 +1,31 @@
+{
+  "name": "yt-extension",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch --mode development"
+  },
+  "dependencies": {
+    "@hashchan/hooks": "file:../hooks",
+    "@tanstack/react-query": "^5.101.0",
+    "@uiw/react-markdown-editor": "^6.1.4",
+    "dexie": "^4.4.4",
+    "dexie-react-hooks": "^4.4.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-hook-form": "^7.80.0",
+    "react-icons": "^5.6.0",
+    "react-markdown": "^10.1.0",
+    "viem": "^2.53.1",
+    "wagmi": "^3.6.17"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^6.0.3",
+    "vite": "^5.4.19"
+  }
+}
