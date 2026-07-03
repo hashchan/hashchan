@@ -89,10 +89,10 @@ export const Instructions = () => {
 
       <Step num={3} title="Dedicated RPC">
         <p>
-          An RPC is your connection to the blockchain. Default wallet endpoints are often rate-limited — new posts may not appear without a page refresh.
+          An RPC is your connection to the blockchain. If you went with Metamask you get <a target="_blank" href="infura.io">Infuras</a> nodes built in, which have done a very good job fetching logs. Outside of metamask default wallet endpoints are often rate-limited — you will likely have to open the settings modal and select <i>reverse chunked and fiddle with the max block height</i>
         </p>
         <p style={{ marginTop: `${Math.PHI}vh` }}>
-          Get a free dedicated RPC from <a target="_blank" href="https://www.alchemy.com/">Alchemy</a>, then add it to your wallet's network settings for reliable access.
+          Get a free dedicated RPC from <a target="_blank" href="https://infura.io">Infura</a>, then add it to your wallet's network settings for reliable access.
         </p>
       </Step>
 
@@ -103,8 +103,8 @@ export const Instructions = () => {
         <Tip>
           For permanent, self-hosted images use an IPFS pinning service like{' '}
           <a target="_blank" href="https://pinata.cloud/">Pinata</a> or{' '}
-          <a target="_blank" href="https://web3.storage">Web3.Storage</a>.
-          Hashchan has a built-in Web3.Storage integration (just needs your email) — optional but recommended.
+          <a target="_blank" href="https://storacha.network">Storacha</a>.
+          Hashchan has a built-in We integration (just needs your email) — optional but recommended.
         </Tip>
       </Step>
     </div>

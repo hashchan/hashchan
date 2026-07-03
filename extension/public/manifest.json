@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "HashChan",
+  "short_name": "HashChan",
+  "version": "1.1.0",
+  "description": "Decentralized page threads via HashChan — for YouTube videos, Wikipedia articles, and Rotten Tomatoes reviews. Wallet used for signing only — no tokens, no revenue model, non-commercial open source.",
+  "icons": {
+    "16":  "icons/icon16.png",
+    "48":  "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "https://en.wikipedia.org/*",
+    "https://www.rottentomatoes.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/watch*"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://en.wikipedia.org/wiki/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://www.rottentomatoes.com/m/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "world": "MAIN"
+    }
+  ]
+}

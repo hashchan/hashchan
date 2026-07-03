@@ -50,7 +50,7 @@ export const About = () => {
     <motion.h3
       initial={{opacity: 0}}
       animate={{opacity: 1}}
-      transition={{delay: 3.8, duration: 0.618}}
+      transition={{delay: 3.618, duration: 0.618}}
       style={{
         marginTop: `${Math.PHI**2}vh`,
         textAlign: 'center',
@@ -62,7 +62,7 @@ export const About = () => {
     <motion.h2
       initial={{opacity: 0}}
       animate={{opacity: 1}}
-      transition={{delay: 3.8, duration: 0.618}}
+      transition={{delay: 3.618, duration: 0.618}}
       style={{
         marginTop: `${Math.PHI**2}vh`,
         textAlign: 'center',

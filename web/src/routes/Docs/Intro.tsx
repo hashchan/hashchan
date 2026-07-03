@@ -10,7 +10,6 @@ import FlyingMoney from '@/assets/emoji/flying-money.png'
 const Note = ({ children }: { children: ReactNode }) => (
   <div style={{
     borderLeft: '2px solid #20C20E',
-    backgroundColor: 'rgba(32, 194, 14, 0.05)',
     padding: `${Math.PHI}vh ${Math.PHI}vw`,
     marginTop: `${1/Math.PHI}vh`,
   }}>
@@ -22,11 +21,10 @@ const Note = ({ children }: { children: ReactNode }) => (
 const Section = ({ icon, title, children }: { icon: string; title: string; children: ReactNode }) => (
   <div style={{
     marginTop: `${100 / Math.PHI ** 8}vh`,
-    borderTop: '1px solid rgba(32, 194, 14, 0.2)',
     width: '100%',
   }}>
     <h4 style={{ display: 'flex', alignItems: 'center', gap: `${Math.PHI}vw`, marginTop: 0, marginBottom: `${Math.PHI}vh` }}>
-      <img src={icon} className="emoji" style={{ height: '1.2em' }} />
+      <img src={icon} className="emoji" style={{ height: '2.618em' }} />
       {title}
     </h4>
     {children}
@@ -52,8 +50,8 @@ export const Intro = () => {
       <Section icon={Robot} title="The Problem">
         <p>
           Open forums are being overwhelmed by AI botnet swarms. With no accounts or KYC required,
-          bots flood at scale — Heaven Banning, forum flooding, and social graph cutting have become
-          routine tactics. Captchas and rate limits only raise the cost for real users while barely
+          bots flood at scale, drowning the signal to noise ratio behind shilling, spamming, and sliding.
+          Captchas and rate limits only raise the cost for real users while barely
           slowing determined adversaries.
         </p>
         <Note>
@@ -64,10 +62,9 @@ export const Intro = () => {
 
       <Section icon={Archive} title="Why Traditional Imageboards Fall Short">
         <p>
-          Standard imageboards rely on a centralized server with a DNS record — a single point of
-          failure for hosting, DDOS protection, and content moderation. Pruning illegal content is
-          prohibitively expensive, and moderation teams with unchecked power often abuse their position
-          to serve their own agenda.
+          Standard imageboards rely on a centralized server with a DNS record, a rickety one at that do its inability to collect advertizer revenues given its proximity to unsavoury content.
+          As there is no user object, attempts to bandaid the flood result frequently in being wrongly ban hammered by a public ip, users lose their practical anonymity by cloudflare ssl termination and residential ip detection solutions and annoying flavour of the month 15 min wait clocks, long form iq test captchas, and give an email to skip the check. 
+          Additionally blackbox central servers are security blackholes and one can surmize the large moral hazard of operating a freespeech platform in the current year, the thought of imageboards in reality being akin to 1984's red book is daunting and avoidable in the new paradigm.
         </p>
       </Section>
 
@@ -75,7 +72,7 @@ export const Intro = () => {
         <p>
           Hashchan uses Ethereum event logs as its database: cryptographically secured, persistent,
           and replicated across the network. Images are hotlinked rather than hosted, offloading
-          content liability to the original provider — or to the user's own IPFS pins.
+          content liability to the original provider, or to those who choose to manually opt in to repinning another users ipfs node.
         </p>
         <Note>
           Because there is no central database to prune, the moral hazard for moderation teams is
@@ -104,8 +101,7 @@ export const Intro = () => {
         <p>
           Pay-per-post means bots cost real money to operate. Hashchan has no token and takes no cut —
           all fees go directly to the network as gas. As botnet activity increases, gas prices rise
-          proportionally, making spam progressively more expensive while rewarding anyone holding
-          crypto in their wallet.
+          proportionally, making spam progressively more expensive while rewarding anyone holding crypto in their wallet. A nice added side affect, is that if one chooses to stake to secure the network, profiting off tx fees, they will see themselves recoup some of their post costs as rewards.  One could say this makes it the most globally efficient invest-to-post model.
         </p>
         <Note>
           Spammers post far more than regular users. In a gas-driven model, the cost of running a

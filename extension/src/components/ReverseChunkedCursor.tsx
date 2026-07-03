@@ -28,7 +28,7 @@ export const ReverseChunkedCursor = ({ blockNumber, historyBoundary, fetchHistor
     <button
       disabled={!canFetchHistory}
       onClick={fetchHistory}
-      style={{ margin: 0, opacity: canFetchHistory ? 1 : 0.4 }}
+      style={{ margin: 0, opacity: canFetchHistory ? 1 : 0.382 }}
     >
       scan backwards
     </button>

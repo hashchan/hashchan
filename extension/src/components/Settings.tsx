@@ -2,10 +2,16 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useConnection } from 'wagmi'
 import { useBoards, useSettings } from '@hashchan/hooks'
-import { saveYtSettings } from '../hooks/useYtSettings'
+import { saveSiteSettings } from '../hooks/useSiteSettings'
 import type { Board } from '@hashchan/hooks'
 
 const φ = Math.PHI
+
+const SITE_BOARDS = [
+  { siteId: 'youtube'       as const, symbol: 'yt',   label: '/yt/ — YouTube' },
+  { siteId: 'wikipedia'     as const, symbol: 'wiki', label: '/wiki/ — Wikipedia' },
+  { siteId: 'rottentomatoes'as const, symbol: 'rt',   label: '/rt/ — Rotten Tomatoes' },
+]
 
 export const Settings = ({ onSave }: { onSave: () => void }) => {
   const { address, chainId } = useConnection()
@@ -33,17 +39,26 @@ export const Settings = ({ onSave }: { onSave: () => void }) => {
   if (!address) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: `${1 / φ}em` }}>
-        <p style={{ fontWeight: 'bold' }}>HashChan YT</p>
-        <p style={{ color: '#fff' }}>Connect your wallet to participate in uncensored video threads.</p>
+        <p style={{ fontWeight: 'bold' }}>HashChan</p>
+        <p style={{ color: '#fff' }}>Connect your wallet to participate in decentralized page threads.</p>
       </div>
     )
   }
 
-  const ytBoard: Board | undefined = boards.find((b: Board) => b.symbol === 'yt')
+  const foundBoards = SITE_BOARDS.map(({ siteId, symbol, label }) => ({
+    siteId,
+    symbol,
+    label,
+    board: (boards as Board[]).find((b: Board) => b.symbol === symbol),
+  }))
+
+  const anyBoardFound = foundBoards.some(({ board }) => !!board)
 
   const onSubmit = async (data: any) => {
-    if (!ytBoard || !chainId) return
-    saveYtSettings({ chainId, boardId: ytBoard.boardId })
+    if (!chainId) return
+    for (const { siteId, board } of foundBoards) {
+      if (board) saveSiteSettings(siteId, { chainId, boardId: board.boardId })
+    }
     await updateSettings({
       indexingStrategy: data.indexingStrategy,
       blockRangeLimit: Number(data.blockRangeLimit),
@@ -56,17 +71,24 @@ export const Settings = ({ onSave }: { onSave: () => void }) => {
       onSubmit={handleSubmit(onSubmit)}
       style={{ display: 'flex', flexDirection: 'column', gap: `${1 / φ}em` }}
     >
-      {/* /yt/ board status */}
-      <div>
-        <label style={{ display: 'block', marginBottom: '4px' }}>/yt/ Board</label>
+      {/* per-site board status */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: `${1 / φ ** 2}em` }}>
+        <label style={{ display: 'block' }}>Boards on this chain</label>
         {boardsLoading ? (
           <p style={{ color: '#fff', margin: 0 }}>Loading boards...</p>
         ) : boardsError ? (
           <p style={{ color: '#e33', margin: 0 }}>{(boardsError as Error).message}</p>
-        ) : !ytBoard ? (
-          <p style={{ color: '#e33', margin: 0 }}>No /yt/ board on this chain — switch network in the header.</p>
         ) : (
-          <p style={{ color: '#20C20E', margin: 0 }}>Found: /{ytBoard.symbol}/ — {ytBoard.name}</p>
+          foundBoards.map(({ symbol, label, board }) => (
+            <div key={symbol} style={{ display: 'flex', alignItems: 'center', gap: `${1 / φ ** 2}em` }}>
+              <span style={{ color: board ? '#20C20E' : '#555', fontFamily: 'monospace', fontSize: `${1 / φ}em`, minWidth: '3em' }}>
+                /{symbol}/
+              </span>
+              <span style={{ color: board ? '#fff' : '#555', fontSize: `${1 / φ}em` }}>
+                {board ? `${board.name} ✓` : `${label.split('—')[1].trim()} — not found`}
+              </span>
+            </div>
+          ))
         )}
       </div>
 
@@ -90,7 +112,6 @@ export const Settings = ({ onSave }: { onSave: () => void }) => {
         </div>
       </div>
 
-      {/* block range limit — only when reverseChunked */}
       {indexingStrategy === 'reverseChunked' && (
         <div>
           <label style={{ display: 'block', marginBottom: '4px' }}>Block Range Limit</label>
@@ -107,7 +128,7 @@ export const Settings = ({ onSave }: { onSave: () => void }) => {
         </div>
       )}
 
-      <button type="submit" disabled={isSubmitting || !ytBoard} style={{ margin: 0 }}>
+      <button type="submit" disabled={isSubmitting || !anyBoardFound} style={{ margin: 0 }}>
         {isSubmitting ? 'Saving...' : 'Save'}
       </button>
     </form>

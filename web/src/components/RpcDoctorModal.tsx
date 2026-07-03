@@ -19,7 +19,11 @@ const STATUS_LABEL: Record<TestStatus, string> = {
 }
 
 const TestRow = ({ label, status }: { label: string; status: TestStatus }) => (
-  <div style={{ display: 'flex', justifyContent: 'space-between', padding: `${1/Math.PHI**2}rem 0` }}>
+  <div style={{ 
+      display: 'flex',
+      justifyContent: 'space-between',
+      padding: `${1/Math.PHI**2}rem 0`
+    }}>
     <span>{label}</span>
     <strong style={{ color: STATUS_COLOR[status] }}>{STATUS_LABEL[status]}</strong>
   </div>
@@ -57,7 +61,7 @@ const RpcDoctorContent = ({ handleClose }: { handleClose: () => void }) => {
         </div>
 
         {results.logErrors.length > 0 && (
-          <div style={{ fontSize: '0.8em', color: '#ff4444', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ fontSize: '0.854em', color: '#ff4444', display: 'flex', flexDirection: 'column', gap: '5px' }}>
             {results.logErrors.map((e, i) => (
               <span key={i} style={{ wordBreak: 'break-all' }}>{e}</span>
             ))}

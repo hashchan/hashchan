@@ -11,7 +11,7 @@ export const TxResponse = ({
 }) => {
   if (wait === 0 && logErrors.length === 0) return null
   return (
-    <div style={{ fontSize: '0.8em', marginTop: '4px', lineHeight: 1.4 }}>
+    <div style={{ fontSize: '0.854em', marginTop: '5px', lineHeight: 1.382 }}>
       {wait === 1 && <p style={{ color: '#fff' }}>Waiting for wallet confirmation...</p>}
       {wait >= 2 && hash && (
         <p style={{ color: '#fff' }}>

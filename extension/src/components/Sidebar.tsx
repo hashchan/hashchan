@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { FaHouse, FaMessage, FaGear } from 'react-icons/fa6'
-import { VideoThread } from './VideoThread'
+import { PageThread } from './PageThread'
 import { Catalogue } from './Catalogue'
 import { Settings } from './Settings'
 import { ConnectButton } from './ConnectButton'
-import { useVideoId } from '../hooks/useVideoId'
+import { useSiteContext } from '../hooks/useSiteContext'
 import logoLoop from '../assets/logo-gaussian-blur.gif'
 import logoOnce from '../assets/logo-gaussian-blur-no-repeat.gif'
 
@@ -17,7 +17,7 @@ const Logo = () => {
       src={src}
       onMouseEnter={() => setSrc(logoLoop)}
       onMouseLeave={() => setSrc(logoOnce)}
-      style={{ height: '32px', display: 'block' }}
+      style={{ height: '34px', display: 'block' }}
     />
   )
 }
@@ -31,15 +31,15 @@ const NAV_TABS: { id: Tab; icon: React.ReactNode; label: string }[] = [
 ]
 
 export const Sidebar = () => {
-  const [open, setOpen] = useState(() => localStorage.getItem('hashchan-yt-open') === 'true')
+  const [open, setOpen] = useState(() => localStorage.getItem('hashchan-open') === 'true')
   const [width, setWidth] = useState(sidebarWidth)
   const [activeTab, setActiveTab] = useState<Tab>('thread')
-  const videoId = useVideoId()
+  const ctx = useSiteContext()
   const φ = Math.PHI
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.altKey && e.key === 'h') setOpen(v => { localStorage.setItem('hashchan-yt-open', String(!v)); return !v })
+      if (e.altKey && e.key === 'h') setOpen(v => { localStorage.setItem('hashchan-open', String(!v)); return !v })
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
@@ -51,10 +51,12 @@ export const Sidebar = () => {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
+  const toggle = () => setOpen(v => { localStorage.setItem('hashchan-open', String(!v)); return !v })
+
   return (
     <>
       <div
-        onClick={() => setOpen(v => { localStorage.setItem('hashchan-yt-open', String(!v)); return !v })}
+        onClick={toggle}
         style={{
           pointerEvents: 'all',
           position: 'fixed',
@@ -67,11 +69,11 @@ export const Sidebar = () => {
           border: '1px solid #20C20E',
           borderRight: open ? 'none' : '1px solid #20C20E',
           color: '#20C20E',
-          padding: '10px 5px',
+          padding: '13px 8px',
           cursor: 'pointer',
-          fontSize: '11px',
+          fontSize: '13px',
           letterSpacing: '2px',
-          transition: 'right 0.2s ease',
+          transition: 'right 0.2618s ease',
           userSelect: 'none',
           fontFamily: 'Monospace, monospace',
         }}
@@ -91,11 +93,11 @@ export const Sidebar = () => {
         display: 'flex',
         flexDirection: 'column',
         zIndex: 2147483646,
-        transition: 'right 0.2s ease',
+        transition: 'right 0.2618s ease',
       }}>
         {/* top bar */}
         <div style={{
-          padding: '8px 10px',
+          padding: '8px 13px',
           borderBottom: '1px solid #20C20E',
           display: 'flex',
           justifyContent: 'space-between',
@@ -107,14 +109,14 @@ export const Sidebar = () => {
         </div>
 
         {/* content area */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '13px' }}>
           {activeTab === 'home' && (
-            <Catalogue currentVideoId={videoId} />
+            <Catalogue ctx={ctx} />
           )}
           {activeTab === 'thread' && (
-            videoId
-              ? <VideoThread videoId={videoId} />
-              : <p style={{ color: '#fff', fontSize: '0.85em' }}>Navigate to a YouTube video to see its thread.</p>
+            ctx
+              ? <PageThread ctx={ctx} />
+              : <p style={{ color: '#fff', fontSize: '0.854em' }}>Navigate to a supported page to see its thread.</p>
           )}
           {activeTab === 'settings' && (
             <Settings onSave={() => setActiveTab('thread')} />
@@ -147,7 +149,7 @@ export const Sidebar = () => {
                 background: activeTab === id ? '#20C20E10' : 'transparent',
               }}
             >
-              <span style={{ fontSize: '1.4em' }}>{icon}</span>
+              <span style={{ fontSize: '1.618em' }}>{icon}</span>
               {label}
             </button>
           ))}

@@ -1,32 +1,54 @@
-import { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAccount, useBlockNumber } from 'wagmi'
-import { useThreads, useThread, useCreateThread } from '@hashchan/hooks'
-import { getYtSettings } from '../hooks/useYtSettings'
-import { useVideoTitle } from '../hooks/useVideoTitle'
-import { useVideoChannel } from '../hooks/useVideoChannel'
+import { useQueryClient } from '@tanstack/react-query'
+import { useThreads, useThread, useCreateThread, useBoards, computeImageCID } from '@hashchan/hooks'
+import { getSiteSettings, saveSiteSettings } from '../hooks/useSiteSettings'
+import { ReverseChunkedCursor } from './ReverseChunkedCursor'
 import { Post } from './Post'
 import { PostForm } from './PostForm'
 import { TxResponse } from './TxResponse'
-import { ReverseChunkedCursor } from './ReverseChunkedCursor'
+import type { SiteContext } from '../hooks/useSiteContext'
 import type { PostView } from '@hashchan/hooks'
 
-export const VideoThread = ({ videoId }: { videoId: string }) => {
-  const settings = getYtSettings()
+// Maps each supported site to the board symbol created on-chain for it
+const SITE_BOARD_MAP = [
+  { siteId: 'youtube'        as const, symbol: 'yt'   },
+  { siteId: 'wikipedia'      as const, symbol: 'wiki' },
+  { siteId: 'rottentomatoes' as const, symbol: 'rt'   },
+]
+
+export const PageThread = ({ ctx }: { ctx: SiteContext }) => {
+  const [settings, setSettings] = useState(() => getSiteSettings(ctx.siteId))
+  const { chainId: walletChainId } = useAccount()
+  const { boards } = useBoards()
+
+  // Auto-save site settings when boards are found on the connected chain.
+  // Only fires when there are no settings yet, or when the wallet switched to a different chain.
+  useEffect(() => {
+    if (!walletChainId || !boards.length) return
+    const current = getSiteSettings(ctx.siteId)
+    if (current && current.chainId === walletChainId) return
+    for (const { siteId, symbol } of SITE_BOARD_MAP) {
+      const board = (boards as any[]).find((b: any) => b.symbol === symbol)
+      if (board) saveSiteSettings(siteId, { chainId: walletChainId, boardId: board.boardId })
+    }
+    setSettings(getSiteSettings(ctx.siteId))
+  }, [walletChainId, boards, ctx.siteId])
 
   if (!settings) {
     return (
       <p style={{ color: '#fff' }}>
-        No /yt/ board configured — open Settings to get started.
+        No board configured for this site — open Settings to get started.
       </p>
     )
   }
 
   return (
     <BoardView
-      key={`${settings.chainId}-${settings.boardId}-${videoId}`}
+      key={`${settings.chainId}-${settings.boardId}-${ctx.pageId}`}
       boardId={settings.boardId}
       chainId={settings.chainId}
-      videoId={videoId}
+      ctx={ctx}
     />
   )
 }
@@ -34,13 +56,23 @@ export const VideoThread = ({ videoId }: { videoId: string }) => {
 const BoardView = ({
   boardId,
   chainId,
-  videoId,
+  ctx,
 }: {
   boardId: number
   chainId: number
-  videoId: string
+  ctx: SiteContext
 }) => {
-  const { isConnected } = useAccount()
+  const { isConnected, chainId: walletChainId } = useAccount()
+  const queryClient = useQueryClient()
+
+  // Invalidate board/thread cache whenever the wallet switches chains so queries re-run
+  // against the now-connected network rather than serving stale data.
+  useEffect(() => {
+    if (!walletChainId) return
+    queryClient.invalidateQueries({ queryKey: ['threads', chainId, boardId] })
+    queryClient.invalidateQueries({ queryKey: ['board', chainId, boardId] })
+  }, [walletChainId])
+
   const { threads, isLoading: threadsLoading, fetchHistory, canFetchHistory, strategy, historyBoundary } = useThreads(boardId, chainId)
   const { data: blockNumber } = useBlockNumber({ watch: true })
   const {
@@ -54,16 +86,15 @@ const BoardView = ({
   const [showReply, setShowReply] = useState(false)
   const [initialContent, setInitialContent] = useState('')
 
-  const videoTitle = useVideoTitle()
-  const videoChannel = useVideoChannel()
-  const matchThread = threads.find(t => t.title === videoId)
+  const matchThread = threads.find(t => t.title === ctx.pageId)
   const activeThreadId = matchThread?.threadId ?? newThreadId ?? ''
 
-  const handleStartDiscussion = () => {
-    const url = `https://www.youtube.com/watch?v=${videoId}`
-    const content = videoTitle ? `[${videoTitle}](${url})` : url
-    const imgUrl = document.querySelector<HTMLMetaElement>('meta[property="og:image"]')?.content ?? ''
-    createThread(videoId, imgUrl, content)
+  const handleStartDiscussion = async () => {
+    const content = `[${ctx.title}](${ctx.pageUrl})`
+    // Pre-flight CID check: if the thumbnail can't be fetched (CORS-restricted CDN),
+    // fall back to no image rather than blocking thread creation.
+    const { error } = await computeImageCID(ctx.thumbnail)
+    createThread(ctx.pageId, error ? '' : ctx.thumbnail, content)
   }
 
   const toggleReply = () => {
@@ -84,11 +115,11 @@ const BoardView = ({
       }}>
         <div style={{ display: 'flex', gap: `${1 / φ ** 2}em`, alignItems: 'baseline', flexWrap: 'wrap' }}>
           <span style={{ fontSize: `${1 / φ}em`, color: '#fff', fontFamily: 'monospace' }}>
-            {videoId}
+            {ctx.pageId.length > 24 ? `${ctx.pageId.slice(0, 20)}…` : ctx.pageId}
           </span>
-          {videoChannel && (
+          {ctx.secondaryLabel && (
             <span style={{ fontSize: `${1 / φ}em`, color: '#DF3DF1', fontFamily: 'monospace' }}>
-              @{videoChannel}
+              {ctx.secondaryLabel}
             </span>
           )}
         </div>
@@ -103,18 +134,18 @@ const BoardView = ({
         )}
       </div>
 
-      {/* video title */}
-      {videoTitle && (
+      {/* page title */}
+      {ctx.title && (
         <h3 style={{
           margin: 0,
-          fontSize: `1em`,
+          fontSize: '1em',
           fontWeight: 600,
           color: '#fff',
           lineHeight: φ,
           borderBottom: '1px solid #1a1a1a',
           paddingBottom: `${1 / φ ** 2}em`,
         }}>
-          {videoTitle}
+          {ctx.title}
         </h3>
       )}
 
@@ -184,7 +215,7 @@ const NoThread = ({
   return (
     <div style={{ textAlign: 'center', padding: '16px 0' }}>
       <p style={{ marginBottom: `${1 / Math.PHI}em`, color: '#fff' }}>
-        No thread yet for this video.
+        No thread yet for this page.
       </p>
       <button onClick={onStart} disabled={busy} style={{ margin: 0 }}>
         {busy ? 'Starting...' : 'Start Thread'}
@@ -232,11 +263,13 @@ const ThreadDisplay = ({
       {posts && posts.map((post: PostView, i: number) => (
         <Post
           key={post.postId ?? post.threadId ?? i}
+          ref={post.ref as React.RefObject<HTMLDivElement>}
           creator={post.creator as `0x${string}`}
           postId={i === 0 ? (post.threadId ?? '') : (post.postId ?? '')}
           imgUrl={post.imgUrl}
           content={post.content}
           timestamp={post.timestamp}
+          replies={post.replies as any}
           onReply={onReply}
         />
       ))}

@@ -34,22 +34,22 @@
   "dependencies": {
     "@multiformats/multiaddr": "^13.0.3",
     "dexie": "^4.4.4",
-    "multiformats": "^14.0.0"
+    "multiformats": "^14.0.4"
   },
   "devDependencies": {
-    "@tanstack/react-query": "^5.101.0",
-    "@testing-library/react": "^16.0.0",
-    "@types/node": "^26.0.0",
+    "@tanstack/react-query": "^5.101.2",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^26.1.0",
     "@types/react": "^19.2.17",
     "@vitejs/plugin-react": "^4.0.0",
     "fake-indexeddb": "^6.2.5",
-    "happy-dom": "^14.0.0",
+    "happy-dom": "^20.10.6",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
-    "viem": "^2.53.1",
-    "vitest": "^2.0.0",
-    "wagmi": "^3.6.17"
+    "viem": "^2.54.2",
+    "vitest": "^4.1.9",
+    "wagmi": "^3.6.21"
   }
 }

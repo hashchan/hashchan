@@ -55,10 +55,10 @@ button:hover {
 }
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 5px auto -webkit-focus-ring-color;
 }
 button:disabled {
-  opacity: 0.5;
+  opacity: 0.618;
   cursor: not-allowed;
 }
 
@@ -69,7 +69,7 @@ textarea {
   border: 1px solid #333;
   font-family: inherit;
   font-size: 0.9em;
-  padding: 4px;
+  padding: 5px;
   width: 100%;
   box-sizing: border-box;
   pointer-events: all;

@@ -5,7 +5,7 @@ export default defineConfig(({ mode }) => ({
   publicDir: 'public',
   plugins: [react()],
   resolve: {
-    dedupe: ['react', 'react-dom', 'wagmi', 'viem', '@tanstack/react-query'],
+    dedupe: ['react', 'react-dom', 'wagmi', 'viem', '@tanstack/react-query', 'dexie'],
   },
   build: {
     lib: {
