@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "HashChan",
   "short_name": "HashChan",
-  "version": "1.1.0",
-  "description": "Decentralized page threads via HashChan — for YouTube videos, Wikipedia articles, and Rotten Tomatoes reviews. Wallet used for signing only — no tokens, no revenue model, non-commercial open source.",
+  "version": "1.0.0",
+  "description": "Decentralized page threads for YouTube, Wikipedia, and Rotten Tomatoes via the HashChan protocol. Wallet signs only, no tokens.",
   "icons": {
     "16":  "icons/icon16.png",
     "48":  "icons/icon48.png",
@@ -16,7 +16,7 @@
   ],
   "content_scripts": [
     {
-      "matches": ["https://www.youtube.com/watch*"],
+      "matches": ["https://www.youtube.com/*"],
       "js": ["content.js"],
       "run_at": "document_idle",
       "world": "MAIN"

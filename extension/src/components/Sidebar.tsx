@@ -37,13 +37,19 @@ export const Sidebar = () => {
   const ctx = useSiteContext()
   const φ = Math.PHI
 
+  // Close sidebar and suppress toggle tab when navigating away from a supported page
+  useEffect(() => {
+    if (!ctx) setOpen(false)
+  }, [ctx])
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      if (!ctx) return
       if (e.altKey && e.key === 'h') setOpen(v => { localStorage.setItem('hashchan-open', String(!v)); return !v })
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [])
+  }, [ctx])
 
   useEffect(() => {
     const onResize = () => setWidth(sidebarWidth())
@@ -55,31 +61,33 @@ export const Sidebar = () => {
 
   return (
     <>
-      <div
-        onClick={toggle}
-        style={{
-          pointerEvents: 'all',
-          position: 'fixed',
-          right: open ? `${width}px` : '0',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          zIndex: 2147483647,
-          writingMode: 'vertical-rl',
-          background: '#090909',
-          border: '1px solid #20C20E',
-          borderRight: open ? 'none' : '1px solid #20C20E',
-          color: '#20C20E',
-          padding: '13px 8px',
-          cursor: 'pointer',
-          fontSize: '13px',
-          letterSpacing: '2px',
-          transition: 'right 0.2618s ease',
-          userSelect: 'none',
-          fontFamily: 'Monospace, monospace',
-        }}
-      >
-        {open ? 'CLOSE ◀' : 'HASHCHAN ▶'}
-      </div>
+      {ctx && (
+        <div
+          onClick={toggle}
+          style={{
+            pointerEvents: 'all',
+            position: 'fixed',
+            right: open ? `${width}px` : '0',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 2147483647,
+            writingMode: 'vertical-rl',
+            background: '#090909',
+            border: '1px solid #20C20E',
+            borderRight: open ? 'none' : '1px solid #20C20E',
+            color: '#20C20E',
+            padding: '13px 8px',
+            cursor: 'pointer',
+            fontSize: '13px',
+            letterSpacing: '2px',
+            transition: 'right 0.2618s ease',
+            userSelect: 'none',
+            fontFamily: 'Monospace, monospace',
+          }}
+        >
+          {open ? 'CLOSE ◀' : 'HASHCHAN ▶'}
+        </div>
+      )}
 
       <div style={{
         pointerEvents: open ? 'all' : 'none',

@@ -1,7 +1,7 @@
 {
   "name": "extension",
   "private": true,
-  "version": "0.1.1",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "build": "vite build",
