@@ -57,6 +57,7 @@ export const chainIdToName = (chainId: number): string => {
     case 61: return 'Ethereum Classic'
     case 8453: return 'Base'
     case 11155111: return 'Sepolia'
+    case 25363: return 'Fluent'
     default: return 'Unknown'
   }
 }

@@ -67,6 +67,8 @@ export const chainIdToName = (chainId: number) => {
       return 'Base'
     case 11155111:
       return 'Sepolia'
+    case 25363:
+      return 'Fluent'
     default:
       return 'Unknown'
   }

@@ -14,6 +14,9 @@
   "11155111": {
     "address": "0x147211461d47c8a4f5712cba079c521cacedb16b"
   },
+  "25363": {
+    "address": "0x848f3cef2f761faa11b8b179c4b02a186c1d2b2c"
+  },
   "_format": "hh-sol-artifact-1",
   "contractName": "ModerationServiceFactory",
   "sourceName": "contracts/ModerationServiceFactory.sol",

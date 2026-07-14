@@ -16,11 +16,11 @@ import {
   flowMainnet,
   flowTestnet,
   polygon,
-  avalanche
+  avalanche,
+  fluent
 } from 'wagmi/chains'
 
-import { custom } from 'viem'
-import { injected, unstable_connector, fallback } from '@wagmi/core'
+import { injected, unstable_connector } from '@wagmi/core'
 import { walletConnect } from 'wagmi/connectors'
 
 const metadata = {
@@ -39,6 +39,7 @@ export const config = createConfig({
     mainnet,
     base,
     sepolia,
+    fluent,
 //    baseSepolia,
 //    localhost,
 //    optimismSepolia,
@@ -55,7 +56,7 @@ export const config = createConfig({
   connectors,
   transports: {
 //    [localhost.id]: fallback([injected(), custom(window.ethereum!), unstable_connector(injected)]),
-    [classic.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+    [classic.id]: unstable_connector(injected),
     /*
     [mainnet.id]: custom({
       async request({ method, params }) { 
@@ -70,20 +71,21 @@ export const config = createConfig({
 
     }),
    */
-    [mainnet.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-    [sepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-      //[optimismSepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-      [optimism.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-//    [fantom.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-    [base.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-//    [baseSepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-//    [arbitrumSepolia.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-//    [arbitrum.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-//    [arbitrumNova.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-//    [flowMainnet.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-//    [flowTestnet.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-//    [polygon.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
-//    [avalanche.id]: fallback([custom(window.ethereum!), unstable_connector(injected)]),
+    [mainnet.id]: unstable_connector(injected),
+    [sepolia.id]: unstable_connector(injected),
+    [fluent.id]: unstable_connector(injected),
+      //[optimismSepolia.id]: unstable_connector(injected),
+      [optimism.id]: unstable_connector(injected),
+//    [fantom.id]: unstable_connector(injected),
+    [base.id]: unstable_connector(injected),
+//    [baseSepolia.id]: unstable_connector(injected),
+//    [arbitrumSepolia.id]: unstable_connector(injected),
+//    [arbitrum.id]: unstable_connector(injected),
+//    [arbitrumNova.id]: unstable_connector(injected),
+//    [flowMainnet.id]: unstable_connector(injected),
+//    [flowTestnet.id]: unstable_connector(injected),
+//    [polygon.id]: unstable_connector(injected),
+//    [avalanche.id]: unstable_connector(injected),
   },
 })
 
