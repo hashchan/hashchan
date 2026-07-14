@@ -1,255 +1,166 @@
-import 'dotenv/config';
+import "dotenv/config";
+import { defineConfig } from "hardhat/config";
+import hardhatNodeTestRunnerPlugin from "@nomicfoundation/hardhat-node-test-runner";
+import hardhatKeyStorePlugin from "@nomicfoundation/hardhat-keystore";
+import hardhatNetworkHelpersPlugin from "@nomicfoundation/hardhat-network-helpers";
+import hardhatViemPlugin from "@nomicfoundation/hardhat-viem";
+import hardhatViemAssertionsPlugin from "@nomicfoundation/hardhat-viem-assertions";
+import HardhatDeploy from "hardhat-deploy";
 
-import type { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox-viem";
-import "@nomicfoundation/hardhat-verify";
-import "@nomicfoundation/hardhat-ignition-viem";
-import "hardhat-deploy";
-const config: HardhatUserConfig = {
+const mnemonic = process.env.MNEMONIC;
+
+export default defineConfig({
+  plugins: [
+    hardhatNodeTestRunnerPlugin,
+    hardhatKeyStorePlugin,
+    hardhatNetworkHelpersPlugin,
+    HardhatDeploy,
+    hardhatViemPlugin,
+    hardhatViemAssertionsPlugin
+  ],
   solidity: {
-    compilers: [
-      {
-        version: "0.8.26",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-          evmVersion: "paris",
-        },
+    profiles: {
+      default: {
+        version: "0.8.28",
       },
-      {
+      production: {
         version: "0.8.28",
         settings: {
           optimizer: {
             enabled: true,
             runs: 200,
           },
-          evmVersion: "paris",
         },
       },
-    ],
+    },
   },
   networks: {
-    hardhat:{
-      chainId: 31337,
-      accounts: {
-        mnemonic: process.env.MNEMONIC
-      }
+    hardhatMainnet: {
+      type: "edr-simulated",
+      chainType: "l1",
+    },
+    hardhatOp: {
+      type: "edr-simulated",
+      chainType: "op",
     },
     classic: {
-      url:`https://etc.rpc.rivet.cloud/${process.env.ETC}`,
+      type: "http",
+      chainType: "l1",
+      url: `https://etc.rpc.rivet.cloud/${process.env.ETC}`,
         chainId: 61,
-      accounts: {
-        mnemonic: process.env.MNEMONIC
-      }
+      accounts: { mnemonic },
     },
     mainnet: {
+      type: "http",
+      chainType: "l1",
       url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-      chainId: 1,
-      accounts: {
-        mnemonic: process.env.MNEMONIC
-      }
+        chainId: 1,
+      accounts: { mnemonic },
     },
     polygon: {
+      type: "http",
+      chainType: "l1",
       url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
         chainId: 137,
-      accounts: {
-        mnemonic: process.env.MNEMONIC
-      }
+      accounts: { mnemonic },
     },
     avalanche: {
+      type: "http",
+      chainType: "l1",
       url: `https://avax-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-      chainId: 43114,
-      accounts: {
-        mnemonic: process.env.MNEMONIC
-      }
+        chainId: 43114,
+      accounts: { mnemonic },
     },
     sepolia: {
+      type: "http",
+      chainType: "l1",
       url: `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY}`,
-      chainId: 11155111,
-      accounts: {
-        mnemonic: process.env.MNEMONIC
-      },
-      saveDeployments: true
+        chainId: 11155111,
+      accounts: { mnemonic },
     },
-    'optimism-sepolia': {
+    "optimism-sepolia": {
+      type: "http",
+      chainType: "op",
       url: `https://optimism-sepolia.infura.io/v3/${process.env.INFURA}`,
         chainId: 11155420,
-      accounts: {
-        mnemonic: process.env.MNEMONIC
-      }
+      accounts: { mnemonic },
     },
     optimism: {
+      type: "http",
+      chainType: "op",
       url: `https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
         chainId: 10,
-      accounts: {
-        mnemonic: process.env.MNEMONIC
-      },
-      saveDeployments: true
+      accounts: { mnemonic },
     },
     fantom: {
+      type: "http",
+      chainType: "l1",
       url: `https://fantom-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
         chainId: 250,
-      accounts: {
-        mnemonic: process.env.MNEMONIC
-      }
+      accounts: { mnemonic },
     },
     base: {
+      type: "http",
+      chainType: "op",
       url: `https://base-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
         chainId: 8453,
-      accounts: {
-        mnemonic: process.env.MNEMONIC
-      },
-      saveDeployments: true
+      accounts: { mnemonic },
     },
     filecoin: {
+      type: "http",
+      chainType: "l1",
       url: `https://rpc.ankr.com/filecoin/${process.env.ANKR}`,
         chainId: 314,
-      accounts: {
-        mnemonic: process.env.MNEMONIC
-      }
+      accounts: { mnemonic },
     },
     flow: {
-      //url: `https://flow-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
+      type: "http",
+      chainType: "l1",
       url: `https://mainnet.evm.nodes.onflow.org`,
         chainId: 747,
-      ignition: {
-        gasPrice: 100000n,
-      },
-      accounts: {
-        mnemonic: process.env.MNEMONIC
-      }
+      accounts: { mnemonic },
     },
-    'flow-testnet': {
+    "flow-testnet": {
+      type: "http",
+      chainType: "l1",
       url: `https://flow-testnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
         chainId: 545,
-      ignition: {
-        gasPrice: 10000n,
-      },
-      gasPrice: 10000,
-      accounts: {
-        mnemonic: process.env.MNEMONIC
-      }
+      accounts: { mnemonic },
     },
-    'base-sepolia': {
+    "base-sepolia": {
+      type: "http",
+      chainType: "op",
       url: `https://base-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY}`,
         chainId: 84532,
-      accounts: {
-        mnemonic: process.env.MNEMONIC
-      }
+      accounts: { mnemonic },
     },
-    'arbitrum-sepolia': {
+    "arbitrum-sepolia": {
+      type: "http",
+      chainType: "l1",
       url: `https://arb-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY}`,
         chainId: 421614,
-      accounts: {
-        mnemonic: process.env.MNEMONIC
-      }
+      accounts: { mnemonic },
     },
-    'arbitrum-one': {
+    "arbitrum-one": {
+      type: "http",
+      chainType: "l1",
       url: `https://arb-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
         chainId: 42161,
-      accounts: {
-        mnemonic: process.env.MNEMONIC
-      }
+      accounts: { mnemonic },
     },
-    'arbitrum-nova': {
+    "arbitrum-nova": {
+      type: "http",
+      chainType: "l1",
       url: `https://arbnova-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY}`,
         chainId: 42170,
-      accounts: {
-        mnemonic: process.env.MNEMONIC
-      }
-    }
-  },
-  etherscan: {
-    apiKey: {
-      classic: process.env.ETCBLOCKSCOUT || '',
-      mainnet: process.env.ETHERSCAN || '',
-      optimisticEthereum: process.env.OPTIMISMSCAN || '',
-      sepolia: process.env.ETHERSCAN || '',
-      'optimism-sepolia': process.env.BLOCKSCOUT || '',
-      fantom: process.env.FTMSCAN || '',
-      base: process.env.BASESCAN || '',
-      baseSepolia: process.env.BASESCAN || '',
-      'arbitrum-sepolia': process.env.ARBISCAN || '',
-      'arbitrum-one': process.env.ARBISCAN || '',
-      'arbitrum-nova': process.env.ARBINOVASCAN || '',
-      polygon: process.env.POLYGONSCAN || '',
-      flow: 'nokey',
-      'flow-testnet': 'nokey'
+      accounts: { mnemonic },
     },
-    customChains: [
-      {
-        network: 'classic',
-        chainId: 61,
-        urls: {
-          apiURL: 'https://etc.blockscout.com/api',
-          browserURL: 'https://etc.blockscout.com'
-        }
-
-      },
-      {
-        network: "optimism-sepolia",
-        chainId: 11155420,
-        urls: {
-          apiURL: "https://optimism-sepolia.blockscout.com/api",
-          browserURL: "https://optimism-sepolia.blockscout.com",
-        }
-      },
-      {
-        network: "fantom",
-        chainId: 250,
-        urls: {
-          apiURL: "https://api.ftmscan.com/api",
-          browserURL: "https://ftmscan.com",
-        }
-      },
-      {
-        network: "arbitrum-sepolia",
-        chainId: 421614,
-        urls: {
-          apiURL: "https://api-sepolia.arbiscan.io/api",
-          browserURL: "https://sepolia.arbiscan.io/",
-        }
-      },
-      {
-        network: "arbitrum-one",
-        chainId: 42161,
-        urls: {
-          apiURL: "https://api.arbiscan.io/api",
-          browserURL: "https://arbiscan.io/",
-        }
-      },
-      {
-        network: "arbitrum-nova",
-        chainId: 42170,
-        urls: {
-          apiURL: "https://api-nova.arbiscan.io/api",
-          browserURL: "https://arbiscan.io/",
-        }
-      },
-      {
-        network: "flow-testnet",
-        chainId: 545,
-        urls: {
-          apiURL: "https://evm-testnet.flowscan.io/api",
-          browserURL: "https://evm-testnet.flowscan.io/",
-        }
-      },
-      {
-        network: 'flow',
-        chainId: 747,
-        urls: {
-          apiURL: "https://evm.flowscan.io/api",
-          browserURL: "https://evm.flowscan.io/",
-        }
-      }
-    ]
+    fluent: {
+      type: "http",
+      chainType: "l1",
+      url: `https://rpc.fluent.xyz/`,
+        chainId: 25363,
+      accounts: { mnemonic },
+    },
   },
-  sourcify: {
-    enabled: true
-  }
-
-};
-
-export default config;
+});

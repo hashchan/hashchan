@@ -1,213 +1,280 @@
-import { network, viem} from 'hardhat'
-import hre from 'hardhat'
-import { expect } from "chai";
-import "@nomicfoundation/hardhat-chai-matchers";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { isAddress } from "viem";
 
-import {loadFixture} from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
-//import HashChan3Module from "../ignition/modules/HashChan3";
-import deploy from "../deploy/001_hashchan3";
+import { network } from "hardhat";
+import { setupHashChan3Fixtures } from "./utils/index.js";
 
-import { getAddress } from 'viem'
+const { provider, networkHelpers, viem } = await network.create();
+const { deployAll } = setupHashChan3Fixtures(provider, viem);
 
-import { createPublicClient, custom } from "viem";
 describe("HashChan3", function () {
-  let hashChan3: any
-  let modServiceFactory: any
-  let modService: any
-  let publicClient: any
-  let threadId: `0x${string}`
-  let postId: `0x${string}`
-  let deployer: any;
-  let poster: any;
-  let moderator: any;
-  let janny: any;
-  let flagSig: any;
-  before(async () => {
-    ;([deployer, moderator] = await viem.getWalletClients())
-    ;({ hashChan3, modServiceFactory, modService } = await deploy(hre))
-    
-    publicClient = createPublicClient({
-      transport: custom(network.provider),
-    })
-  })
+  it("deploys HashChan3, ModerationServiceFactory and a ModerationService", async function () {
+    const { HashChan3, ModerationServiceFactory, modService } =
+      await networkHelpers.loadFixture(deployAll);
 
-  describe("Hashchan3", async () => {
-    it("Should be deployed", async () => {
-      expect(hashChan3.address).to.be.properAddress
-      expect(modServiceFactory.address).to.be.properAddress
-      expect(modService.address).to.be.properAddress
-    })
+    assert.ok(isAddress(HashChan3.address));
+    assert.ok(isAddress(ModerationServiceFactory.address));
+    assert.ok(isAddress(modService.address));
+  });
 
-    it("should have a newBoard Event", async () => {
-      const newBoardEvents = await publicClient.getContractEvents({
-        address: hashChan3.address,
-        abi: hashChan3.abi,
-        eventName: "NewBoard",
-        fromBlock: 0n
-      })
-      expect(newBoardEvents.length).to.be.greaterThan(0)
+  it("should have a NewBoard event", async function () {
+    const { env, HashChan3 } = await networkHelpers.loadFixture(deployAll);
 
-      expect(newBoardEvents[0].args.rules.length).to.be.greaterThan(0)
+    const newBoardEvents = await env.viem.publicClient.getContractEvents({
+      address: HashChan3.address,
+      abi: HashChan3.abi,
+      eventName: "NewBoard",
+      fromBlock: 0n,
+    });
 
-    })
+    assert.ok(newBoardEvents.length > 0);
+    assert.ok((newBoardEvents[0].args.rules?.length ?? 0) > 0);
+  });
 
-    it("come with a board", async () => {
-      const board = await hashChan3.read.getBoard([0n])
-      expect(board.rules.length).to.be.greaterThan(0)
-    })
+  it("comes with a board", async function () {
+    const { env, HashChan3 } = await networkHelpers.loadFixture(deployAll);
 
-    it("create a thread", async () => {
+    const board = await env.viem.publicClient.readContract({
+      address: HashChan3.address,
+      abi: HashChan3.abi,
+      functionName: "getBoard",
+      args: [0n],
+    });
 
-      const args = {
+    assert.ok(board.rules.length > 0);
+  });
+
+  it("creates a thread", async function () {
+    const { env, HashChan3, namedAccounts } =
+      await networkHelpers.loadFixture(deployAll);
+
+    const hashChan3AsDeployer = env.viem.getWritableContract(HashChan3, {
+      account: namedAccounts.deployer,
+    });
+
+    const args = {
+      boardId: 0n,
+      title: "title",
+      imgUrl: "https://image.com/image.png",
+      imgCID: "bafkreib7cvtqy5exmymnm32hksayaok7ywf5lsoz3xglipfnverpdgmrki",
+      content: "This is a short thread",
+    };
+
+    const hash = await hashChan3AsDeployer.write.createThread(
+      Object.values(args),
+    );
+    const receipt = await env.viem.publicClient.waitForTransactionReceipt({
+      hash,
+    });
+
+    const newThreadEvents = await env.viem.publicClient.getContractEvents({
+      address: HashChan3.address,
+      abi: HashChan3.abi,
+      eventName: "NewThread",
+      fromBlock: 0n,
+    });
+
+    assert.ok(receipt.logs.length > 0);
+    assert.ok(newThreadEvents.length > 0);
+    const lastEvent = newThreadEvents[newThreadEvents.length - 1];
+    assert.equal(lastEvent.args.boardId, args.boardId);
+    assert.equal(lastEvent.args.title, args.title);
+    assert.equal(lastEvent.args.imgUrl, args.imgUrl);
+    assert.equal(lastEvent.args.imgCID, args.imgCID);
+    assert.equal(lastEvent.args.content, args.content);
+  });
+
+  it("creates a post", async function () {
+    const { env, HashChan3, namedAccounts } =
+      await networkHelpers.loadFixture(deployAll);
+
+    const hashChan3AsDeployer = env.viem.getWritableContract(HashChan3, {
+      account: namedAccounts.deployer,
+    });
+
+    const threadHash = await hashChan3AsDeployer.write.createThread([
+      0n,
+      "title",
+      "https://image.com/image.png",
+      "bafkreib7cvtqy5exmymnm32hksayaok7ywf5lsoz3xglipfnverpdgmrki",
+      "This is a short thread",
+    ]);
+    await env.viem.publicClient.waitForTransactionReceipt({
+      hash: threadHash,
+    });
+
+    const [threadEvent] = await env.viem.publicClient.getContractEvents({
+      address: HashChan3.address,
+      abi: HashChan3.abi,
+      eventName: "NewThread",
+      fromBlock: 0n,
+    });
+    const threadId = threadEvent.args.threadId as `0x${string}`;
+
+    const args = {
+      boardId: 0n,
+      threadId,
+      replyIds: [threadId],
+      imgUrl: "https://image.com/image.png",
+      imgCID: "bafkreib7cvtqy5exmymnm32hksayaok7ywf5lsoz3xglipfnverpdgmrki",
+      content: "This is a short post",
+    };
+
+    const hash = await hashChan3AsDeployer.write.createPost(
+      Object.values(args),
+    );
+    const receipt = await env.viem.publicClient.waitForTransactionReceipt({
+      hash,
+    });
+
+    assert.ok(receipt.logs.length > 0);
+
+    const newPostEvents = await env.viem.publicClient.getContractEvents({
+      address: HashChan3.address,
+      abi: HashChan3.abi,
+      eventName: "NewPost",
+      fromBlock: 0n,
+    });
+    assert.ok(newPostEvents.length > 0);
+    const lastEvent = newPostEvents[newPostEvents.length - 1];
+    assert.equal(lastEvent.args.threadId, args.threadId);
+    assert.equal(lastEvent.args.content, args.content);
+  });
+
+  it("creates a moderation service", async function () {
+    const { modService } = await networkHelpers.loadFixture(deployAll);
+
+    assert.equal(await modService.read.name(), "Basic Service");
+    assert.equal(await modService.read.uri(), "orbit.hashchan.org");
+    assert.equal(await modService.read.port(), 443n);
+  });
+
+  it("adds a janitor", async function () {
+    const { modService, namedAccounts } =
+      await networkHelpers.loadFixture(deployAll);
+
+    const janitor = await modService.read.getJanitor([
+      namedAccounts.deployer,
+    ]);
+    assert.notEqual(janitor.started, 0n);
+  });
+
+  it("lets a janitor flag a post, and the mod service owner review the flag", async function () {
+    const { env, HashChan3, modService, namedAccounts } =
+      await networkHelpers.loadFixture(deployAll);
+    const { deployer } = namedAccounts;
+
+    const hashChan3AsDeployer = env.viem.getWritableContract(HashChan3, {
+      account: deployer,
+    });
+    const threadHash = await hashChan3AsDeployer.write.createThread([
+      0n,
+      "title",
+      "https://image.com/image.png",
+      "bafkreib7cvtqy5exmymnm32hksayaok7ywf5lsoz3xglipfnverpdgmrki",
+      "This is a short thread",
+    ]);
+    await env.viem.publicClient.waitForTransactionReceipt({
+      hash: threadHash,
+    });
+    const [threadEvent] = await env.viem.publicClient.getContractEvents({
+      address: HashChan3.address,
+      abi: HashChan3.abi,
+      eventName: "NewThread",
+      fromBlock: 0n,
+    });
+    const threadId = threadEvent.args.threadId as `0x${string}`;
+
+    const postHash = await hashChan3AsDeployer.write.createPost([
+      0n,
+      threadId,
+      [threadId],
+      "https://image.com/image.png",
+      "bafkreib7cvtqy5exmymnm32hksayaok7ywf5lsoz3xglipfnverpdgmrki",
+      "This is a short post",
+    ]);
+    await env.viem.publicClient.waitForTransactionReceipt({ hash: postHash });
+    const [postEvent] = await env.viem.publicClient.getContractEvents({
+      address: HashChan3.address,
+      abi: HashChan3.abi,
+      eventName: "NewPost",
+      fromBlock: 0n,
+    });
+    const postId = postEvent.args.postId as `0x${string}`;
+
+    const chainId = await env.viem.publicClient.getChainId();
+    const typedData = {
+      domain: {
+        name: "Basic Service",
+        version: "1",
+        chainId,
+        verifyingContract: modService.address,
+      },
+      message: {
+        chainId: BigInt(chainId),
         boardId: 0n,
-        title: "title",
-        imgUrl: "https://image.com/image.png",
-        imgCID: "bafkreib7cvtqy5exmymnm32hksayaok7ywf5lsoz3xglipfnverpdgmrki",
-        content: "This is a short thread"
-      }
+        threadId,
+        postId,
+        reason: 0n,
+      },
+      primaryType: "FlagData" as const,
+      types: {
+        EIP712Domain: [
+          { name: "name", type: "string" },
+          { name: "version", type: "string" },
+          { name: "chainId", type: "uint256" },
+          { name: "verifyingContract", type: "address" },
+        ],
+        FlagData: [
+          { name: "chainId", type: "uint256" },
+          { name: "boardId", type: "uint256" },
+          { name: "threadId", type: "bytes32" },
+          { name: "postId", type: "bytes32" },
+          { name: "reason", type: "uint256" },
+        ],
+      },
+    };
 
-      const hash = await hashChan3.write.createThread(Object.values(args))
+    // deployer is the janitor added by the fixture; it signs the flag.
+    const janitorWallet = await viem.getWalletClient(deployer);
+    const flagSig = await janitorWallet.signTypedData(typedData);
 
-      const receipt = await publicClient.waitForTransactionReceipt({ hash })
-      const newThreadEvents = await publicClient.getContractEvents({
-        address: hashChan3.address,
-        abi: hashChan3.abi,
-        eventName: "NewThread",
-        fromBlock: 0n
-      })
-
-      expect(receipt.logs.length).to.be.greaterThan(0)
-      expect(newThreadEvents.length).to.be.greaterThan(0)
-      expect(newThreadEvents[0].args).to.deep.contain(args)
-      threadId = newThreadEvents[0].args.threadId as `0x${string}`
-    })
-
-    it("should create a post", async () => {
-      const args = {
-        boardId: 0n,  
-        threadId: threadId,
-        replyIds: [threadId],
-        imgUrl: "https://image.com/image.png",
-        imgCID: "bafkreib7cvtqy5exmymnm32hksayaok7ywf5lsoz3xglipfnverpdgmrki",
-        content: "This is a short post"
-      }
-      const hash = await hashChan3.write.createPost(Object.values(args))
-      const receipt = await publicClient.waitForTransactionReceipt({ hash })
-      expect(receipt.logs.length).to.be.greaterThan(0)
-
-      const newPostEvents = await publicClient.getContractEvents({
-        address: hashChan3.address,
-        abi: hashChan3.abi,
-        eventName: "NewPost",
-        fromBlock: 0n
-      })
-      expect(newPostEvents.length).to.be.greaterThan(0)
-      expect(newPostEvents[0].args).to.deep.contain(args)
-
-      postId = newPostEvents[0].args.postId as `0x${string}`
-    })
-
-    it("should create a moderation service", async () => {
-
-      const modName = await modService.read.name()
-      expect(modName).to.deep.contain('Basic Service')
-
-      const modUrl = await modService.read.uri()
-      expect(modUrl).to.deep.contain('orbit.hashchan.org')
-
-      const modPort = await modService.read.port()
-      expect(Number(modPort)).to.be.equal(443)
-
-
-    })
-
-    it("should add a janitor", async () => {
-      const janitor = await modService.read.getJanitor([
-        deployer.account.address
-      ])
-      console.log('janitor', janitor);
-    })
-
-    it("janitor can flag a post", async () => {
-      console.log('modService.address', modService.address);
-      const typedData = {
-        domain: {
-          name: "Basic Service",
-          version: "1",
-          chainId: await publicClient.getChainId(),
-          verifyingContract: modService.address
-        },
-        message: {
-          chainId: await publicClient.getChainId(),
-          boardId: 0n,
-          threadId: threadId,
-          postId: postId,
-          reason: 0n
-        },
-        primaryType: "FlagData",
-        types: {
-          EIP712Domain: [
-            {name: "name", type: "string"},
-            {name: "version", type: "string"},
-            {name: "chainId", type: "uint256"},
-            {name: "verifyingContract", type: "address"}
-          ],
-          FlagData: [
-            {name: "chainId", type: "uint256"},
-            {name: "boardId", type: "uint256"},
-            {name: "threadId", type: "bytes32"},
-            {name: "postId", type: "bytes32"},
-            {name: "reason", type: "uint256"}
-          ]
-        }
-      } 
-
-
-      const signature = await deployer.signTypedData(typedData)
-      console.log('signature', signature)
-      flagSig = signature
-    })
-
-    it("a lurker can review a janitors flag", async () => {
-      console.log('janitor', deployer.account.address);
-      console.log('modService.address', modService.address);
-      const hash = await modService.write.addReview([
-        deployer.account.address,
+    // modService is bound to admin (the mod service owner), which reviews
+    // the janitor's flag and pays out the tip.
+    const hash = await modService.write.addReview(
+      [
+        deployer,
         true,
         "thanks for the flag",
         flagSig,
         {
-          chainId: await publicClient.getChainId(),
+          chainId: BigInt(chainId),
           boardId: 0n,
-          threadId: threadId,
-          postId: postId,
-          reason: 0n
-        }
-      ], {
-        value: 100n
-      })
-      const receipt = await publicClient.waitForTransactionReceipt({ hash })
+          threadId,
+          postId,
+          reason: 0n,
+        },
+      ],
+      { value: 100n },
+    );
+    await env.viem.publicClient.waitForTransactionReceipt({ hash });
 
-      const jannyData = await modService.read.getJanitor([deployer.account.address])
-      console.log('jannyData', jannyData)
-      expect(jannyData).to.deep.contain({
-        positiveReviews: 1n,
-        negativeReviews: 0n,
-        claimedWages: 95n
-      })
+    const jannyData = await modService.read.getJanitor([deployer]);
+    assert.equal(jannyData.positiveReviews, 1n);
+    assert.equal(jannyData.negativeReviews, 0n);
+    assert.equal(jannyData.claimedWages, 95n);
 
-      const totalWages = await modService.read.totalWages()
-      expect(totalWages).to.be.equal(100n)
-      const ownerWages = await modService.read.ownerWages()
-      expect(ownerWages).to.be.equal(5n)
-    })
+    assert.equal(await modService.read.totalWages(), 100n);
+    assert.equal(await modService.read.ownerWages(), 5n);
+  });
 
-    it("owner can not change past 20%", async () => {
-      try {
-        await modService.write.changeWage(2001)
-      } catch (e) {
-        expect(e).to.be.instanceOf(Error)
-      }
-    })
-  })
-})
+  it("rejects an owner fee rate above the 20% cap", async function () {
+    const { modService } = await networkHelpers.loadFixture(deployAll);
+
+    await viem.assertions.revertWith(
+      modService.write.setOwnerFeeRate([2001n]),
+      "owner fee rate too high",
+    );
+  });
+});
