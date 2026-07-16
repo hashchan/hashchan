@@ -6,6 +6,7 @@ import { getExplorerUrl } from '@/utils/explorer'
 import { truncateEthAddress } from '@/utils/address'
 import { TbFlagExclamation } from "react-icons/tb";
 import MarkdownEditor from '@uiw/react-markdown-editor';
+import { defaultUrlTransform } from 'react-markdown';
 
 import {
   Table,
@@ -194,6 +195,11 @@ export const Post = forwardRef(({
             width: `${(100 / Math.PHI) + (100 / (Math.PHI ** 4))}vw`
           }}
           source={content}
+          // @uiw/react-markdown-preview overrides react-markdown's built-in
+          // urlTransform with an identity function, so `[x](javascript:...)`
+          // in post content would otherwise render as a live, clickable
+          // javascript: link. Pass the real sanitizer back in.
+          urlTransform={defaultUrlTransform}
         />
       </div>
     </div>

@@ -4,7 +4,7 @@ import { useCreatePost } from "@/hooks/HashChan/useCreatePost";
 import { truncateEthAddress } from '@/utils/address'
 import { parseContent } from '@/utils/content'
 import MarkdownEditor from '@uiw/react-markdown-editor';
-import { useW3Storage } from '@/hooks/useW3Storage'
+import { useActivePinningProvider } from '@/hooks/useActivePinningProvider'
 import { Modal } from '@/components/Modal'
 import {TxResponse} from '@/components/TxResponse'
 
@@ -13,10 +13,12 @@ export const CreatePost = ({
   handleClose
 }:{
   replyIds: string[],
-  handleClose : () => void 
+  handleClose : () => void
 }) => {
-  const {  account, uploadFile } = useW3Storage()
-  const { register, handleSubmit, setValue, formState: { errors, isSubmitting  }  } = useForm();
+  const { canUploadImage, pinFile } = useActivePinningProvider()
+  const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting  }  } = useForm();
+  const w3Image = watch('w3Image')
+  const hasFile = !!w3Image?.length
   const [wait, setWait] = useState(0)
   const {
     hash,
@@ -29,7 +31,7 @@ export const CreatePost = ({
     console.log(data)
     let img = ''
     if (data.w3Image) {
-      img = await uploadFile(data.w3Image)
+      img = await pinFile(data.w3Image)
     } else if (data.imageUrl) {
       img = data.imageUrl
     }
@@ -66,20 +68,23 @@ export const CreatePost = ({
         onSubmit={handleSubmit(onSubmit)}
       >
         <label htmlFor="imageUrl">Image Url</label>
-        {account?.model?.id && <input type="file" {...register("w3Image", { required: false })} />}
-        <div style={{
-          width:`${100/(Math.PHI)+(100/(Math.PHI**3))}%`
-          }} 
-        >
-          <input style={{
-              paddingLeft: 0,
-              paddingRight: 0,
-              margin: '4px 0',
-              width: '100%',
+        {canUploadImage && <input type="file" {...register("w3Image", { required: false })} />}
+        {!hasFile && (
+          <div style={{
+            width:`${100/(Math.PHI)+(100/(Math.PHI**3))}%`
             }}
-            defaultValue="" {...register("imageUrl", { required: false })}
-          />
-        </div>
+          >
+            {canUploadImage && <p style={{ margin: '4px 0' }}>-or- paste a hotlink</p>}
+            <input style={{
+                paddingLeft: 0,
+                paddingRight: 0,
+                margin: '4px 0',
+                width: '100%',
+              }}
+              defaultValue="" {...register("imageUrl", { required: false })}
+            />
+          </div>
+        )}
         <label htmlFor="content">Content</label>
         <div style={{width:`${100/(Math.PHI)+(100/(Math.PHI**3))}%`}}>
           <MarkdownEditor

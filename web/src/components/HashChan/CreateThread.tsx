@@ -5,7 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import MarkdownEditor from '@uiw/react-markdown-editor';
 
 import { useCreateThread } from "@/hooks/HashChan/useCreateThread";
-import { useW3Storage } from '@/hooks/useW3Storage'
+import { useActivePinningProvider } from '@/hooks/useActivePinningProvider'
 import { Modal } from '@/components/Modal'
 import { TxResponse } from '@/components/TxResponse'
 export const CreateThread = ({
@@ -17,8 +17,10 @@ export const CreateThread = ({
 }) => {
   const [wait, setWait] = useState(0)
   const { chainId, boardId } = useParams()
-  const {  account, uploadFile } = useW3Storage()
-  const { register, handleSubmit, formState: { errors, isSubmitting  }, setValue  } = useForm();
+  const { canUploadImage, pinFile } = useActivePinningProvider()
+  const { register, handleSubmit, formState: { errors, isSubmitting  }, setValue, watch  } = useForm();
+  const w3Image = watch('w3Image')
+  const hasFile = !!w3Image?.length
 
   const {
     createThread,
@@ -40,7 +42,7 @@ export const CreateThread = ({
         data.content
       )
     } else if (data.w3Image) {
-      const upload = await uploadFile(data.w3Image)
+      const upload = await pinFile(data.w3Image)
       console.log('upload', upload)
       await createThread(
         data.title,
@@ -105,14 +107,19 @@ export const CreateThread = ({
         <div style={{
           width:`${(100/Math.PHI)+(100/Math.PHI**3)}%`
           }}>
-          {account?.model?.id && <input type="file" {...register("w3Image", { required: false })} />}
-          <input style={{
-            paddingLeft: 0,
-            paddingRight: 0,
-            margin: '4px 0',
-            width:'100%'
-            }}
-            defaultValue="" {...register("imageUrl", { required: false })} />
+          {canUploadImage && <input type="file" {...register("w3Image", { required: false })} />}
+          {!hasFile && (
+            <>
+              {canUploadImage && <p style={{ margin: '4px 0' }}>-or- paste a hotlink</p>}
+              <input style={{
+                paddingLeft: 0,
+                paddingRight: 0,
+                margin: '4px 0',
+                width:'100%'
+                }}
+                defaultValue="" {...register("imageUrl", { required: false })} />
+            </>
+          )}
         </div>
         <label htmlFor="content">Content</label>
         <div style={{width:`${(100/Math.PHI)+(100/Math.PHI**3)}%`}}>

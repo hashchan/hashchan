@@ -6,6 +6,11 @@ import { useForm } from "react-hook-form";
 import { useW3Storage } from '@/hooks/useW3Storage'
 import { Modal } from '@/components/Modal'
 
+// Storacha's maintainers have gone quiet and the service's status is
+// uncertain. Disabled pending confirmation it still works; this is the only
+// gate to flip (or remove, along with this file/hook/provider) later.
+const STORACHA_DISABLED = true
+
 const ConnectW3StorageModal = ({handleClose}:{handleClose : () => void }) => {
   const {
     register,
@@ -50,6 +55,9 @@ const ConnectW3StorageModal = ({handleClose}:{handleClose : () => void }) => {
 
 
 
+// Dropdown-item trigger only — the currently active provider's name is shown
+// by the composition layer (useActivePinningProvider) directly in the nav
+// bar, not duplicated here.
 export const ConnectW3Storage = () => {
   const [showModal, setShowModal] = useState(false)
   const handleShowModal = () => {
@@ -58,9 +66,11 @@ export const ConnectW3Storage = () => {
   const { account } = useW3Storage()
   return (<>
     <button
+      disabled={STORACHA_DISABLED}
+      title={STORACHA_DISABLED ? 'Storacha is temporarily unavailable' : undefined}
       onClick={() => handleShowModal()}
     >
-      {account ? account.model.id: 'Connect Storacha'}
+      {account ? 'Storacha ✓' : 'Storacha'}
     </button>
     {showModal && <ConnectW3StorageModal handleClose={handleShowModal} />}
   </>)

@@ -10,7 +10,7 @@ import {FaGithub, FaSquareXTwitter, FaDiscord, FaBook, FaYoutube} from 'react-ic
 import { GiMagicBroom, GiBookshelf } from 'react-icons/gi'
 import { Link } from 'react-router-dom'
 import { ConnectWallet } from './ConnectWallet'
-import { ConnectW3Storage } from './ConnectW3Storage'
+import { ConnectPinning } from './ConnectPinning'
 import { BoardsList } from '@/components/HashChan/BoardsList'
 import { OptionsModal } from './OptionsModal'
 import { RpcDoctorModal } from './RpcDoctorModal'
@@ -66,7 +66,7 @@ export const NavBar = () => {
         <BoardsList />
       </div>
       <ConnectWallet />
-      <ConnectW3Storage />
+      <ConnectPinning />
       <RpcDoctorModal pxSize={pxSize} />
       <OptionsModal pxSize={pxSize} />
       <div
