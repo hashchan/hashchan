@@ -8,9 +8,11 @@ import type { Board } from '@hashchan/hooks'
 const φ = Math.PHI
 
 const SITE_BOARDS = [
-  { siteId: 'youtube'       as const, symbol: 'yt',   label: '/yt/ — YouTube' },
-  { siteId: 'wikipedia'     as const, symbol: 'wiki', label: '/wiki/ — Wikipedia' },
-  { siteId: 'rottentomatoes'as const, symbol: 'rt',   label: '/rt/ — Rotten Tomatoes' },
+  { siteId: 'youtube'       as const, symbol: 'yt',     label: '/yt/ — YouTube' },
+  { siteId: 'wikipedia'     as const, symbol: 'wiki',   label: '/wiki/ — Wikipedia' },
+  { siteId: 'rottentomatoes'as const, symbol: 'rt',     label: '/rt/ — Rotten Tomatoes' },
+  { siteId: 'reddit'        as const, symbol: 'rdt',    label: '/rdt/ — Reddit' },
+  { siteId: 'x'             as const, symbol: 'x',      label: '/x/ — X' },
 ]
 
 export const Settings = ({ onSave }: { onSave: () => void }) => {

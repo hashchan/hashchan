@@ -12,9 +12,11 @@ import type { PostView } from '@hashchan/hooks'
 
 // Maps each supported site to the board symbol created on-chain for it
 const SITE_BOARD_MAP = [
-  { siteId: 'youtube'        as const, symbol: 'yt'   },
-  { siteId: 'wikipedia'      as const, symbol: 'wiki' },
-  { siteId: 'rottentomatoes' as const, symbol: 'rt'   },
+  { siteId: 'youtube'        as const, symbol: 'yt'     },
+  { siteId: 'wikipedia'      as const, symbol: 'wiki'   },
+  { siteId: 'rottentomatoes' as const, symbol: 'rt'     },
+  { siteId: 'reddit'         as const, symbol: 'rdt'    },
+  { siteId: 'x'              as const, symbol: 'x'      },
 ]
 
 export const PageThread = ({ ctx }: { ctx: SiteContext }) => {

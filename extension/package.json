@@ -8,7 +8,7 @@
     "dev": "vite build --watch --mode development"
   },
   "dependencies": {
-    "@hashchan/hooks": "file:../hooks",
+    "@hashchan/hooks": "^0.2.1",
     "@tanstack/react-query": "^5.101.2",
     "@uiw/react-markdown-editor": "^6.1.4",
     "dexie": "^4.4.4",
