@@ -17,6 +17,7 @@ const SITE_BOARD_MAP = [
   { siteId: 'rottentomatoes' as const, symbol: 'rt'     },
   { siteId: 'reddit'         as const, symbol: 'rdt'    },
   { siteId: 'x'              as const, symbol: 'x'      },
+  { siteId: 'github'         as const, symbol: 'gh'     },
 ]
 
 export const PageThread = ({ ctx }: { ctx: SiteContext }) => {

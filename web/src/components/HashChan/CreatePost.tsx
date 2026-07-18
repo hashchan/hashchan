@@ -4,6 +4,7 @@ import { useCreatePost } from "@/hooks/HashChan/useCreatePost";
 import { truncateEthAddress } from '@/utils/address'
 import { parseContent } from '@/utils/content'
 import MarkdownEditor from '@uiw/react-markdown-editor';
+import { EditorView } from '@codemirror/view';
 import { useActivePinningProvider } from '@/hooks/useActivePinningProvider'
 import { Modal } from '@/components/Modal'
 import {TxResponse} from '@/components/TxResponse'
@@ -93,6 +94,7 @@ export const CreatePost = ({
               width: '100%',
               height: '100%',
             }}
+            extensions={[EditorView.lineWrapping]}
 
             value={
               replyIds.length > 0 ? ( replyIds.map((replyId) => {

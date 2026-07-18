@@ -8,6 +8,7 @@
     "dev": "vite build --watch --mode development"
   },
   "dependencies": {
+    "@codemirror/view": "^6.43.6",
     "@hashchan/hooks": "^0.2.1",
     "@tanstack/react-query": "^5.101.2",
     "@uiw/react-markdown-editor": "^6.1.4",

@@ -4,6 +4,7 @@ import { useWikiContext } from './wiki/useWikiContext'
 import { useRtContext } from './rt/useRtContext'
 import { useRedditContext } from './reddit/useRedditContext'
 import { useXContext } from './x/useXContext'
+import { useGithubContext } from './github/useGithubContext'
 
 export type { SiteId }
 
@@ -23,6 +24,10 @@ export const getPageUrl = (siteId: SiteId, pageId: string): string => {
     case 'rottentomatoes': return `https://www.rottentomatoes.com/m/${pageId}`
     case 'reddit': return `https://www.reddit.com/comments/${pageId}/`
     case 'x': return `https://x.com/i/status/${pageId}`
+    case 'github': {
+      const [repo, number] = pageId.split('#')
+      return `https://github.com/${repo}/issues/${number}`
+    }
   }
 }
 
@@ -32,5 +37,6 @@ export const useSiteContext = (): SiteContext | null => {
   const rt = useRtContext()
   const reddit = useRedditContext()
   const x = useXContext()
-  return yt ?? wiki ?? rt ?? reddit ?? x ?? null
+  const github = useGithubContext()
+  return yt ?? wiki ?? rt ?? reddit ?? x ?? github ?? null
 }

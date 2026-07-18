@@ -46,6 +46,13 @@ const BOARDS = [
     bannerCID: "Qmdn6EqGMv5wZ6TYTt7dqu3cRJEn6Ce2NuSpK61fGbDTLU",
     rules: [onTopicRule],
   },
+  {
+    name: "GitHub",
+    symbol: "gh",
+    description: "Decentralized discussion threads for GitHub issues.",
+    bannerCID: "QmeP4N9aj7xCwQQ7tYYMJkiajKuYQw2ysa6kK3gdwxFo7r",
+    rules: [onTopicRule],
+  },
 ].map(board => ({ ...board, bannerUrl: `${ipfsGateway}/${board.bannerCID}` }));
 
 const env = await loadEnvironmentFromHardhat({ hre });

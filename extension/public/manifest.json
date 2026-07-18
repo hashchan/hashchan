@@ -2,19 +2,34 @@
   "manifest_version": 3,
   "name": "HashChan",
   "short_name": "HashChan",
-  "version": "1.1.0",
-  "description": "Decentralized page threads for YouTube, Wikipedia, Rotten Tomatoes, Reddit, and X via HashChan. Wallet signs only, no tokens.",
+  "version": "1.1.1",
+  "description": "Decentralized discussion threads for the page you're viewing. Connect your wallet — no accounts, no tokens.",
   "icons": {
     "16":  "icons/icon16.png",
     "48":  "icons/icon48.png",
     "128": "icons/icon128.png"
   },
+  "action": {
+    "default_icon": {
+      "16":  "icons/icon16.png",
+      "48":  "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "HashChan — click to activate on this page"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "scripting"
+  ],
   "host_permissions": [
     "https://www.youtube.com/*",
     "https://en.wikipedia.org/*",
     "https://www.rottentomatoes.com/*",
     "https://www.reddit.com/*",
-    "https://x.com/*"
+    "https://x.com/*",
+    "https://github.com/*"
   ],
   "content_scripts": [
     {
@@ -43,6 +58,12 @@
     },
     {
       "matches": ["https://x.com/*/status/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://github.com/*/*/issues/*", "https://github.com/*/*/pull/*"],
       "js": ["content.js"],
       "run_at": "document_idle",
       "world": "MAIN"

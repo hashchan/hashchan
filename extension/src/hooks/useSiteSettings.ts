@@ -1,4 +1,4 @@
-export type SiteId = 'youtube' | 'wikipedia' | 'rottentomatoes' | 'reddit' | 'x'
+export type SiteId = 'youtube' | 'wikipedia' | 'rottentomatoes' | 'reddit' | 'x' | 'github'
 
 export interface SiteSettings {
   chainId: number
@@ -11,6 +11,7 @@ const KEYS: Record<SiteId, string> = {
   rottentomatoes: 'hashchan_rt_settings',
   reddit: 'hashchan_reddit_settings',
   x: 'hashchan_x_settings',
+  github: 'hashchan_github_settings',
 }
 
 export const getSiteSettings = (siteId: SiteId): SiteSettings | null => {

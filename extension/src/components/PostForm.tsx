@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import MarkdownEditor from '@uiw/react-markdown-editor'
+import { EditorView } from '@codemirror/view'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCreatePost, parseContent } from '@hashchan/hooks'
 import { TxResponse } from './TxResponse'
@@ -105,6 +106,7 @@ export const PostForm = ({
           onChange={v => setContent(v)}
           height="200px"
           enableScroll
+          extensions={[EditorView.lineWrapping]}
           {...(shadowRoot ? { root: shadowRoot } : {})}
         />
       </div>

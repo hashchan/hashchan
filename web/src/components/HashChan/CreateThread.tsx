@@ -3,6 +3,7 @@ import { useForm  } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 
 import MarkdownEditor from '@uiw/react-markdown-editor';
+import { EditorView } from '@codemirror/view';
 
 import { useCreateThread } from "@/hooks/HashChan/useCreateThread";
 import { useActivePinningProvider } from '@/hooks/useActivePinningProvider'
@@ -127,6 +128,7 @@ export const CreateThread = ({
             {...register("content", { required: true  })}
             width="100%"
             height="100%"
+            extensions={[EditorView.lineWrapping]}
             onChange={(value, viewUpdate) => {
               setValue('content', value)
             }} 
