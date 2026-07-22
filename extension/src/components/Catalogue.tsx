@@ -1,11 +1,14 @@
+import { useState, useEffect } from 'react'
 import { useThreads } from '@hashchan/hooks'
 import { useBlockNumber } from 'wagmi'
 import { getSiteSettings } from '../hooks/useSiteSettings'
 import { getPageUrl } from '../hooks/useSiteContext'
 import { ReverseChunkedCursor } from './ReverseChunkedCursor'
+import { RpcHint } from './RpcHint'
 import type { SiteContext } from '../hooks/useSiteContext'
 
 const φ = Math.PHI
+const SLOW_LOADING_MS = 8000
 
 const truncateId = (id: string) =>
   id.length > 20 ? `${id.slice(0, 10)}…${id.slice(-9)}` : id
@@ -95,9 +98,30 @@ const CatalogueList = ({
 }) => {
   const { threads, isLoading, error, fetchHistory, canFetchHistory, strategy, historyBoundary } = useThreads(boardId, chainId)
   const { data: blockNumber } = useBlockNumber({ watch: true })
+  const [tookTooLong, setTookTooLong] = useState(false)
 
-  if (isLoading) return <p style={{ color: '#fff', padding: '8px' }}>Syncing threads...</p>
-  if (error) return <p style={{ color: '#e33', padding: '8px' }}>{(error as Error).message}</p>
+  useEffect(() => {
+    if (!isLoading) { setTookTooLong(false); return }
+    const timer = setTimeout(() => setTookTooLong(true), SLOW_LOADING_MS)
+    return () => clearTimeout(timer)
+  }, [isLoading])
+
+  if (isLoading) {
+    return (
+      <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: `${1 / φ ** 2}em` }}>
+        <p style={{ color: '#fff', margin: 0 }}>Syncing threads...</p>
+        {tookTooLong && <RpcHint />}
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: `${1 / φ ** 2}em` }}>
+        <p style={{ color: '#e33', margin: 0 }}>{(error as Error).message}</p>
+        <RpcHint />
+      </div>
+    )
+  }
 
   const sorted = [...threads].sort((a: any, b: any) => b.timestamp - a.timestamp)
 

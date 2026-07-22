@@ -4,11 +4,14 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useThreads, useThread, useCreateThread, useBoards, computeImageCID } from '@hashchan/hooks'
 import { getSiteSettings, saveSiteSettings } from '../hooks/useSiteSettings'
 import { ReverseChunkedCursor } from './ReverseChunkedCursor'
+import { RpcHint } from './RpcHint'
 import { Post } from './Post'
 import { PostForm } from './PostForm'
 import { TxResponse } from './TxResponse'
 import type { SiteContext } from '../hooks/useSiteContext'
 import type { PostView } from '@hashchan/hooks'
+
+const SLOW_LOADING_MS = 8000
 
 // Maps each supported site to the board symbol created on-chain for it
 const SITE_BOARD_MAP = [
@@ -76,8 +79,15 @@ const BoardView = ({
     queryClient.invalidateQueries({ queryKey: ['board', chainId, boardId] })
   }, [walletChainId])
 
-  const { threads, isLoading: threadsLoading, fetchHistory, canFetchHistory, strategy, historyBoundary } = useThreads(boardId, chainId)
+  const { threads, isLoading: threadsLoading, error: threadsError, fetchHistory, canFetchHistory, strategy, historyBoundary } = useThreads(boardId, chainId)
   const { data: blockNumber } = useBlockNumber({ watch: true })
+  const [tookTooLong, setTookTooLong] = useState(false)
+
+  useEffect(() => {
+    if (!threadsLoading) { setTookTooLong(false); return }
+    const timer = setTimeout(() => setTookTooLong(true), SLOW_LOADING_MS)
+    return () => clearTimeout(timer)
+  }, [threadsLoading])
   const {
     status: createStatus,
     hash: createHash,
@@ -163,8 +173,16 @@ const BoardView = ({
 
       {!isConnected ? (
         <p style={{ color: '#fff' }}>Connect wallet to start.</p>
+      ) : threadsError ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: `${1 / φ ** 2}em` }}>
+          <p style={{ color: '#e33', margin: 0 }}>{(threadsError as Error).message}</p>
+          <RpcHint />
+        </div>
       ) : threadsLoading ? (
-        <p style={{ color: '#fff' }}>Syncing threads...</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: `${1 / φ ** 2}em` }}>
+          <p style={{ color: '#fff', margin: 0 }}>Syncing threads...</p>
+          {tookTooLong && <RpcHint />}
+        </div>
       ) : !matchThread && !newThreadId ? (
         <NoThread
           createStatus={createStatus}

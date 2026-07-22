@@ -40,11 +40,17 @@ const NAV_TABS: { id: Tab; icon: React.ReactNode; label: string }[] = [
 ]
 
 export const Sidebar = () => {
-  const [open, setOpen] = useState(() => localStorage.getItem('hashchan-open') === 'true')
+  // ctx is computed synchronously (each site hook reads the current URL/DOM
+  // via a lazy useState initializer), so it's already correct on this very
+  // first render. Reading it before initializing `open` lets an unsupported
+  // page start closed immediately, instead of one paint of "open" (restored
+  // from a previous supported page) followed by the effect below closing it
+  // a moment later — that one extra paint was the visible open-then-close flash.
+  const ctx = useSiteContext()
+  const [open, setOpen] = useState(() => !!ctx && localStorage.getItem('hashchan-open') === 'true')
   const [width, setWidth] = useState(sidebarWidth)
   const [isDragging, setIsDragging] = useState(false)
   const [activeTab, setActiveTab] = useState<Tab>('thread')
-  const ctx = useSiteContext()
   const containerRef = useRef<HTMLDivElement>(null)
   const tabRef = useRef<HTMLDivElement>(null)
   const dragStartRef = useRef({ x: 0, width: 0 })
@@ -195,7 +201,7 @@ export const Sidebar = () => {
               : <p style={{ color: '#fff', fontSize: '0.854em' }}>Navigate to a supported page to see its thread.</p>
           )}
           {activeTab === 'settings' && (
-            <Settings onSave={() => setActiveTab('thread')} />
+            <Settings />
           )}
         </div>
 

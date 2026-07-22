@@ -1,11 +1,75 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useConnection } from 'wagmi'
-import { useBoards, useSettings } from '@hashchan/hooks'
+import { useBoards, useHookSettings, useRpcDoctor } from '@hashchan/hooks'
+import type { RpcDoctorTestStatus as TestStatus } from '@hashchan/hooks'
 import { saveSiteSettings } from '../hooks/useSiteSettings'
 import type { Board } from '@hashchan/hooks'
 
 const φ = Math.PHI
+
+const STATUS_COLOR: Record<TestStatus, string> = {
+  idle:    '#555',
+  running: '#f0c040',
+  pass:    '#20C20E',
+  fail:    '#ff4444',
+}
+
+const STATUS_LABEL: Record<TestStatus, string> = {
+  idle:    '—',
+  running: 'testing...',
+  pass:    'pass',
+  fail:    'fail',
+}
+
+const TestRow = ({ label, status }: { label: string; status: TestStatus }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', padding: `${1 / φ ** 2}em 0` }}>
+    <span>{label}</span>
+    <strong style={{ color: STATUS_COLOR[status] }}>{STATUS_LABEL[status]}</strong>
+  </div>
+)
+
+const RpcDoctorPanel = () => {
+  const { run, running, results } = useRpcDoctor()
+  const { hookSettings } = useHookSettings()
+
+  return (
+    <div style={{ border: '1px solid #20C20E20', padding: `${1 / φ}em`, display: 'flex', flexDirection: 'column', gap: `${1 / φ ** 2}em` }}>
+      <TestRow label="eth_getLogs" status={results.ethGetLogs} />
+      <TestRow label="eth_newFilter / eth_getFilterLogs" status={results.ethFilterLogs} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', padding: `${1 / φ ** 2}em 0` }}>
+        <span>max block range</span>
+        <strong style={{ color: results.maxBlockRange ? '#20C20E' : results.ethFilterLogs === 'idle' ? '#555' : '#ff4444' }}>
+          {results.maxBlockRange != null
+            ? results.maxBlockRange.toLocaleString()
+            : results.ethFilterLogs === 'running' || running
+              ? 'testing...'
+              : '—'}
+        </strong>
+      </div>
+
+      {results.logErrors.length > 0 && (
+        <div style={{ fontSize: `${1 / φ}em`, color: '#ff4444', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+          {results.logErrors.map((e, i) => (
+            <span key={i} style={{ wordBreak: 'break-all' }}>{e}</span>
+          ))}
+        </div>
+      )}
+
+      <button type="button" onClick={run} disabled={running} style={{ margin: 0 }}>
+        {running ? 'running...' : 'run diagnostics'}
+      </button>
+
+      {/* run() applies the detected safe range to HookSettings itself — no separate apply step needed. */}
+      {hookSettings?.maxBlockRangeDetected != null && (
+        <div style={{ fontSize: `${1 / φ}em`, color: '#20C20E' }}>
+          applied block range limit: {hookSettings.blockRangeLimit.toLocaleString()}
+          {' '}(detected max: {hookSettings.maxBlockRangeDetected.toLocaleString()})
+        </div>
+      )}
+    </div>
+  )
+}
 
 const SITE_BOARDS = [
   { siteId: 'youtube'       as const, symbol: 'yt',     label: '/yt/ — YouTube' },
@@ -15,10 +79,11 @@ const SITE_BOARDS = [
   { siteId: 'x'             as const, symbol: 'x',      label: '/x/ — X' },
 ]
 
-export const Settings = ({ onSave }: { onSave: () => void }) => {
+export const Settings = () => {
   const { address, chainId } = useConnection()
   const { boards, isLoading: boardsLoading, error: boardsError } = useBoards()
-  const { settings, updateSettings } = useSettings()
+  const { hookSettings, updateHookSettings } = useHookSettings()
+  const [showSuccess, setShowSuccess] = useState(false)
 
   const { register, handleSubmit, watch, reset, formState: { isSubmitting } } = useForm({
     defaultValues: {
@@ -30,13 +95,13 @@ export const Settings = ({ onSave }: { onSave: () => void }) => {
   const indexingStrategy = watch('indexingStrategy')
 
   useEffect(() => {
-    if (settings) {
+    if (hookSettings) {
       reset({
-        indexingStrategy: settings.indexingStrategy,
-        blockRangeLimit: settings.blockRangeLimit,
+        indexingStrategy: hookSettings.indexingStrategy,
+        blockRangeLimit: hookSettings.blockRangeLimit,
       })
     }
-  }, [settings, reset])
+  }, [hookSettings, reset])
 
   if (!address) {
     return (
@@ -61,11 +126,12 @@ export const Settings = ({ onSave }: { onSave: () => void }) => {
     for (const { siteId, board } of foundBoards) {
       if (board) saveSiteSettings(siteId, { chainId, boardId: board.boardId })
     }
-    await updateSettings({
+    await updateHookSettings({
       indexingStrategy: data.indexingStrategy,
       blockRangeLimit: Number(data.blockRangeLimit),
     })
-    onSave()
+    setShowSuccess(true)
+    setTimeout(() => setShowSuccess(false), 3000)
   }
 
   return (
@@ -130,9 +196,20 @@ export const Settings = ({ onSave }: { onSave: () => void }) => {
         </div>
       )}
 
+      {/* Always visible, not gated on reverseChunked — useful for deciding
+          which strategy to pick in the first place, not just for tuning one
+          you've already chosen. */}
+      <div>
+        <label style={{ display: 'block', marginBottom: `${1 / φ ** 2}em` }}>RPC Diagnostics</label>
+        <RpcDoctorPanel />
+      </div>
+
       <button type="submit" disabled={isSubmitting || !anyBoardFound} style={{ margin: 0 }}>
         {isSubmitting ? 'Saving...' : 'Save'}
       </button>
+      {showSuccess && (
+        <p style={{ color: '#20C20E', margin: 0, textAlign: 'center' }}>Settings saved</p>
+      )}
     </form>
   )
 }
