@@ -8,6 +8,8 @@ interface CursorProps {
 }
 
 export const ReverseChunkedCursor = ({ blockNumber, historyBoundary, fetchHistory, canFetchHistory }: CursorProps) => {
+  const fromBlock = historyBoundary ?? blockNumber
+
   return (
     <div style={{
       display: 'flex',
@@ -18,15 +20,9 @@ export const ReverseChunkedCursor = ({ blockNumber, historyBoundary, fetchHistor
       border: '1px solid #20C20E20',
     }}>
       <span>
-        block{' '}
+        scanned{' '}
         <strong style={{ color: VALUE_COLOR }}>
-          {blockNumber?.toString() ?? '...'}
-        </strong>
-      </span>
-      <span>
-        scanned to{' '}
-        <strong style={{ color: VALUE_COLOR }}>
-          {(historyBoundary ?? blockNumber)?.toString() ?? '...'}
+          {fromBlock?.toString() ?? '...'} to {blockNumber?.toString() ?? '...'}
         </strong>
       </span>
       <button

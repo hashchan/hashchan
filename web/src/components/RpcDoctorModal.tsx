@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { FaStethoscope } from 'react-icons/fa6'
 import { Modal } from '@/components/Modal'
-import { useRpcDoctor, type TestStatus } from '@/hooks/useRpcDoctor'
-import { useSettings } from '@hashchan/hooks'
+import { useRpcDoctor, useHookSettings, type RpcDoctorTestStatus as TestStatus } from '@hashchan/hooks'
 
 const STATUS_COLOR: Record<TestStatus, string> = {
   idle:    '#555',
@@ -31,15 +30,7 @@ const TestRow = ({ label, status }: { label: string; status: TestStatus }) => (
 
 const RpcDoctorContent = ({ handleClose }: { handleClose: () => void }) => {
   const { run, running, results } = useRpcDoctor()
-  const { settings, updateSettings } = useSettings()
-
-  const canApply = results.maxBlockRange !== null && settings?.indexingStrategy === 'reverseChunked'
-
-  const applyRecommended = async () => {
-    if (results.maxBlockRange == null) return
-    const safe = Math.floor(results.maxBlockRange * (1/Math.PHI + 1/Math.PHI**3))
-    await updateSettings({ blockRangeLimit: safe })
-  }
+  const { hookSettings } = useHookSettings()
 
   return (
     <Modal name="RPC Doctor" handleClose={handleClose}>
@@ -72,12 +63,16 @@ const RpcDoctorContent = ({ handleClose }: { handleClose: () => void }) => {
           <button onClick={run} disabled={running}>
             {running ? 'running...' : 'run diagnostics'}
           </button>
-          {canApply && (
-            <button onClick={applyRecommended} style={{ color: '#20C20E' }}>
-              apply safe range ({Math.floor(results.maxBlockRange! * (1/Math.PHI + 1/Math.PHI**3)).toLocaleString()})
-            </button>
-          )}
         </div>
+
+        {/* run() applies the detected safe range to HookSettings itself — no
+            separate apply step needed. This just confirms it landed. */}
+        {hookSettings?.maxBlockRangeDetected != null && (
+          <div style={{ fontSize: '0.854em', color: '#20C20E' }}>
+            applied block range limit: {hookSettings.blockRangeLimit.toLocaleString()}
+            {' '}(detected max: {hookSettings.maxBlockRangeDetected.toLocaleString()})
+          </div>
+        )}
 
       </div>
     </Modal>

@@ -8,15 +8,23 @@ export interface Settings {
   tosAccepted: boolean
   tosTimestamp: number
   defaultTipAmount: string
+}
+
+export interface HookSettings {
+  id?: number
   indexingStrategy: IndexingStrategy
-  // user-adjustable: lower when the RPC starts rejecting large ranges in reverseChunked mode
+  // doctor-populated: the largest block range this RPC reliably handles per call
   blockRangeLimit: number
+  // last successful useRpcDoctor run's detected safe range, for display/reference
+  maxBlockRangeDetected: number | null
+  lastDoctorRunAt: number | null
 }
 
 export interface Board {
   id?: number
   lastSynced: number
   scanBoundary?: number
+  blockCreatedAt?: number
   chainId: number
   boardId: number
   name: string
@@ -38,6 +46,7 @@ export interface Thread {
   id?: number
   lastSynced: number
   scanBoundary?: number
+  blockCreatedAt?: number
   bookmarked: number
   boardId: number
   threadId: string
@@ -99,6 +108,7 @@ type HashchanDB = Dexie & {
   threads: EntityTable<Thread, 'threadId'>
   posts: EntityTable<Post, 'postId'>
   settings: EntityTable<Settings, 'id'>
+  hookSettings: EntityTable<HookSettings, 'id'>
   moderationServices: EntityTable<ModerationService, 'id'>
   janitored: EntityTable<Janitored, 'id'>
 }
@@ -139,6 +149,21 @@ export const IDBProvider = ({
         if (s.blockRangeLimit === undefined) s.blockRangeLimit = 10000
       })
     )
+    // v8: split indexer-specific fields out of `settings` into their own
+    // `hookSettings` table, carrying forward any existing values.
+    db.version(8).stores({ ...STORES, hookSettings: '++id' }).upgrade(async (tx) => {
+      const existing = await tx.table('settings').toCollection().first()
+      await tx.table('hookSettings').add({
+        indexingStrategy: existing?.indexingStrategy ?? 'fullNode',
+        blockRangeLimit: existing?.blockRangeLimit ?? 10000,
+        maxBlockRangeDetected: null,
+        lastDoctorRunAt: null,
+      })
+      await tx.table('settings').toCollection().modify((s) => {
+        delete s.indexingStrategy
+        delete s.blockRangeLimit
+      })
+    })
 
     ;(async () => {
       const settings = await db.settings.toArray()
@@ -147,10 +172,19 @@ export const IDBProvider = ({
           tosAccepted: false,
           tosTimestamp: 0,
           defaultTipAmount: DEFAULT_TIP_AMOUNT,
-          indexingStrategy: 'fullNode',
-          blockRangeLimit: 10000,
         })
       }
+
+      const hookSettings = await db.hookSettings.toArray()
+      if (hookSettings.length === 0) {
+        await db.hookSettings.add({
+          indexingStrategy: 'fullNode',
+          blockRangeLimit: 10000,
+          maxBlockRangeDetected: null,
+          lastDoctorRunAt: null,
+        })
+      }
+
       setDb(db)
     })()
 

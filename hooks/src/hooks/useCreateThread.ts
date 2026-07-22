@@ -1,5 +1,6 @@
 import { useContext, useState, useCallback } from 'react'
-import { useConnection } from 'wagmi'
+import { useConnection, usePublicClient } from 'wagmi'
+import { parseEventLogs } from 'viem'
 
 import { IDBContext } from '../provider/IDBProvider'
 import { useContracts } from './useContracts'
@@ -13,6 +14,7 @@ export const useCreateThread = (boardId: number, chainId: number) => {
   const { board } = useBoard(boardId, chainId)
   const { hashchan } = useContracts()
   const { address } = useConnection()
+  const publicClient = usePublicClient()
 
   const [status, setStatus] = useState<TxStatus>('idle')
   const [hash, setHash] = useState<`0x${string}` | null>(null)
@@ -30,7 +32,7 @@ export const useCreateThread = (boardId: number, chainId: number) => {
 
   const createThread = useCallback(
     async (title: string, imageUrl: string, content: string) => {
-      const missing = checkDeps({ db, board, hashchan, address, chainId })
+      const missing = checkDeps({ db, board, hashchan, address, chainId, publicClient })
       if (missing.length > 0) {
         console.debug('[hashchan] createThread not ready:', missing.join(', '))
         return
@@ -46,22 +48,6 @@ export const useCreateThread = (boardId: number, chainId: number) => {
       setStatus('submitting')
 
       try {
-        const unwatch = hashchan.watchEvent.NewThread(
-          { boardId: board!.boardId, creator: address },
-          {
-            onError: (error: Error) => {
-              setLogErrors((old) => [...old, error.message])
-              setStatus('error')
-            },
-            onLogs: async (newLogs: FilterLog<NewThreadArgs>[]) => {
-              setLogs(newLogs)
-              setThreadId(newLogs[0].args.threadId)
-              setStatus('confirmed')
-              unwatch()
-            },
-          }
-        )
-
         const txHash = await hashchan.write.createThread([
           board!.boardId,
           title,
@@ -71,12 +57,59 @@ export const useCreateThread = (boardId: number, chainId: number) => {
         ])
         setHash(txHash)
         setStatus('pending')
+
+        // Decode the event straight from this transaction's own receipt
+        // instead of a separate watchEvent race against unrelated activity —
+        // watchEvent filtered by (boardId, creator) alone, which matches any
+        // thread the same account creates around the same time.
+        const receipt = await publicClient!.waitForTransactionReceipt({ hash: txHash })
+        const [newThreadLog] = parseEventLogs({
+          abi: hashchan.abi,
+          eventName: 'NewThread',
+          logs: receipt.logs,
+        }) as unknown as FilterLog<NewThreadArgs>[]
+
+        if (!newThreadLog) {
+          setLogErrors((old) => [...old, 'NewThread event not found in transaction receipt'])
+          setStatus('error')
+          return
+        }
+
+        // Persist immediately (mirrors useCreateBoard.ts) so the auto-navigate
+        // into this thread finds it already cached instead of useThread.ts
+        // having to fall back to its own unranged "not cached" scan — and so
+        // blockCreatedAt is known from the start, keeping this thread's own
+        // post-fetch floor tight instead of falling back to
+        // hashchanDeployedAtBlock.
+        const { threadId: tid, creator, imgUrl, imgCID, title: t, content: c, timestamp } = newThreadLog.args
+        try {
+          await db!.threads.add({
+            lastSynced: 0,
+            blockCreatedAt: Number(newThreadLog.blockNumber),
+            boardId: Number(board!.boardId),
+            threadId: tid,
+            creator,
+            imgUrl,
+            imgCID,
+            title: t,
+            content: c,
+            bookmarked: 0,
+            chainId: Number(board!.chainId),
+            timestamp: Number(timestamp),
+          })
+        } catch (e) {
+          console.log('Thread already cached (likely picked up by the live watcher first):', tid)
+        }
+
+        setLogs([newThreadLog])
+        setThreadId(newThreadLog.args.threadId)
+        setStatus('confirmed')
       } catch (e: any) {
         setLogErrors((old) => [...old, e.message])
         setStatus('error')
       }
     },
-    [hashchan, db, board, address, chainId]
+    [hashchan, db, board, address, chainId, publicClient]
   )
 
   return { status, hash, logs, logErrors, threadId, reset, createThread }

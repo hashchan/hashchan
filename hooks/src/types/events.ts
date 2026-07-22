@@ -56,8 +56,10 @@ export interface URLUpdatedArgs {
 }
 
 // getFilterLogs returns Log[] without typed .args — this wrapper expresses
-// what we know about the shape after createContractEventFilter.
-export type FilterLog<T> = { args: T }
+// what we know about the shape after createContractEventFilter. blockNumber
+// is a real field on every viem Log (mined logs always have it set), used to
+// capture a board/thread's own creation block for free while scanning.
+export type FilterLog<T> = { args: T; blockNumber: bigint }
 
 // Lifecycle of a submitted contract write:
 //   idle → submitting (wallet prompt) → pending (hash received, mining) → confirmed (event log received)

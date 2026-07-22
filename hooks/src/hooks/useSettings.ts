@@ -1,10 +1,11 @@
 import { useContext, useState, useEffect, useCallback } from 'react'
 import { liveQuery } from 'dexie'
-import { IDBContext, type Settings, type IndexingStrategy } from '../provider/IDBProvider'
+import { IDBContext, type Settings } from '../provider/IDBProvider'
 
 type SettingsPatch = {
-  indexingStrategy?: IndexingStrategy
-  blockRangeLimit?: number
+  tosAccepted?: boolean
+  tosTimestamp?: number
+  defaultTipAmount?: string
 }
 
 export const useSettings = () => {
@@ -13,7 +14,9 @@ export const useSettings = () => {
 
   useEffect(() => {
     if (!db) return
-    const subscription = liveQuery(() => db.settings.get(1)).subscribe({
+    // Query for whichever row exists rather than assuming id 1 — settings is a
+    // singleton by convention, not by a guaranteed auto-increment value.
+    const subscription = liveQuery(() => db.settings.toCollection().first()).subscribe({
       next: (s) => setSettings(s ?? null),
       error: console.error,
     })
@@ -22,8 +25,8 @@ export const useSettings = () => {
 
   const updateSettings = useCallback(
     async (patch: SettingsPatch) => {
-      if (!db || !settings) return
-      await db.settings.update(1, patch)
+      if (!db || !settings?.id) return
+      await db.settings.update(settings.id, patch)
       // liveQuery subscriber will propagate the update — no manual setSettings needed
     },
     [db, settings]

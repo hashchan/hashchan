@@ -1,21 +1,27 @@
-{ 
+{
   "1" : {
-    "address": "0x16cca36a14b42925d1bec87be2edcf244492d394" 
+    "address": "0x16cca36a14b42925d1bec87be2edcf244492d394",
+    "deployedAtBlock": 21587831
   },
   "61" : {
-    "address": "0x49b98eab13247e786bed0bb5780728db8d24b5e0" 
+    "address": "0x49b98eab13247e786bed0bb5780728db8d24b5e0",
+    "deployedAtBlock": 21396935
   },
   "10" : {
-    "address": "0xa160440daad769893b6938cdb1839ed5d34d8945"
+    "address": "0xa160440daad769893b6938cdb1839ed5d34d8945",
+    "deployedAtBlock": 129600939
   },
   "8453": {
-    "address": "0xd696047b3e92d9188bff402253bb1a99eceb3de1"
+    "address": "0xd696047b3e92d9188bff402253bb1a99eceb3de1",
+    "deployedAtBlock": 23885418
   },
   "11155111": {
-    "address": "0x458c27d5a6421afaff435e27e870584fe03a938f"
+    "address": "0x458c27d5a6421afaff435e27e870584fe03a938f",
+    "deployedAtBlock": 7307323
   },
   "25363": {
-    "address": "0x7ce23ee9023a138193c33f060a0060e918246e59"
+    "address": "0x7ce23ee9023a138193c33f060a0060e918246e59",
+    "deployedAtBlock": 10272461
   },
   "_format": "hh-sol-artifact-1",
   "contractName": "HashChan3",

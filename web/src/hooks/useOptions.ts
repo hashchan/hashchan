@@ -18,12 +18,11 @@ export const useOptions = () => {
         setOptions(options)
     }, [db])
 
-    const updateOptions = useCallback(async (defaultTipAmount, indexingStrategy) => {
+    const updateOptions = useCallback(async (defaultTipAmount) => {
         if (!db || !options) return
 
         const newOptions: Settings = options
         newOptions.defaultTipAmount = defaultTipAmount
-        newOptions.indexingStrategy = indexingStrategy
         try {
             await db.settings.update(1, newOptions)
         } catch (e) {

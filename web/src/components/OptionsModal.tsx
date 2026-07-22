@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react'
 import { Modal } from '@/components/Modal'
 import { FaGear } from 'react-icons/fa6'
 import { useForm } from 'react-hook-form'
-import { useSettings } from '@hashchan/hooks'
+import { useSettings, useHookSettings } from '@hashchan/hooks'
 import { formatEther, parseEther } from 'viem'
 
 const OptionsModalContent = ({ handleClose }: { handleClose: () => void }) => {
   const { settings, updateSettings } = useSettings()
+  const { hookSettings, updateHookSettings } = useHookSettings()
   const [showSuccess, setShowSuccess] = useState(false)
 
   const {
@@ -26,18 +27,20 @@ const OptionsModalContent = ({ handleClose }: { handleClose: () => void }) => {
   const indexingStrategy = watch('indexingStrategy')
 
   useEffect(() => {
-    if (settings) {
+    if (settings && hookSettings) {
       reset({
         defaultTipAmount: formatEther(BigInt(settings.defaultTipAmount)),
-        indexingStrategy: settings.indexingStrategy,
-        blockRangeLimit: settings.blockRangeLimit,
+        indexingStrategy: hookSettings.indexingStrategy,
+        blockRangeLimit: hookSettings.blockRangeLimit,
       })
     }
-  }, [settings, reset])
+  }, [settings, hookSettings, reset])
 
   const onSubmit = async (data: any) => {
     await updateSettings({
       defaultTipAmount: parseEther(data.defaultTipAmount).toString(),
+    })
+    await updateHookSettings({
       indexingStrategy: data.indexingStrategy,
       blockRangeLimit: Number(data.blockRangeLimit),
     })

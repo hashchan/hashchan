@@ -15,4 +15,4 @@ export interface PostView {
 }
 
 // Thread shape before the ref is attached. threadId is required (unlike PostView where it's optional).
-export type ThreadView = Omit<PostView, 'ref' | 'threadId'> & { lastSynced: number; threadId: string }
+export type ThreadView = Omit<PostView, 'ref' | 'threadId'> & { lastSynced: number; threadId: string; blockCreatedAt?: number }

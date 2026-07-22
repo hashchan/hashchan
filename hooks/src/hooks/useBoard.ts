@@ -23,21 +23,22 @@ export const useBoard = (boardId: number, chainId: number) => {
         .first()
 
       if (!board) {
-        const logs = await hashchan.getEvents.NewBoard({ boardId: BigInt(boardId) })
-        const log = logs[0]
-        if (!log) return null
+        // A direct storage read (matches useBoards.ts's bulk loop) instead of
+        // scanning NewBoard logs — instant, no block-range concerns at all,
+        // and the event's only extra field (timestamp) was never even stored.
+        const ethBoard = await hashchan.read.getBoard([BigInt(boardId)])
+        if (!ethBoard?.name) return null
 
-        const { boardId: boardIdBigInt, name, symbol, description, bannerUrl, bannerCID, rules } = log.args
         board = {
-          boardId: Number(boardIdBigInt),
+          boardId,
           chainId: chain!.id,
           favourite: 0,
-          name: name ?? '',
-          symbol: symbol ?? '',
-          description: description ?? '',
-          bannerUrl: bannerUrl ?? '',
-          bannerCID: bannerCID ?? '',
-          rules: rules ?? [],
+          name: ethBoard.name,
+          symbol: ethBoard.symbol,
+          description: ethBoard.description,
+          bannerUrl: ethBoard.bannerUrl,
+          bannerCID: ethBoard.bannerCID,
+          rules: ethBoard.rules ?? [],
           lastSynced: 0,
           metadata: { stats: { threadCount: 0, postCount: 0 } },
         }

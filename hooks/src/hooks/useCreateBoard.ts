@@ -1,5 +1,6 @@
 import { useContext, useState, useCallback } from 'react'
-import { useConnection } from 'wagmi'
+import { useConnection, usePublicClient } from 'wagmi'
+import { parseEventLogs } from 'viem'
 
 import { IDBContext } from '../provider/IDBProvider'
 import { useContracts } from './useContracts'
@@ -11,6 +12,7 @@ export const useCreateBoard = () => {
   const { db } = useContext(IDBContext)
   const { address, chain } = useConnection()
   const { hashchan } = useContracts()
+  const publicClient = usePublicClient()
 
   const [status, setStatus] = useState<TxStatus>('idle')
   const [hash, setHash] = useState<`0x${string}` | null>(null)
@@ -32,7 +34,7 @@ export const useCreateBoard = () => {
       bannerUrl: string,
       rules: string[]
     ) => {
-      const missing = checkDeps({ db, hashchan, chainId: chain?.id })
+      const missing = checkDeps({ db, hashchan, chainId: chain?.id, publicClient })
       if (missing.length > 0) {
         console.debug('[hashchan] createBoard not ready:', missing.join(', '))
         return
@@ -48,47 +50,49 @@ export const useCreateBoard = () => {
       setStatus('submitting')
 
       try {
-        const unwatch = hashchan.watchEvent.NewBoard(
-          {},
-          {
-            onError: (error: Error) => {
-              setLogErrors((old) => [...old, error.message])
-              setStatus('error')
-            },
-            onLogs: async (newLogs: FilterLog<NewBoardArgs>[]) => {
-              for (const log of newLogs) {
-                if (log.args.name !== name) continue
-                const { boardId, name: n, symbol: s, bannerUrl: bu, bannerCID, description: d, rules: r } = log.args
-                setLogs((old) => [...old, log])
-                await db!.boards.add({
-                  lastSynced: 0,
-                  chainId: Number(chain!.id),
-                  boardId: Number(boardId),
-                  name: n,
-                  symbol: s,
-                  bannerUrl: bu,
-                  bannerCID,
-                  description: d,
-                  rules: r,
-                  favourite: 0,
-                  metadata: { stats: { threadCount: 0, postCount: 0 } },
-                })
-                setStatus('confirmed')
-                unwatch()
-              }
-            },
-          }
-        )
-
         const txHash = await hashchan.write.createBoard([name, symbol, description, bannerUrl, cid, rules])
         setHash(txHash)
         setStatus('pending')
+
+        // Decode straight from this transaction's own receipt instead of a
+        // watchEvent race matched only by name, which could also match
+        // another board created with the same name around the same time.
+        const receipt = await publicClient!.waitForTransactionReceipt({ hash: txHash })
+        const [newBoardLog] = parseEventLogs({
+          abi: hashchan.abi,
+          eventName: 'NewBoard',
+          logs: receipt.logs,
+        }) as unknown as FilterLog<NewBoardArgs>[]
+
+        if (!newBoardLog) {
+          setLogErrors((old) => [...old, 'NewBoard event not found in transaction receipt'])
+          setStatus('error')
+          return
+        }
+
+        const { boardId, name: n, symbol: s, bannerUrl: bu, bannerCID, description: d, rules: r } = newBoardLog.args
+        await db!.boards.add({
+          lastSynced: 0,
+          blockCreatedAt: Number(newBoardLog.blockNumber),
+          chainId: Number(chain!.id),
+          boardId: Number(boardId),
+          name: n,
+          symbol: s,
+          bannerUrl: bu,
+          bannerCID,
+          description: d,
+          rules: r,
+          favourite: 0,
+          metadata: { stats: { threadCount: 0, postCount: 0 } },
+        })
+        setLogs((old) => [...old, newBoardLog])
+        setStatus('confirmed')
       } catch (e: any) {
         setLogErrors((old) => [...old, e.message])
         setStatus('error')
       }
     },
-    [address, chain?.id, hashchan, db]
+    [address, chain?.id, hashchan, db, publicClient]
   )
 
   return { status, hash, logs, logErrors, reset, createBoard }

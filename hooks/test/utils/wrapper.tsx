@@ -22,8 +22,9 @@ if (_testChainId && _msfAddress) {
 
 // Use node:http instead of fetch so happy-dom's Same Origin Policy
 // doesn't block requests to the local test node.
-function createTestEip1193(rpcUrl: string) {
+function createTestEip1193(rpcUrl: string, options: { maxBlockRange?: number } = {}) {
   const rpcCall = createRpcCall(rpcUrl)
+  const { maxBlockRange } = options
 
   return {
     async request({ method, params = [] }: { method: string; params?: unknown[] }) {
@@ -38,6 +39,29 @@ function createTestEip1193(rpcUrl: string) {
           rpcParams = [{ ...filter, fromBlock: '0x0' }]
         }
       }
+
+      // Simulates a range-limited RPC provider (e.g. Infura's free-tier 10k
+      // block cap) by rejecting eth_newFilter/eth_getLogs calls whose
+      // fromBlock..toBlock span exceeds maxBlockRange — the exact real-world
+      // failure mode chunkedFetchLogs exists to work around.
+      if (
+        maxBlockRange != null &&
+        (rpcMethod === 'eth_newFilter' || rpcMethod === 'eth_getLogs') &&
+        Array.isArray(rpcParams) &&
+        rpcParams[0] &&
+        typeof rpcParams[0] === 'object'
+      ) {
+        const filter = rpcParams[0] as Record<string, unknown>
+        const fromBlock = typeof filter.fromBlock === 'string' ? parseInt(filter.fromBlock, 16) : 0
+        const toBlockRaw = filter.toBlock
+        if (typeof toBlockRaw === 'string' && toBlockRaw !== 'latest') {
+          const toBlock = parseInt(toBlockRaw, 16)
+          if (toBlock - fromBlock > maxBlockRange) {
+            throw new Error(`query returned more than ${maxBlockRange} results. Try with this block range: [${filter.fromBlock}, 0x${(fromBlock + maxBlockRange).toString(16)}]`)
+          }
+        }
+      }
+
       return rpcCall(rpcMethod, rpcParams)
     },
     on() {},
@@ -56,7 +80,7 @@ function AutoConnect() {
   return null
 }
 
-export function createTestWrapper() {
+export function createTestWrapper(options: { maxBlockRange?: number } = {}) {
   const rpcUrl = process.env.TEST_RPC_URL!
   const chainId = parseInt(process.env.TEST_CHAIN_ID!)
 
@@ -67,7 +91,7 @@ export function createTestWrapper() {
     rpcUrls: { default: { http: [rpcUrl] } },
   } as const
 
-  const provider = createTestEip1193(rpcUrl)
+  const provider = createTestEip1193(rpcUrl, options)
   // Wagmi's injected connector reads window.ethereum
   ;(globalThis as any).window = globalThis
   ;(globalThis as any).ethereum = provider

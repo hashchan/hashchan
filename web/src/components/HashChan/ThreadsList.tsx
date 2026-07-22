@@ -1,8 +1,14 @@
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { CacheFlusher } from '@/components/CacheFlusher'
 import { PleaseConnectWallet } from '@/components/PleaseConnectWallet'
+import { RpcDoctorModal } from '@/components/RpcDoctorModal'
+import { OptionsModal } from '@/components/OptionsModal'
 import { chainIdToName } from '@/utils/blockchain'
 import { useAccount } from 'wagmi'
+
+const SLOW_LOADING_MS = 8000
+
 interface Thread {
   lastSynced: number
   boardId: number
@@ -119,18 +125,40 @@ const EmptyState = () => {
   )
 }
 
-const LoadingState = () => (
-  <div style={{ padding: '21px' }}>
-    Loading threads...
+// Settings lets them pick blockRangeLimit themselves rather than silently
+// landing on the (possibly still-too-large) 10k default. Shared between the
+// slow-loading hint and the error state so the recovery buttons stay put
+// instead of disappearing the moment a slow fetch finally errors out.
+const RpcHint = ({ message }: { message: string }) => (
+  <div style={{ marginTop: '13px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-start' }}>
+    <p style={{ color: '#f0c040' }}>{message}</p>
+    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+      <RpcDoctorModal pxSize="20px" />
+      <OptionsModal pxSize="20px" />
+    </div>
   </div>
 )
 
+const LoadingState = () => {
+  const [tookTooLong, setTookTooLong] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setTookTooLong(true), SLOW_LOADING_MS)
+    return () => clearTimeout(timer)
+  }, [])
+
+  return (
+    <div style={{ padding: '21px' }}>
+      <p>Loading threads...</p>
+      {tookTooLong && <RpcHint message="This is taking a while — your RPC may be rejecting large log ranges." />}
+    </div>
+  )
+}
+
 const ErrorState = ({ error }: { error: Error }) => (
-  <div style={{ 
-    padding: '21px',
-    color: 'red' 
-    }}>
-    Error loading threads: {error.message}
+  <div style={{ padding: '21px' }}>
+    <p style={{ color: 'red' }}>Error loading threads: {error.message}</p>
+    <RpcHint message="Your RPC may be rejecting large log ranges." />
   </div>
 )
 

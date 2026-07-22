@@ -1,21 +1,27 @@
 {
   "1" : {
-    "address": "0xa89209b111590023c7e0ce3e809a830572ca032b"
+    "address": "0xa89209b111590023c7e0ce3e809a830572ca032b",
+    "deployedAtBlock": 21588116
   },
   "61": {
-    "address": "0xf4a88ee70097a0120cd2b905fd3a8b40d3e360d0"
+    "address": "0xf4a88ee70097a0120cd2b905fd3a8b40d3e360d0",
+    "deployedAtBlock": 21396938
   },
   "10": {
-    "address" : "0x13666b1520e31776e0087ef2223e319bb841cd1c"
-  }, 
+    "address" : "0x13666b1520e31776e0087ef2223e319bb841cd1c",
+    "deployedAtBlock": 129600942
+  },
   "8453": {
-    "address": "0xc525af851fa283190d6e13d0f164c06ab51c266a"
+    "address": "0xc525af851fa283190d6e13d0f164c06ab51c266a",
+    "deployedAtBlock": 23885420
   },
   "11155111": {
-    "address": "0x147211461d47c8a4f5712cba079c521cacedb16b"
+    "address": "0x147211461d47c8a4f5712cba079c521cacedb16b",
+    "deployedAtBlock": 7307324
   },
   "25363": {
-    "address": "0x848f3cef2f761faa11b8b179c4b02a186c1d2b2c"
+    "address": "0x848f3cef2f761faa11b8b179c4b02a186c1d2b2c",
+    "deployedAtBlock": 10272464
   },
   "_format": "hh-sol-artifact-1",
   "contractName": "ModerationServiceFactory",

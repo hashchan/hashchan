@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
-import { useConnection } from 'wagmi'
+import { useConnection, usePublicClient } from 'wagmi'
+import { parseEventLogs } from 'viem'
 
 import { useContracts } from './useContracts'
 import { type NewModerationServiceArgs, type FilterLog, type TxStatus } from '../types/events'
@@ -8,6 +9,7 @@ import { checkDeps } from '../utils/enabled'
 export const useCreateModerationService = () => {
   const { moderationServiceFactory } = useContracts()
   const { address } = useConnection()
+  const publicClient = usePublicClient()
 
   const [status, setStatus] = useState<TxStatus>('idle')
   const [hash, setHash] = useState<`0x${string}` | null>(null)
@@ -23,7 +25,7 @@ export const useCreateModerationService = () => {
 
   const createModerationService = useCallback(
     async (name: string, uri: string, port: number) => {
-      const missing = checkDeps({ moderationServiceFactory, address })
+      const missing = checkDeps({ moderationServiceFactory, address, publicClient })
       if (missing.length > 0) {
         console.debug('[hashchan] createModerationService not ready:', missing.join(', '))
         return
@@ -32,30 +34,34 @@ export const useCreateModerationService = () => {
       setStatus('submitting')
 
       try {
-        const unwatch = moderationServiceFactory.watchEvent.NewModerationService(
-          { owner: address },
-          {
-            onError: (error: Error) => {
-              setLogErrors((old) => [...old, error.message])
-              setStatus('error')
-            },
-            onLogs: (newLogs: FilterLog<NewModerationServiceArgs>[]) => {
-              setLogs((old) => [...old, ...newLogs])
-              setStatus('confirmed')
-              unwatch()
-            },
-          }
-        )
-
         const txHash = await moderationServiceFactory.write.createModerationService([name, uri, port])
         setHash(txHash)
         setStatus('pending')
+
+        // Decode straight from this transaction's own receipt instead of a
+        // watchEvent race matched only by owner, which could also match
+        // another service the same account creates around the same time.
+        const receipt = await publicClient!.waitForTransactionReceipt({ hash: txHash })
+        const newLogs = parseEventLogs({
+          abi: moderationServiceFactory.abi,
+          eventName: 'NewModerationService',
+          logs: receipt.logs,
+        }) as unknown as FilterLog<NewModerationServiceArgs>[]
+
+        if (newLogs.length === 0) {
+          setLogErrors((old) => [...old, 'NewModerationService event not found in transaction receipt'])
+          setStatus('error')
+          return
+        }
+
+        setLogs((old) => [...old, ...newLogs])
+        setStatus('confirmed')
       } catch (e: any) {
         setLogErrors((old) => [...old, e.message])
         setStatus('error')
       }
     },
-    [moderationServiceFactory, address]
+    [moderationServiceFactory, address, publicClient]
   )
 
   return { status, hash, logs, logErrors, reset, createModerationService }

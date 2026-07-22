@@ -111,4 +111,17 @@ describe('useThread', () => {
     )
     expect(result.current.posts.some((p: any) => p.content === 'reply post content')).toBe(true)
   })
+
+  it('thread post has blockCreatedAt set', async () => {
+    const wrapper = createTestWrapper()
+    const { result } = renderHook(
+      () => useThread(boardId, CHAIN_ID, threadId),
+      { wrapper }
+    )
+
+    await vi.waitUntil(() => result.current.posts.length >= 2, { timeout: 15_000 })
+    const threadPost = result.current.posts.find((p: any) => p.threadId === threadId)
+    expect(typeof threadPost?.blockCreatedAt).toBe('number')
+    expect(threadPost?.blockCreatedAt).toBeGreaterThan(0)
+  })
 })

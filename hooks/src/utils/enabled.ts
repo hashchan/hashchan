@@ -1,8 +1,11 @@
 import { useEffect } from 'react'
 
+// Only undefined/null count as "missing" — legitimate falsy values like 0, 0n,
+// false, or '' (e.g. hashchanDeployedAtBlock resolving to 0n on a test chain
+// whose contract has no known deployment block) must not be treated as unready.
 export function checkDeps(deps: Record<string, unknown>): string[] {
   return Object.entries(deps)
-    .filter(([, v]) => !v)
+    .filter(([, v]) => v === undefined || v === null)
     .map(([k]) => k)
 }
 

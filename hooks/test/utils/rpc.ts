@@ -41,10 +41,21 @@ export async function mineBlocks(n: number, rpcCall: RpcCall): Promise<void> {
     // anvil: mines N blocks in a single call
     await rpcCall('anvil_mine', [`0x${n.toString(16)}`])
   } catch {
-    // geth dev: no evm_mine equivalent — each transaction mines one block
+    // geth dev (--dev.period=1): no evm_mine equivalent, and the periodic
+    // miner bundles whatever's pending into one block every ~1s — firing all
+    // N dummy txs rapid-fire can land several of them in the same block
+    // instead of producing N separate ones. Wait for the block number to
+    // actually advance after each send so every tx gets its own block.
     const accounts = (await rpcCall('eth_accounts', [])) as string[]
     for (let i = 0; i < n; i++) {
+      const before = parseInt(await rpcCall('eth_blockNumber', []) as string, 16)
       await rpcCall('eth_sendTransaction', [{ from: accounts[0], to: accounts[0], value: '0x0' }])
+      const deadline = Date.now() + 5_000
+      while (Date.now() < deadline) {
+        const current = parseInt(await rpcCall('eth_blockNumber', []) as string, 16)
+        if (current > before) break
+        await new Promise((r) => setTimeout(r, 150))
+      }
     }
   }
 }

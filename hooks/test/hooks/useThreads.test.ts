@@ -57,4 +57,23 @@ describe('useThreads', () => {
     expect(titles).toContain(TEST_TITLES[0])
     expect(titles).toContain(TEST_TITLES[1])
   })
+
+  it('captures blockCreatedAt for discovered threads', async () => {
+    const wrapper = createTestWrapper()
+    const { result } = renderHook(
+      () => useThreads(BOARD_ID, CHAIN_ID),
+      { wrapper }
+    )
+
+    await vi.waitUntil(
+      () => TEST_TITLES.every(t => result.current.threads.some((th: any) => th.title === t)),
+      { timeout: 15_000 }
+    )
+
+    for (const title of TEST_TITLES) {
+      const thread = result.current.threads.find((th: any) => th.title === title)
+      expect(typeof thread.blockCreatedAt).toBe('number')
+      expect(thread.blockCreatedAt).toBeGreaterThan(0)
+    }
+  })
 })

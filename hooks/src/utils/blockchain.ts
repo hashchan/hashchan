@@ -1,35 +1,69 @@
 import { type WalletClient } from 'viem'
 
-export const tryRecurseBlockFilter = async (
+// Floors a computed fromBlock at a given floor (typically a contract's
+// deployment block) — logs can never exist before that.
+export const clampFromBlock = (candidate: bigint, floor: bigint): bigint =>
+  candidate > floor ? candidate : floor
+
+export interface ChunkedLogFilterArgs {
+  address: `0x${string}`
+  abi: any
+  eventName: string
+  args?: any
+  fromBlock: bigint
+  toBlock: bigint
+}
+
+// reverseChunked ONLY. Fetches logs across [fromBlock, toBlock] in
+// blockRangeLimit-sized windows. HashChan assumes a power-user running their
+// own node by default — fullNode/bulkScrape have no reason to chunk at all,
+// however long a single unbounded call takes. blockRangeLimit (and the RPC
+// doctor that detects a safe value for it) only means anything in
+// reverseChunked, which is why the settings UI only shows that field there.
+// Replaces tryRecurseBlockFilter: that function blindly tried the full range
+// and, on failure, retried with a narrower window near the tip — which could
+// silently miss older history and needed no actual knowledge of what range
+// the RPC could handle. This instead always requests windows sized within
+// the known-safe range from HookSettings (see useRpcDoctor), so there's
+// nothing to catch or retry.
+export const chunkedFetchLogs = async (
   publicClient: any,
-  filterArgs: any,
-  i = 0,
-  maxRetry = 3
-): Promise<{ filter: any; isReduced: boolean }> => {
-  try {
-    return {
-      filter: await publicClient.createContractEventFilter(filterArgs),
-      isReduced: i > 0,
-    }
-  } catch (e) {
-    console.log('filter creation failed: ', e)
-
-    if (i >= maxRetry) {
-      throw new Error(`Max retries (${maxRetry}) exceeded`)
-    }
-
-    const newFilterArgs = {
-      address: filterArgs.address,
-      abi: filterArgs.abi,
-      eventName: filterArgs.eventName,
-      args: filterArgs.args,
-      fromBlock: filterArgs.toBlock - 99990n / BigInt(i + 1),
-      toBlock: filterArgs.toBlock,
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 400))
-    return tryRecurseBlockFilter(publicClient, newFilterArgs, i + 1, maxRetry)
+  filterArgs: ChunkedLogFilterArgs,
+  blockRangeLimit: bigint,
+): Promise<any[]> => {
+  if (blockRangeLimit <= 0n) {
+    throw new Error('chunkedFetchLogs: blockRangeLimit must be greater than 0')
   }
+
+  const { address, abi, eventName, args, fromBlock, toBlock } = filterArgs
+  const logs: any[] = []
+
+  for (let from = fromBlock; from <= toBlock; from += blockRangeLimit) {
+    const windowEnd = from + blockRangeLimit - 1n
+    const to = windowEnd > toBlock ? toBlock : windowEnd
+
+    const filter = await publicClient.createContractEventFilter({
+      address, abi, eventName, args, fromBlock: from, toBlock: to,
+    })
+    const chunkLogs = await publicClient.getFilterLogs({ filter })
+    logs.push(...chunkLogs)
+  }
+
+  return logs
+}
+
+// fullNode/bulkScrape ONLY. A single unbounded call across the whole range —
+// no chunking, since these strategies assume the RPC can handle it. It may
+// just take a while on a very long-lived contract; that's expected, not a bug.
+export const fetchAllLogs = async (
+  publicClient: any,
+  filterArgs: ChunkedLogFilterArgs,
+): Promise<any[]> => {
+  const { address, abi, eventName, args, fromBlock, toBlock } = filterArgs
+  const filter = await publicClient.createContractEventFilter({
+    address, abi, eventName, args, fromBlock, toBlock,
+  })
+  return publicClient.getFilterLogs({ filter })
 }
 
 export const getWalletInterface = ({

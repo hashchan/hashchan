@@ -1,5 +1,6 @@
 import { useContext, useState, useCallback } from 'react'
-import { useConnection } from 'wagmi'
+import { useConnection, usePublicClient } from 'wagmi'
+import { parseEventLogs } from 'viem'
 
 import { IDBContext } from '../provider/IDBProvider'
 import { useContracts } from './useContracts'
@@ -13,6 +14,7 @@ export const useCreatePost = (boardId: number, chainId: number, threadId: string
   const { board } = useBoard(boardId, chainId)
   const { hashchan } = useContracts()
   const { address } = useConnection()
+  const publicClient = usePublicClient()
 
   const [status, setStatus] = useState<TxStatus>('idle')
   const [hash, setHash] = useState<`0x${string}` | null>(null)
@@ -28,7 +30,7 @@ export const useCreatePost = (boardId: number, chainId: number, threadId: string
 
   const createPost = useCallback(
     async (imageUrl: string, content: string, replyIds: string[]) => {
-      const missing = checkDeps({ db, board, hashchan, address, threadId })
+      const missing = checkDeps({ db, board, hashchan, address, threadId, publicClient })
       if (missing.length > 0) {
         console.debug('[hashchan] createPost not ready:', missing.join(', '))
         return
@@ -44,21 +46,6 @@ export const useCreatePost = (boardId: number, chainId: number, threadId: string
       setStatus('submitting')
 
       try {
-        const unwatch = hashchan.watchEvent.NewPost(
-          { threadId, creator: address },
-          {
-            onError: (error: Error) => {
-              setLogErrors((old) => [...old, error.message])
-              setStatus('error')
-            },
-            onLogs: async (newLogs: FilterLog<NewPostArgs>[]) => {
-              setLogs((old) => [...old, ...newLogs])
-              setStatus('confirmed')
-              unwatch()
-            },
-          }
-        )
-
         const txHash = await hashchan.write.createPost([
           board!.boardId,
           threadId,
@@ -69,12 +56,31 @@ export const useCreatePost = (boardId: number, chainId: number, threadId: string
         ])
         setHash(txHash)
         setStatus('pending')
+
+        // Decode straight from this transaction's own receipt instead of a
+        // watchEvent race filtered only by (threadId, creator), which matches
+        // any post the same account makes on this thread around the same time.
+        const receipt = await publicClient!.waitForTransactionReceipt({ hash: txHash })
+        const newLogs = parseEventLogs({
+          abi: hashchan.abi,
+          eventName: 'NewPost',
+          logs: receipt.logs,
+        }) as unknown as FilterLog<NewPostArgs>[]
+
+        if (newLogs.length === 0) {
+          setLogErrors((old) => [...old, 'NewPost event not found in transaction receipt'])
+          setStatus('error')
+          return
+        }
+
+        setLogs((old) => [...old, ...newLogs])
+        setStatus('confirmed')
       } catch (e: any) {
         setLogErrors((old) => [...old, e.message])
         setStatus('error')
       }
     },
-    [hashchan, db, board, address, threadId]
+    [hashchan, db, board, address, threadId, publicClient]
   )
 
   return { status, hash, logs, logErrors, reset, createPost }

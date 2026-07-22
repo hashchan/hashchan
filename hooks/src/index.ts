@@ -1,7 +1,10 @@
 export { IDBProvider, IDBContext } from './provider/IDBProvider'
-export type { Board, Thread, Post, Settings, IndexingStrategy, ModerationService } from './provider/IDBProvider'
+export type { Board, Thread, Post, Settings, HookSettings, IndexingStrategy, ModerationService } from './provider/IDBProvider'
 
 export { useSettings } from './hooks/useSettings'
+export { useHookSettings } from './hooks/useHookSettings'
+export { useRpcDoctor } from './hooks/useRpcDoctor'
+export type { RpcDoctorResults, RpcDoctorTestStatus } from './utils/rpcDoctor'
 
 export { useContracts } from './hooks/useContracts'
 export { useBoards } from './hooks/useBoards'
@@ -22,6 +25,6 @@ export { useModerationService } from './hooks/useModerationService'
 export { useJoinModerationService } from './hooks/useJoinModerationService'
 export type { ModerationServiceData, JanitorData } from './types/moderation'
 
-export { tryRecurseBlockFilter, chainIdToName } from './utils/blockchain'
+export { chunkedFetchLogs, fetchAllLogs, clampFromBlock, chainIdToName } from './utils/blockchain'
 export { computeImageCID } from './utils/cids'
 export { parseContent, supportedExtensions } from './utils/content'

@@ -13,39 +13,47 @@ export const useContracts = () => {
 
   const [hashchan, setHashchan] = useState<any>(null)
   const [moderationServiceFactory, setModerationServiceFactory] = useState<any>(null)
+  const [hashchanDeployedAtBlock, setHashchanDeployedAtBlock] = useState<bigint | null>(null)
+  const [moderationServiceFactoryDeployedAtBlock, setModerationServiceFactoryDeployedAtBlock] = useState<bigint | null>(null)
 
   const fetchContracts = useCallback(async () => {
     if (!publicClient || !walletClient?.data || !chain?.id) return
 
-    type AddressBook = Record<string, { address: `0x${string}` } | undefined>
+    type AddressBook = Record<string, { address: `0x${string}`; deployedAtBlock?: number } | undefined>
     const chainKey = String(chain.id)
-    const hc3Address = (HashChan3 as unknown as AddressBook)[chainKey]?.address
-    const msfAddress = (ModerationServiceFactory as unknown as AddressBook)[chainKey]?.address
+    const hc3Entry = (HashChan3 as unknown as AddressBook)[chainKey]
+    const msfEntry = (ModerationServiceFactory as unknown as AddressBook)[chainKey]
 
-    if (hc3Address) {
+    if (hc3Entry) {
       setHashchan(
         getContract({
-          address: hc3Address,
+          address: hc3Entry.address,
           abi: HashChan3.abi,
           client: { public: publicClient, wallet: walletClient.data },
         })
       )
+      // Test chains injected at runtime (see test/utils/wrapper.tsx) have no
+      // deployedAtBlock entry — default to 0 (genesis) rather than blocking.
+      setHashchanDeployedAtBlock(BigInt(hc3Entry.deployedAtBlock ?? 0))
     }
 
-    if (msfAddress) {
+    if (msfEntry) {
       setModerationServiceFactory(
         getContract({
-          address: msfAddress,
+          address: msfEntry.address,
           abi: ModerationServiceFactory.abi,
           client: { public: publicClient, wallet: walletClient.data },
         })
       )
+      setModerationServiceFactoryDeployedAtBlock(BigInt(msfEntry.deployedAtBlock ?? 0))
     }
   }, [publicClient, walletClient?.data, chain?.id])
 
   useEffect(() => {
     setHashchan(null)
     setModerationServiceFactory(null)
+    setHashchanDeployedAtBlock(null)
+    setModerationServiceFactoryDeployedAtBlock(null)
     setIsInitialized(false)
   }, [chain?.id])
 
@@ -58,5 +66,5 @@ export const useContracts = () => {
     init()
   }, [fetchContracts, chain?.id, isInitialized, publicClient, walletClient?.data])
 
-  return { hashchan, moderationServiceFactory }
+  return { hashchan, moderationServiceFactory, hashchanDeployedAtBlock, moderationServiceFactoryDeployedAtBlock }
 }

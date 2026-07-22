@@ -1,7 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useCreateBoard } from '../../src/hooks/useCreateBoard'
+import { useBoard } from '../../src/hooks/useBoard'
 import { createTestWrapper } from '../utils/wrapper'
+
+const CHAIN_ID = parseInt(process.env.TEST_CHAIN_ID ?? '31337')
 
 describe('useCreateBoard', () => {
   it('starts idle, reaches confirmed after createBoard', async () => {
@@ -34,6 +37,26 @@ describe('useCreateBoard', () => {
 
     expect(result.current.logs[0].args.name).toBe('Crypto')
     expect(result.current.logs[0].args.symbol).toBe('CRPT')
+  })
+
+  it('persists blockCreatedAt on the created board', async () => {
+    const wrapper = createTestWrapper()
+    const { result } = renderHook(() => useCreateBoard(), { wrapper })
+
+    await vi.waitUntil(async () => {
+      if (result.current.status === 'idle') {
+        await result.current.createBoard('Block Board', 'BLK', 'testing blockCreatedAt', '', [])
+      }
+      return result.current.status === 'confirmed'
+    }, { timeout: 15_000, interval: 1_000 })
+
+    const boardId = Number(result.current.logs[0].args.boardId)
+    const expectedBlock = Number(result.current.logs[0].blockNumber)
+
+    const { result: boardResult } = renderHook(() => useBoard(boardId, CHAIN_ID), { wrapper })
+    await vi.waitUntil(() => !!boardResult.current.board, { timeout: 15_000 })
+
+    expect(boardResult.current.board!.blockCreatedAt).toBe(expectedBlock)
   })
 
   it('reset returns hook to idle', async () => {

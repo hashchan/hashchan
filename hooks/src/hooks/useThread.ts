@@ -5,8 +5,8 @@ import { useConnection, usePublicClient, useBlockNumber } from 'wagmi'
 import { IDBContext } from '../provider/IDBProvider'
 import { useContracts } from './useContracts'
 import { useBoard } from './useBoard'
-import { useSettings } from './useSettings'
-import { tryRecurseBlockFilter } from '../utils/blockchain'
+import { useHookSettings } from './useHookSettings'
+import { chunkedFetchLogs, fetchAllLogs, clampFromBlock } from '../utils/blockchain'
 import { useEnabled } from '../utils/enabled'
 import { parseContent } from '../utils/content'
 import { type PostView, type ThreadView } from '../types/posts'
@@ -20,15 +20,15 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
   const { address, chain } = useConnection()
   const blockNumber = useBlockNumber()
   const publicClient = usePublicClient()
-  const { hashchan } = useContracts()
+  const { hashchan, hashchanDeployedAtBlock } = useContracts()
   const queryClient = useQueryClient()
   const unwatchRef = useRef<(() => void) | null>(null)
   const { updateMetadata } = useBoard(boardId, chainId)
-  const { settings } = useSettings()
+  const { hookSettings } = useHookSettings()
 
-  const strategy = settings?.indexingStrategy
-  const blockRangeLimit = settings ? BigInt(settings.blockRangeLimit) : 0n
-  const enabled = useEnabled({ publicClient, address, hashchan, threadId, chainId: chain?.id, db, blockNumber: blockNumber.data, settings })
+  const strategy = hookSettings?.indexingStrategy
+  const blockRangeLimit = hookSettings ? BigInt(hookSettings.blockRangeLimit) : 0n
+  const enabled = useEnabled({ publicClient, address, hashchan, threadId, chainId: chain?.id, db, hookSettings, hashchanDeployedAtBlock })
 
   const {
     data: { posts = [], isReducedMode = false } = {},
@@ -42,12 +42,17 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
       const refsObj: Record<string, RefObject<unknown>> = {}
       const logsObj: Record<string, PostView> = {}
 
+      // Snapshot the chain head once per fetch, decoupled from the reactively
+      // updating useBlockNumber() value below.
+      const toBlock = await publicClient!.getBlockNumber()
+
       const cachedThread = await db!.threads.where('threadId').equals(threadId).first()
       let thread: ThreadView
 
       if (cachedThread) {
         thread = {
           lastSynced: cachedThread.lastSynced,
+          blockCreatedAt: cachedThread.blockCreatedAt,
           creator: cachedThread.creator,
           threadId: cachedThread.threadId,
           imgUrl: cachedThread.imgUrl,
@@ -59,34 +64,29 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
           timestamp: Number(cachedThread.timestamp),
         }
       } else {
+        // One-off lookup for this specific thread's own creation event — not
+        // an incremental sync, so there's no lastSynced to bridge from.
         const threadFromBlock = strategy === 'reverseChunked'
-          ? (blockNumber.data! > blockRangeLimit ? blockNumber.data! - blockRangeLimit : 0n)
-          : 0n
-        let threadFilter: any
-        if (strategy === 'reverseChunked') {
-          threadFilter = await publicClient!.createContractEventFilter({
-            address: hashchan.address,
-            abi: hashchan.abi,
-            eventName: 'NewThread',
-            args: { threadId },
-            fromBlock: threadFromBlock,
-            toBlock: blockNumber.data,
-          })
-        } else {
-          const { filter } = await tryRecurseBlockFilter(publicClient!, {
-            address: hashchan.address,
-            abi: hashchan.abi,
-            eventName: 'NewThread',
-            args: { threadId },
-            fromBlock: threadFromBlock,
-            toBlock: blockNumber.data,
-          })
-          threadFilter = filter
+          ? clampFromBlock(toBlock - blockRangeLimit, hashchanDeployedAtBlock!)
+          : hashchanDeployedAtBlock!
+
+        const threadFilterArgs = {
+          address: hashchan.address,
+          abi: hashchan.abi,
+          eventName: 'NewThread',
+          args: { threadId },
+          fromBlock: threadFromBlock,
+          toBlock,
         }
-        const threadLogs = await publicClient!.getFilterLogs({ filter: threadFilter })
-        const { creator, content, threadId: tid, imgUrl, imgCID, timestamp } = (threadLogs[0] as unknown as FilterLog<NewThreadArgs>).args
+        const threadLogs = strategy === 'reverseChunked'
+          ? await chunkedFetchLogs(publicClient!, threadFilterArgs, blockRangeLimit)
+          : await fetchAllLogs(publicClient!, threadFilterArgs)
+
+        const threadLog = threadLogs[0] as unknown as FilterLog<NewThreadArgs>
+        const { creator, content, threadId: tid, imgUrl, imgCID, timestamp } = threadLog.args
         thread = {
           lastSynced: 0,
+          blockCreatedAt: Number(threadLog.blockNumber),
           creator,
           threadId: tid,
           imgUrl,
@@ -127,80 +127,93 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
 
       let isReduced = false
       try {
-        const postsFromBlock = strategy === 'reverseChunked'
-          ? (blockNumber.data! > blockRangeLimit ? blockNumber.data! - blockRangeLimit : 0n)
-          : BigInt(thread.lastSynced ? thread.lastSynced - 1 : 0)
+        // Same dual-boundary bridging as useThreads.ts's board-level sync:
+        // thread.lastSynced is the high-water mark shared by both strategies.
+        // reverseChunked's first-ever sync seeds an initial recent window;
+        // every later run for either strategy bridges from lastSynced to the
+        // current tip, however large that gap is.
+        // thread.blockCreatedAt (known immediately for freshly-created threads
+        // via useCreateThread.ts, or captured for free from the NewThread
+        // log's own blockNumber once discovered) is a tighter floor than the
+        // contract's deployment block — a thread's posts can't exist before
+        // the thread itself did.
+        const threadFloor = thread.blockCreatedAt != null ? BigInt(thread.blockCreatedAt) : hashchanDeployedAtBlock!
+        const isFirstPostSync = !thread.lastSynced
+        const postsFromBlock = strategy === 'reverseChunked' && isFirstPostSync
+          ? clampFromBlock(toBlock - blockRangeLimit, threadFloor)
+          : BigInt(thread.lastSynced || threadFloor)
 
-        let filter: any
-        if (strategy === 'reverseChunked') {
-          filter = await publicClient!.createContractEventFilter({
+        if (toBlock > postsFromBlock) {
+          const postsFilterArgs = {
             address: hashchan.address,
             abi: hashchan.abi,
             eventName: 'NewPost',
             args: { threadId },
             fromBlock: postsFromBlock,
-            toBlock: blockNumber.data,
-          })
-        } else {
-          const result = await tryRecurseBlockFilter(publicClient!, {
-            address: hashchan.address,
-            abi: hashchan.abi,
-            eventName: 'NewPost',
-            args: { threadId },
-            fromBlock: postsFromBlock,
-            toBlock: blockNumber.data,
-          })
-          filter = result.filter
-          isReduced = result.isReduced
-        }
-        const logs = await publicClient!.getFilterLogs({ filter })
-
-        for (const log of logs) {
-          const { creator, postId, imgUrl, imgCID, content, replyIds, timestamp } = (log as unknown as FilterLog<NewPostArgs>).args
-          if (logsObj[postId]) continue
-
-          refsObj[postId] = createRef()
-          const newPost: PostView = {
-            creator,
-            postId,
-            imgUrl,
-            imgCID,
-            timestamp: Number(timestamp),
-            replies: [],
-            replyIds,
-            bookmarked: 0,
-            content,
-            ref: refsObj[postId],
+            toBlock,
           }
-          logsObj[postId] = newPost
-          replyIds.forEach((replyId: string) => {
-            if (logsObj[replyId]) {
-              logsObj[replyId].replies.push({ ref: refsObj[postId], id: postId })
-            }
-          })
+          const logs = strategy === 'reverseChunked'
+            ? await chunkedFetchLogs(publicClient!, postsFilterArgs, blockRangeLimit)
+            : await fetchAllLogs(publicClient!, postsFilterArgs)
 
-          try {
-            await db!.posts.add({
-              boardId,
-              threadId,
+          // Counts only posts actually newly persisted, not raw fetched logs —
+          // a log can be legitimately re-fetched here (e.g. the live watcher
+          // below already caught it) and correctly no-op as a duplicate, but
+          // that must not also increment the board's postCount a second time.
+          let newPostCount = 0
+          for (const log of logs) {
+            const { creator, postId, imgUrl, imgCID, content, replyIds, timestamp } = (log as unknown as FilterLog<NewPostArgs>).args
+            if (logsObj[postId]) continue
+
+            refsObj[postId] = createRef()
+            const newPost: PostView = {
+              creator,
               postId,
-              creator: creator as `0x${string}`,
               imgUrl,
               imgCID,
+              timestamp: Number(timestamp),
+              replies: [],
+              replyIds,
               bookmarked: 0,
               content,
-              timestamp: Number(timestamp),
-              replyIds,
+              ref: refsObj[postId],
+            }
+            logsObj[postId] = newPost
+            replyIds.forEach((replyId: string) => {
+              if (logsObj[replyId]) {
+                logsObj[replyId].replies.push({ ref: refsObj[postId], id: postId })
+              }
             })
-          } catch (e) {
-            console.log('Duplicate post, skipping')
-          }
-        }
 
-        await db!.threads.where('threadId').equals(threadId).modify({ lastSynced: Number(blockNumber.data) })
-        if (logs.length > 0) updateMetadata({ postCount: logs.length })
+            try {
+              await db!.posts.add({
+                boardId,
+                threadId,
+                postId,
+                creator: creator as `0x${string}`,
+                imgUrl,
+                imgCID,
+                bookmarked: 0,
+                content,
+                timestamp: Number(timestamp),
+                replyIds,
+              })
+              newPostCount++
+            } catch (e) {
+              console.log('Duplicate post, skipping')
+            }
+          }
+
+          const threadUpdate: { lastSynced: number; scanBoundary?: number } = { lastSynced: Number(toBlock) }
+          if (strategy === 'reverseChunked' && isFirstPostSync) {
+            threadUpdate.scanBoundary = Number(postsFromBlock)
+            setHistoryBoundary(postsFromBlock)
+          }
+          await db!.threads.where('threadId').equals(threadId).modify(threadUpdate)
+          if (newPostCount > 0) updateMetadata({ postCount: newPostCount })
+        }
       } catch (e) {
-        console.log('Failed to fetch new posts from chain:', e)
+        console.error('[hashchan] Failed to fetch new posts from chain:', e)
         isReduced = true
       }
 
@@ -212,13 +225,16 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
   })
 
   useEffect(() => {
-    if (!hashchan || !threadId || !db || !blockNumber.data || !publicClient) return
+    if (!hashchan || !threadId || !db || !publicClient) return
 
+    // No fromBlock here (matches useThreads.ts's NewThread watcher) — this
+    // watches forward from 'latest' as a persistent subscription that's set up
+    // once and left running, rather than being torn down and recreated on
+    // every new block.
     const unwatch = publicClient.watchContractEvent({
       address: hashchan.address,
       abi: hashchan.abi,
       eventName: 'NewPost',
-      fromBlock: blockNumber.data - 2n,
       args: { threadId },
       onLogs: async (logs: any[]) => {
         const { creator, content, postId, imgUrl, imgCID, timestamp } = logs[0].args
@@ -238,17 +254,25 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
 
         queryClient.setQueryData(
           threadKey({ chainId, boardId, threadId }),
-          (old: { posts: PostView[] } = { posts: [] }) => ({
-            ...old,
-            posts: [
-              ...old.posts.map((post) =>
-                newPost.replyIds.includes(post.postId || post.threadId || '')
-                  ? { ...post, replies: [...post.replies, { ref: newPost.ref, id: postId }] }
-                  : post
-              ),
-              newPost,
-            ],
-          })
+          (old: { posts: PostView[] } = { posts: [] }) => {
+            // A queryFn refetch (e.g. triggered by the submitting component's
+            // own tx-confirmation path) can independently pick up this same
+            // on-chain event before this watcher does — don't append a second
+            // copy into the cache if it's already there.
+            if (old.posts.some((post) => post.postId === newPost.postId)) return old
+
+            return {
+              ...old,
+              posts: [
+                ...old.posts.map((post) =>
+                  newPost.replyIds.includes(post.postId || post.threadId || '')
+                    ? { ...post, replies: [...post.replies, { ref: newPost.ref, id: postId }] }
+                    : post
+                ),
+                newPost,
+              ],
+            }
+          }
         )
 
         try {
@@ -276,35 +300,44 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
       unwatchRef.current?.()
       unwatchRef.current = null
     }
-  }, [hashchan, threadId, db, blockNumber.data])
+  }, [hashchan, threadId, db, publicClient])
 
   const [historyBoundary, setHistoryBoundary] = useState<bigint | null>(null)
+  const [cachedThreadFloor, setCachedThreadFloor] = useState<bigint | null>(null)
 
   useEffect(() => {
     if (!db || !threadId) return
     db.threads.where('threadId').equals(threadId).first().then((t) => {
       setHistoryBoundary(t?.scanBoundary != null ? BigInt(t.scanBoundary) : null)
+      setCachedThreadFloor(t?.blockCreatedAt != null ? BigInt(t.blockCreatedAt) : null)
     })
   }, [threadId, chainId, db])
 
   const fetchHistory = useCallback(async () => {
-    if (!blockNumber.data || !publicClient || !hashchan || !db || blockRangeLimit === 0n) return
+    if (!publicClient || !hashchan || !db || hashchanDeployedAtBlock == null || blockRangeLimit === 0n) return
 
-    const toBlock = historyBoundary ?? (blockNumber.data > blockRangeLimit ? blockNumber.data - blockRangeLimit : 0n)
-    if (toBlock === 0n) return
-    const fromBlock = toBlock > blockRangeLimit ? toBlock - blockRangeLimit : 0n
+    // Prefer the thread's own creation block over the contract's deployment
+    // block where known — there's nothing to find scanning further back than
+    // when this specific thread was created.
+    const cachedThread = await db.threads.where('threadId').equals(threadId).first()
+    const threadFloor = cachedThread?.blockCreatedAt != null ? BigInt(cachedThread.blockCreatedAt) : hashchanDeployedAtBlock
+
+    const head = await publicClient.getBlockNumber()
+    const toBlock = historyBoundary ?? clampFromBlock(head - blockRangeLimit, threadFloor)
+    if (toBlock <= threadFloor) return
+    const fromBlock = clampFromBlock(toBlock - blockRangeLimit, threadFloor)
 
     try {
-      const filter: any = await publicClient.createContractEventFilter({
+      const logs = await chunkedFetchLogs(publicClient, {
         address: hashchan.address,
         abi: hashchan.abi,
         eventName: 'NewPost',
         args: { threadId },
         fromBlock,
         toBlock,
-      })
-      const logs = await publicClient.getFilterLogs({ filter })
+      }, blockRangeLimit)
 
+      let newPostCount = 0
       for (const log of logs) {
         const logArgs = (log as unknown as FilterLog<NewPostArgs>).args
         try {
@@ -320,23 +353,24 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
             timestamp: Number(logArgs.timestamp),
             replyIds: logArgs.replyIds,
           })
+          newPostCount++
         } catch {
           // duplicate, skip
         }
       }
 
-      if (logs.length > 0) updateMetadata({ postCount: logs.length })
+      if (newPostCount > 0) updateMetadata({ postCount: newPostCount })
       setHistoryBoundary(fromBlock)
       await db.threads.where('threadId').equals(threadId).modify({ scanBoundary: Number(fromBlock) })
       queryClient.invalidateQueries({ queryKey: threadKey({ chainId, boardId, threadId }) })
     } catch (e) {
       console.log('[useThread] fetchHistory error:', e)
     }
-  }, [historyBoundary, blockNumber.data, blockRangeLimit, publicClient, hashchan, db, threadId, boardId, chainId, queryClient, updateMetadata])
+  }, [historyBoundary, blockRangeLimit, publicClient, hashchan, hashchanDeployedAtBlock, db, threadId, boardId, chainId, queryClient, updateMetadata])
 
+  const historyFloor = cachedThreadFloor ?? hashchanDeployedAtBlock
   const canFetchHistory = strategy === 'reverseChunked'
-    && !!blockNumber.data
-    && (historyBoundary === null || historyBoundary > 0n)
+    && (historyBoundary === null || (historyFloor != null && historyBoundary > historyFloor))
 
   const bookmarkMutation = useMutation({
     mutationFn: async ({ postId }: { postId: string }) => {
