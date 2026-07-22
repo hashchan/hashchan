@@ -18,13 +18,21 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: web/package-lock.json
-      
+          cache-dependency-path: |
+            web/package-lock.json
+            hooks/package-lock.json
+
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake build-essential
-      
+
+      - name: Install and build @hashchan/hooks
+        working-directory: ./hooks
+        run: |
+          npm ci
+          npm run build
+
       - name: Install dependencies
         working-directory: ./web
         run: |
