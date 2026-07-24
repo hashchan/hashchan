@@ -20,6 +20,7 @@ import { JannyPost } from '@/components/HashChan/Thread/JannyPost'
 import { ImageDiv } from '@/components/ImageDiv'
 import { ReviewJanny } from '@/components/HashChan/Thread/ReviewJanny'
 import { Bookmarker } from '@/components/HashChan/Thread/Bookmarker'
+import { PinPost } from '@/components/HashChan/Thread/PinPost'
 
 
 const PostIdSpan = ({ postId, handleOpenPost }: { postId: string, handleOpenPost: (postId: string) => void }) => {
@@ -173,6 +174,7 @@ export const Post = forwardRef(({
 }
         <TipCreator creator={creator} />&nbsp;
         <JannyPost postId={postId} />&nbsp;
+        <PinPost imgUrl={imgUrl} />
         {janitoredBy.length > 0 && (<>
           <span
             onClick={() => handleViewSwitch()}

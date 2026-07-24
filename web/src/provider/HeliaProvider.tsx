@@ -15,6 +15,7 @@ import { noise  } from '@chainsafe/libp2p-noise'
 import { identify, identifyPush } from "@libp2p/identify";
 import { webSockets  } from '@libp2p/websockets'
 import { webRTC  } from '@libp2p/webrtc'
+import { webTransport  } from '@libp2p/webtransport'
 
 import { circuitRelayTransport  } from '@libp2p/circuit-relay-v2'
 
@@ -83,6 +84,11 @@ export const HeliaProvider = ({ children }) => {
           webSockets({
           }),
           webRTC(),
+          // Browsers can't open raw QUIC sockets, but WebTransport is built
+          // on QUIC and *is* browser-dialable — Kubo nodes advertise
+          // /quic-v1/webtransport listen addresses by default, so this lets
+          // us reach them directly without a relay.
+          webTransport(),
           circuitRelayTransport({
           })
         ],

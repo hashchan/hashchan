@@ -38,5 +38,20 @@ export const useFilebasePin = () => {
     return `https://ipfs.filebase.io/ipfs/${Hash}`
   }, [])
 
-  return { pinFile }
+  // Pins a CID Filebase doesn't already have by asking its RPC to fetch the
+  // content itself, the same way useKuboPin.ts's pinCID does — no need to
+  // pull the bytes through the browser first.
+  const pinCID = useCallback(async (cid: string, creds: FilebaseCreds): Promise<void> => {
+    const res = await fetch(`https://rpc.filebase.io/api/v0/pin/add?arg=${encodeURIComponent(cid)}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${creds.token}`,
+      },
+    })
+    if (!res.ok) {
+      throw new Error(`Filebase pin failed: ${res.status} ${await res.text()}`)
+    }
+  }, [])
+
+  return { pinFile, pinCID }
 }

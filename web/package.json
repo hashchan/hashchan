@@ -21,6 +21,7 @@
     "@helia/unixfs": "^7.2.1",
     "@libp2p/circuit-relay-v2": "^4.2.7",
     "@libp2p/webrtc": "^6.0.25",
+    "@libp2p/webtransport": "^6.0.32",
     "@multiformats/multiaddr": "^13.0.3",
     "@orbitdb/core": "^4.0.0",
     "@orbitdb/identity-provider-ethereum": "^1.0.3",

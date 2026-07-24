@@ -97,6 +97,20 @@ input {
   font-family: inherit;
 }
 
+select {
+  background-color: #161B22;
+  color: #fff;
+  padding: 0.618vh 0.618vw;
+  margin: 0.618vh 0.618vw;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  border: 1px solid #20C20E20;
+}
+select:hover {
+  border-color: #20c20e;
+}
+
 /* Custom Scrollbar Styling */
 /* For Webkit browsers (Chrome, Safari, etc.) */
 ::-webkit-scrollbar {

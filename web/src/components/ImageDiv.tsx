@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useHelia } from '@/hooks/p2p/useHelia'
+import { useKubo } from '@/hooks/useKubo'
+import { useKuboFetch } from '@/hooks/useKuboFetch'
 import { FailedMediaDiv } from '@/components/FailedMediaDiv'
 
 // Whitelist of allowed MIME types for security
@@ -18,6 +20,8 @@ export const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
   //imgUrl = 'bafkreiab6xxyrrnitmrukgeh5kwvnyhidhxsdmuloyeft7omycpk2vauwu'
   const [uri, setUri] = useState(null)
   const { fetchCID } = useHelia()
+  const { connected: kuboConnected, creds: kuboCreds } = useKubo()
+  const { fetchCID: fetchCIDViaKubo } = useKuboFetch()
   const [expanded, setExpanded] = useState(false)
   const [isVideo, setIsVideo] = useState(false)
   const [videoError, setVideoError] = useState(false)
@@ -35,30 +39,42 @@ export const ImageDiv = ({imgUrl}: {imgUrl: string}) => {
     setVideoError(true);
   };
 
+  // Fetch strategy for a bare CID, in order: the in-browser Helia/libp2p
+  // node first (websockets/webRTC/webTransport/circuit-relay — see
+  // HeliaProvider.tsx), then fall back to a connected Kubo node's own
+  // /api/v0/cat if that misses. A real Kubo node has full TCP/QUIC/DHT
+  // connectivity the browser can never have, so it can reach CIDs the
+  // in-browser node can't — this is the well-known JS-libp2p/Kubo network
+  // fragmentation problem, not a bug in either side.
   const handleFetchCID = useCallback(async (cid) => {
-    const {blob, type}  = await fetchCID(cid)
+    let { blob, type } = await fetchCID(cid)
+
+    if (!blob && kuboConnected) {
+      console.log('Helia fetch missed, falling back to Kubo:', cid)
+      ;({ blob, type } = await fetchCIDViaKubo(cid, kuboCreds))
+    }
     console.log('blob', blob, 'type', type)
-    
+
     // Security: Block non-whitelisted file types (SVG, PDF, etc)
-    if (!ALLOWED_TYPES.includes(type)) {
+    if (!blob || !ALLOWED_TYPES.includes(type)) {
       console.warn(`File type ${type} is blocked for security reasons (not in whitelist)`)
       setImgError(true)
       setVideoError(true)
       return
     }
-    
+
     // Set video flag based on MIME type
     if (type?.startsWith('video/')) {
       setIsVideo(true)
     }
-    
+
     try {
       setUri(URL.createObjectURL(blob))
     } catch (e) {
       console.log(e)
       setUri(null)
     }
-  }, [fetchCID])
+  }, [fetchCID, kuboConnected, kuboCreds, fetchCIDViaKubo])
 
   const handleFetchHTTPS = useCallback(async (url) => {
     try {

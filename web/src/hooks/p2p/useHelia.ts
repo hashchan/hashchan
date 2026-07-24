@@ -9,50 +9,31 @@ import {
 } from '@/provider/HeliaProvider'
 
 import { CID  } from 'multiformats/cid'
+import { detectFileType } from '@/utils/detectFileType'
 
-function detectFileType(bytes) {
-	const signatures = {
-		// Images
-		'image/jpeg': [[0xFF, 0xD8, 0xFF]],
-		'image/png': [[0x89, 0x50, 0x4E, 0x47]],
-		'image/gif': [[0x47, 0x49, 0x46, 0x38]],
-		'image/webp': [[0x52, 0x49, 0x46, 0x46]],
-		// Videos
-		'video/mp4': [[0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70], [0x00, 0x00, 0x00, 0x1C, 0x66, 0x74, 0x79, 0x70]],
-		'video/webm': [[0x1A, 0x45, 0xDF, 0xA3]],
-		'video/x-matroska': [[0x1A, 0x45, 0xDF, 0xA3]], // MKV (same as WebM container)
-		// Block SVG explicitly (XSS risk)
-		'image/svg+xml': [[0x3C, 0x73, 0x76, 0x67], [0x3C, 0x3F, 0x78, 0x6D, 0x6C]], // <svg or <?xml
-		// Block PDF explicitly (RCE risk)
-		'application/pdf': [[0x25, 0x50, 0x44, 0x46, 0x2D]] // %PDF-
-	}
-
-	for (const [mimeType, sigs] of Object.entries(signatures)) {
-		for (const sig of sigs) {
-			if (sig.every((byte, i) => bytes[i] === byte)) {
-				return mimeType
-			}
-		}
-	}
-
-	return 'application/octet-stream'
-}
-
-
+// Default cap on how long we'll wait on the in-browser libp2p node's
+// DHT/bitswap lookup before giving up. HeliaProvider's transports
+// (websockets/webRTC/circuit-relay) can't reach every peer on the network
+// (see network fragmentation notes on the Kubo pinning provider) — without a
+// timeout, a miss just hangs forever instead of letting a caller fall back
+// to a connected Kubo node.
+const DEFAULT_FETCH_TIMEOUT_MS = 8000
 
 export const useHelia = () => {
 	const {helia, fs} = useContext(HeliaContext)
 	const [logErrors, setLogErrors] = useState([])
 
-	const fetchCID = useCallback(async (cidString: string) => {
+	const fetchCID = useCallback(async (cidString: string, timeoutMs = DEFAULT_FETCH_TIMEOUT_MS) => {
 		if (helia && fs && cidString?.length > 0 ) {
+			const controller = new AbortController()
+			const timeout = setTimeout(() => controller.abort(), timeoutMs)
 			try {
 				console.log('cidString', cidString)
 				const cid = CID.parse(cidString)
 				console.log('cid', cid)
 				// fs.cat() returns an async iterable, not a promise - iterate over it
 				const chunks: Uint8Array[] = []
-				for await (const chunk of fs.cat(cid)) {
+				for await (const chunk of fs.cat(cid, { signal: controller.signal })) {
 					chunks.push(chunk)
 				}
 				// Combine all chunks into a single Uint8Array
@@ -73,11 +54,17 @@ export const useHelia = () => {
 			} catch (e) {
 				console.log('e', e)
 				setLogErrors(old => [...old, e])
+			} finally {
+				clearTimeout(timeout)
 			}
       return {
         blob: null,
         type: null
       }
+		}
+		return {
+			blob: null,
+			type: null
 		}
 	}, [helia, fs])
 
