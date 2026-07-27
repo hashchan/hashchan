@@ -167,5 +167,12 @@ export default defineConfig({
         chainId: 25363,
       accounts: { mnemonic },
     },
+    gnosis: {
+      type: 'http',
+      chainType: 'l1',
+      url: `https://rpc.ankr.com/gnosis/${process.env.ANKR}`,
+        chainId: 100,
+      accounts: { mnemonic },
+    }
   },
 });

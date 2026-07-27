@@ -22,7 +22,7 @@ import Tips from '@/assets/emoji/tips.png'
 import ArbitrumOne from '@/assets/emoji/arbitrum-one.png'
 import ArbitrumNova from '@/assets/emoji/arbitrum-nova.png'
 import Flow from '@/assets/emoji/flow.png'
-
+import Gnosis from '@/assets/emoji/gnosis-owl.png'
 import HashChan from '@/assets/abi/HashChan3.json'
 import {isMobile as deviceIsMobile} from 'react-device-detect'
 import { motion, AnimatePresence } from 'motion/react'
@@ -142,6 +142,10 @@ export const About = () => {
         <p>
           <img src={Base} className="emoji" />
           <a target="_blank" href={`https://basescan.org/address/${HashChan["8453"].address}`}> Base</a>
+        </p>
+        <p>
+          <img src={Gnosis} className="emoji" />
+          <a target="_blank" href={`https://gnosisscan.io/address/${HashChan["8453"].address}`}> Gnosis</a>
         </p>
         <p>
           <img src={Sepolia} className="emoji" />

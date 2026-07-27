@@ -23,6 +23,10 @@
     "address": "0x848f3cef2f761faa11b8b179c4b02a186c1d2b2c",
     "deployedAtBlock": 10272464
   },
+  "100": {
+    "address": "0x848f3cef2f761faa11b8b179c4b02a186c1d2b2c",
+    "deployedAtBlock": 47418320
+  },
   "_format": "hh-sol-artifact-1",
   "contractName": "ModerationServiceFactory",
   "sourceName": "contracts/ModerationServiceFactory.sol",

@@ -45,4 +45,5 @@ export const verifiers: Record<string, () => VerifierConfig> = {
   flow: etherscanCompatible("https://evm.flowscan.io/api"),
   "flow-testnet": etherscanCompatible("https://evm-testnet.flowscan.io/api"),
   fluent: etherscanCompatible("https://api.fluentscan.xyz/api"),
+  gnosis: etherscanCompatible("https://api.gnosisscan.io/api"),
 };

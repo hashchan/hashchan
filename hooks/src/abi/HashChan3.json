@@ -23,6 +23,10 @@
     "address": "0x7ce23ee9023a138193c33f060a0060e918246e59",
     "deployedAtBlock": 10272461
   },
+  "100": {
+    "address": "0x7cE23ee9023A138193C33F060A0060E918246E59",
+    "deployedAtBlock": 47418320
+  },
   "_format": "hh-sol-artifact-1",
   "contractName": "HashChan3",
   "sourceName": "contracts/HashChan3.sol",

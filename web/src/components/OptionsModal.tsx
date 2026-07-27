@@ -45,7 +45,7 @@ const OptionsModalContent = ({ handleClose }: { handleClose: () => void }) => {
       blockRangeLimit: Number(data.blockRangeLimit),
     })
     setShowSuccess(true)
-    setTimeout(() => setShowSuccess(false), 3000)
+    setTimeout(() => setShowSuccess(false), 2618)
   }
 
   const width = `${100 / Math.PHI + 100 / Math.PHI ** 3}%`
@@ -96,14 +96,14 @@ const OptionsModalContent = ({ handleClose }: { handleClose: () => void }) => {
               <input
                 className="modal-form-input"
                 type="number"
-                min={100}
-                max={100000}
-                {...register('blockRangeLimit', { required: true, min: 100, valueAsNumber: true })}
+                min={1}
+                max={Infinity}
+                {...register('blockRangeLimit', { required: true, min: 1, valueAsNumber: true })}
               />
-              <p style={{ fontSize: '13px', marginTop: '4px' }}>
-                Lower this if your RPC rejects large log ranges. Raise it if fetches are slow. Default: 10 000.
+              <p style={{ fontSize: '13px', marginTop: '5px' }}>
+                Lower this if your RPC rejects large log ranges. Raise it if fetches are slow. Default: 16180.
               </p>
-              {errors.blockRangeLimit && <span>Must be at least 100</span>}
+              {errors.blockRangeLimit && <span>Must be at least 1</span>}
             </div>
           </>
         )}

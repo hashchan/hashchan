@@ -1,6 +1,6 @@
 {
   "name": "@hashchan/hooks",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Wagmi/viem hooks for the HashChan protocol",
   "type": "module",
   "main": "./dist/index.cjs",
