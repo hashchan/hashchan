@@ -51,6 +51,7 @@ export const useBoards = () => {
           bannerCID: ethBoard.bannerCID,
           rules: ethBoard.rules,
           lastSynced: 0,
+          scannedSpans: [],
           favourite: 0,
           metadata: { stats: { threadCount: 0, postCount: 0 } },
         }

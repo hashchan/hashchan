@@ -85,6 +85,7 @@ export const useCreateThread = (boardId: number, chainId: number) => {
         try {
           await db!.threads.add({
             lastSynced: 0,
+            scannedSpans: [],
             blockCreatedAt: Number(newThreadLog.blockNumber),
             boardId: Number(board!.boardId),
             threadId: tid,

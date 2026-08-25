@@ -73,6 +73,7 @@ export const useCreateBoard = () => {
         const { boardId, name: n, symbol: s, bannerUrl: bu, bannerCID, description: d, rules: r } = newBoardLog.args
         await db!.boards.add({
           lastSynced: 0,
+          scannedSpans: [],
           blockCreatedAt: Number(newBoardLog.blockNumber),
           chainId: Number(chain!.id),
           boardId: Number(boardId),

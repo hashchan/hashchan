@@ -40,6 +40,7 @@ export const useBoard = (boardId: number, chainId: number) => {
           bannerCID: ethBoard.bannerCID,
           rules: ethBoard.rules ?? [],
           lastSynced: 0,
+          scannedSpans: [],
           metadata: { stats: { threadCount: 0, postCount: 0 } },
         }
 

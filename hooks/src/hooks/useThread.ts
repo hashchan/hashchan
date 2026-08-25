@@ -7,6 +7,7 @@ import { useContracts } from './useContracts'
 import { useBoard } from './useBoard'
 import { useHookSettings } from './useHookSettings'
 import { chunkedFetchLogs, fetchAllLogs, clampFromBlock } from '../utils/blockchain'
+import { mergeSpan, liveSpan, earliestSpan, spanNear, type Span } from '../utils/spans'
 import { useEnabled } from '../utils/enabled'
 import { parseContent } from '../utils/content'
 import { type PostView, type ThreadView } from '../types/posts'
@@ -15,7 +16,17 @@ import { threadKey, bookmarkedPostsKey } from '../utils/queryKeys'
 
 export type { PostView } from '../types/posts'
 
-export const useThread = (boardId: number, chainId: number, threadId: string) => {
+// Fibonacci, matching the rest of the app's golden-ratio/Fibonacci styling
+// and sizing conventions (see web's ScanMap). A caller-supplied toBlockHint
+// bounds the remaining gap to a known, finite size — the whole point of a
+// shared link carrying one is to let the recipient grab it in one shot
+// instead of clicking "scan forward" repeatedly — so fetchForward may fetch
+// up to this many blockRangeLimit windows in a single call when a hint is
+// present, rather than just one. Still capped, so an implausibly wide hint
+// (e.g. genesis-to-tip) can't fire an unbounded burst of RPC calls.
+const MAX_FORWARD_WINDOWS = 21n
+
+export const useThread = (boardId: number, chainId: number, threadId: string, atBlock?: bigint, toBlockHint?: bigint) => {
   const { db, sanitize } = useContext(IDBContext)
   const { address, chain } = useConnection()
   const blockNumber = useBlockNumber()
@@ -48,6 +59,7 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
 
       const cachedThread = await db!.threads.where('threadId').equals(threadId).first()
       let thread: ThreadView
+      let threadSpans: Span[] = cachedThread?.scannedSpans ?? []
 
       if (cachedThread) {
         thread = {
@@ -65,10 +77,19 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
         }
       } else {
         // One-off lookup for this specific thread's own creation event — not
-        // an incremental sync, so there's no lastSynced to bridge from.
-        const threadFromBlock = strategy === 'reverseChunked'
-          ? clampFromBlock(toBlock - blockRangeLimit, hashchanDeployedAtBlock!)
-          : hashchanDeployedAtBlock!
+        // an incremental sync, so there's no lastSynced to bridge from. When
+        // atBlock is known (a link shared with the thread's own
+        // blockCreatedAt), search a window centered on it instead of the
+        // blind "last blockRangeLimit blocks before tip" guess — otherwise a
+        // thread older than one window is invisible to a fresh reverseChunked
+        // client and this lookup comes back empty.
+        const threadFromBlock = atBlock != null && strategy === 'reverseChunked'
+          ? clampFromBlock(atBlock - blockRangeLimit, hashchanDeployedAtBlock!)
+          : strategy === 'reverseChunked'
+            ? clampFromBlock(toBlock - blockRangeLimit, hashchanDeployedAtBlock!)
+            : hashchanDeployedAtBlock!
+        const threadToBlockCandidate = atBlock != null && strategy === 'reverseChunked' ? atBlock + blockRangeLimit : toBlock
+        const threadToBlock = threadToBlockCandidate > toBlock ? toBlock : threadToBlockCandidate
 
         const threadFilterArgs = {
           address: hashchan.address,
@@ -76,14 +97,28 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
           eventName: 'NewThread',
           args: { threadId },
           fromBlock: threadFromBlock,
-          toBlock,
+          toBlock: threadToBlock,
         }
-        const threadLogs = strategy === 'reverseChunked'
-          ? await chunkedFetchLogs(publicClient!, threadFilterArgs, blockRangeLimit)
-          : await fetchAllLogs(publicClient!, threadFilterArgs)
 
-        const threadLog = threadLogs[0] as unknown as FilterLog<NewThreadArgs>
-        const { creator, content, threadId: tid, imgUrl, imgCID, timestamp } = threadLog.args
+        let threadLog: FilterLog<NewThreadArgs> | undefined
+        try {
+          const threadLogs = strategy === 'reverseChunked'
+            ? await chunkedFetchLogs(publicClient!, threadFilterArgs, blockRangeLimit)
+            : await fetchAllLogs(publicClient!, threadFilterArgs)
+          threadLog = threadLogs[0] as unknown as FilterLog<NewThreadArgs> | undefined
+        } catch (e) {
+          console.error('[hashchan] Failed to look up thread creation log:', e)
+        }
+
+        if (!threadLog) {
+          // atBlock (if any) didn't land on the creation log in this window,
+          // or the RPC call itself failed — don't crash the query, degrade
+          // to an empty, reduced-mode result instead. The forward cursor (if
+          // atBlock was supplied) lets the user widen the search manually.
+          return { posts: [], isReducedMode: true }
+        }
+
+        const { creator, content, threadId: tid, imgUrl, imgCID, timestamp, title, boardId: logBoardId } = threadLog.args
         thread = {
           lastSynced: 0,
           blockCreatedAt: Number(threadLog.blockNumber),
@@ -96,6 +131,31 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
           content,
           bookmarked: 0,
           timestamp: Number(timestamp),
+        }
+
+        // Persist the discovered thread row now, not just the in-memory view
+        // above — otherwise the .modify() calls below (and every future
+        // fetchHistory/fetchForward/scanRange call) silently no-op against a
+        // row that was never inserted, and this same expensive bootstrap
+        // search reruns on every render instead of being a true one-off.
+        try {
+          await db!.threads.add({
+            lastSynced: 0,
+            scannedSpans: [],
+            blockCreatedAt: Number(threadLog.blockNumber),
+            boardId: Number(logBoardId ?? boardId),
+            threadId: tid,
+            creator,
+            imgUrl,
+            imgCID,
+            title,
+            bookmarked: 0,
+            content,
+            chainId,
+            timestamp: Number(timestamp),
+          })
+        } catch (e) {
+          console.log('Duplicate thread, skipping')
         }
       }
 
@@ -127,21 +187,24 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
 
       let isReduced = false
       try {
-        // Same dual-boundary bridging as useThreads.ts's board-level sync:
-        // thread.lastSynced is the high-water mark shared by both strategies.
-        // reverseChunked's first-ever sync seeds an initial recent window;
-        // every later run for either strategy bridges from lastSynced to the
-        // current tip, however large that gap is.
         // thread.blockCreatedAt (known immediately for freshly-created threads
         // via useCreateThread.ts, or captured for free from the NewThread
-        // log's own blockNumber once discovered) is a tighter floor than the
-        // contract's deployment block — a thread's posts can't exist before
-        // the thread itself did.
+        // log's own blockNumber once discovered above) is a tighter floor
+        // than the contract's deployment block — a thread's posts can't
+        // exist before the thread itself did.
         const threadFloor = thread.blockCreatedAt != null ? BigInt(thread.blockCreatedAt) : hashchanDeployedAtBlock!
-        const isFirstPostSync = !thread.lastSynced
-        const postsFromBlock = strategy === 'reverseChunked' && isFirstPostSync
-          ? clampFromBlock(toBlock - blockRangeLimit, threadFloor)
-          : BigInt(thread.lastSynced || threadFloor)
+
+        // liveSpan is the region tip-tailing sync keeps extending — bridge
+        // from wherever it currently ends, however large that gap is. If
+        // nothing has been scanned yet (no spans at all), reverseChunked
+        // seeds a shallow recent window instead of all of history;
+        // fullNode/bulkScrape fetch the whole floor-to-tip gap unbounded.
+        const live = liveSpan(threadSpans)
+        const postsFromBlock = live
+          ? BigInt(live.toBlock) + 1n
+          : strategy === 'reverseChunked'
+            ? clampFromBlock(toBlock - blockRangeLimit, threadFloor)
+            : threadFloor
 
         if (toBlock > postsFromBlock) {
           const postsFilterArgs = {
@@ -204,12 +267,12 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
             }
           }
 
-          const threadUpdate: { lastSynced: number; scanBoundary?: number } = { lastSynced: Number(toBlock) }
-          if (strategy === 'reverseChunked' && isFirstPostSync) {
-            threadUpdate.scanBoundary = Number(postsFromBlock)
-            setHistoryBoundary(postsFromBlock)
-          }
-          await db!.threads.where('threadId').equals(threadId).modify(threadUpdate)
+          threadSpans = mergeSpan(threadSpans, { fromBlock: Number(live?.fromBlock ?? postsFromBlock), toBlock: Number(toBlock) })
+          await db!.threads.where('threadId').equals(threadId).modify({
+            scannedSpans: threadSpans,
+            lastSynced: liveSpan(threadSpans)?.toBlock ?? 0,
+          })
+          setScannedSpans(threadSpans)
           if (newPostCount > 0) updateMetadata({ postCount: newPostCount })
         }
       } catch (e) {
@@ -302,30 +365,27 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
     }
   }, [hashchan, threadId, db, publicClient])
 
-  const [historyBoundary, setHistoryBoundary] = useState<bigint | null>(null)
+  const [scannedSpans, setScannedSpans] = useState<Span[]>([])
   const [cachedThreadFloor, setCachedThreadFloor] = useState<bigint | null>(null)
 
   useEffect(() => {
     if (!db || !threadId) return
     db.threads.where('threadId').equals(threadId).first().then((t) => {
-      setHistoryBoundary(t?.scanBoundary != null ? BigInt(t.scanBoundary) : null)
+      setScannedSpans(t?.scannedSpans ?? [])
       setCachedThreadFloor(t?.blockCreatedAt != null ? BigInt(t.blockCreatedAt) : null)
     })
-  }, [threadId, chainId, db])
+  }, [threadId, chainId, db, atBlock])
 
-  const fetchHistory = useCallback(async () => {
-    if (!publicClient || !hashchan || !db || hashchanDeployedAtBlock == null || blockRangeLimit === 0n) return
-
-    // Prefer the thread's own creation block over the contract's deployment
-    // block where known — there's nothing to find scanning further back than
-    // when this specific thread was created.
+  // The one place raw logs get fetched and turned into persisted posts plus
+  // an updated span, for any caller (fetchHistory, fetchForward, or a
+  // scan-map UI clicking an arbitrary cell) that already knows exactly which
+  // [fromBlock, toBlock] window it wants. Always re-reads scannedSpans fresh
+  // from Dexie rather than trusting the scannedSpans React state, which can
+  // be one render behind the live queryFn's own writes.
+  const scanRange = useCallback(async (fromBlock: bigint, toBlock: bigint) => {
+    if (!publicClient || !hashchan || !db || blockRangeLimit === 0n || toBlock < fromBlock) return
     const cachedThread = await db.threads.where('threadId').equals(threadId).first()
-    const threadFloor = cachedThread?.blockCreatedAt != null ? BigInt(cachedThread.blockCreatedAt) : hashchanDeployedAtBlock
-
-    const head = await publicClient.getBlockNumber()
-    const toBlock = historyBoundary ?? clampFromBlock(head - blockRangeLimit, threadFloor)
-    if (toBlock <= threadFloor) return
-    const fromBlock = clampFromBlock(toBlock - blockRangeLimit, threadFloor)
+    const spans = cachedThread?.scannedSpans ?? []
 
     try {
       const logs = await chunkedFetchLogs(publicClient, {
@@ -360,17 +420,79 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
       }
 
       if (newPostCount > 0) updateMetadata({ postCount: newPostCount })
-      setHistoryBoundary(fromBlock)
-      await db.threads.where('threadId').equals(threadId).modify({ scanBoundary: Number(fromBlock) })
+      const newSpans = mergeSpan(spans, { fromBlock: Number(fromBlock), toBlock: Number(toBlock) })
+      await db.threads.where('threadId').equals(threadId).modify({
+        scannedSpans: newSpans,
+        lastSynced: liveSpan(newSpans)?.toBlock ?? 0,
+      })
+      setScannedSpans(newSpans)
       queryClient.invalidateQueries({ queryKey: threadKey({ chainId, boardId, threadId }) })
     } catch (e) {
-      console.log('[useThread] fetchHistory error:', e)
+      console.log('[useThread] scanRange error:', e)
     }
-  }, [historyBoundary, blockRangeLimit, publicClient, hashchan, hashchanDeployedAtBlock, db, threadId, boardId, chainId, queryClient, updateMetadata])
+  }, [blockRangeLimit, publicClient, hashchan, db, threadId, boardId, chainId, queryClient, updateMetadata])
+
+  // Extend the earliest known span one blockRangeLimit window further back —
+  // the existing manual "scan backwards" action.
+  const fetchHistory = useCallback(async () => {
+    if (!db || !publicClient || hashchanDeployedAtBlock == null || blockRangeLimit === 0n) return
+
+    const cachedThread = await db.threads.where('threadId').equals(threadId).first()
+    const threadFloor = cachedThread?.blockCreatedAt != null ? BigInt(cachedThread.blockCreatedAt) : hashchanDeployedAtBlock
+    const spans = cachedThread?.scannedSpans ?? []
+    const earliest = earliestSpan(spans)
+
+    const head = await publicClient.getBlockNumber()
+    const toBlock = earliest ? BigInt(earliest.fromBlock) - 1n : clampFromBlock(head - blockRangeLimit, threadFloor)
+    if (toBlock <= threadFloor) return
+    const fromBlock = clampFromBlock(toBlock - blockRangeLimit + 1n, threadFloor)
+
+    await scanRange(fromBlock, toBlock)
+  }, [scanRange, db, publicClient, hashchanDeployedAtBlock, blockRangeLimit, threadId])
+
+  // Extend the atBlock-anchored span forward, toward wherever the
+  // live/tip-tailed span currently starts. Once the two meet, mergeSpan
+  // coalesces them and this naturally has nothing left to do. Without a
+  // toBlockHint this advances one blockRangeLimit window per call (the
+  // manual "scan forward" button); with one — e.g. from a shared link whose
+  // sharer already knows both ends of the range — it grabs up to
+  // MAX_FORWARD_WINDOWS at once, since the hint makes the remaining gap a
+  // known, finite size rather than an open-ended chase toward a moving tip.
+  const fetchForward = useCallback(async () => {
+    if (!db || !publicClient || atBlock == null || blockRangeLimit === 0n) return
+
+    const cachedThread = await db.threads.where('threadId').equals(threadId).first()
+    const spans = cachedThread?.scannedSpans ?? []
+    const live = liveSpan(spans)
+    const existing = spanNear(spans, Number(atBlock))
+    if (existing && existing === live) return // already merged
+
+    const tip = await publicClient.getBlockNumber()
+    const fromBlock = existing ? BigInt(existing.toBlock) + 1n : atBlock
+    const liveFloorCap = live ? BigInt(live.fromBlock) - 1n : tip
+    const ceilingCandidates = toBlockHint != null ? [liveFloorCap, tip, toBlockHint] : [liveFloorCap, tip]
+    const ceiling = ceilingCandidates.reduce((a, b) => (b < a ? b : a))
+
+    const perCallLimit = blockRangeLimit * (toBlockHint != null ? MAX_FORWARD_WINDOWS : 1n)
+    const windowEnd = fromBlock + perCallLimit - 1n
+    const toBlock = windowEnd < ceiling ? windowEnd : ceiling
+    if (toBlock < fromBlock) return
+
+    await scanRange(fromBlock, toBlock)
+  }, [scanRange, atBlock, toBlockHint, db, publicClient, blockRangeLimit, threadId])
 
   const historyFloor = cachedThreadFloor ?? hashchanDeployedAtBlock
+  const earliest = earliestSpan(scannedSpans)
+  const historyBoundary = earliest ? BigInt(earliest.fromBlock) : null
   const canFetchHistory = strategy === 'reverseChunked'
-    && (historyBoundary === null || (historyFloor != null && historyBoundary > historyFloor))
+    && (earliest === undefined || (historyFloor != null && BigInt(earliest.fromBlock) > historyFloor))
+
+  const live = liveSpan(scannedSpans)
+  const nearAnchor = atBlock != null ? spanNear(scannedSpans, Number(atBlock)) : undefined
+  const forwardBoundary = nearAnchor ? BigInt(nearAnchor.toBlock) : null
+  const reachedToBlockHint = toBlockHint != null && nearAnchor != null && BigInt(nearAnchor.toBlock) >= toBlockHint
+  const canFetchForward = strategy === 'reverseChunked' && atBlock != null && !reachedToBlockHint
+    && (scannedSpans.length === 0 || nearAnchor !== live)
 
   const bookmarkMutation = useMutation({
     mutationFn: async ({ postId }: { postId: string }) => {
@@ -414,6 +536,13 @@ export const useThread = (boardId: number, chainId: number, threadId: string) =>
     fetchHistory,
     canFetchHistory,
     historyBoundary,
+    fetchForward,
+    canFetchForward,
+    forwardBoundary,
+    scanRange,
+    scannedSpans,
+    scanFloor: historyFloor,
+    blockRangeLimit,
     blockNumber: blockNumber.data,
     bookmark: bookmarkMutation.mutate,
   }

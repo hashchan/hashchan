@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState } from 'react'
 import Dexie, { type EntityTable } from 'dexie'
+import { type Span } from '../utils/spans'
 
 export type IndexingStrategy = 'fullNode' | 'reverseChunked' | 'bulkScrape'
 
@@ -22,8 +23,16 @@ export interface HookSettings {
 
 export interface Board {
   id?: number
+  // Derived compat field, always kept equal to liveSpan(scannedSpans)?.toBlock
+  // ?? 0 — CacheFlusher.tsx and the board-record initializers still read/set
+  // this directly, so it's not just dropped in favor of scannedSpans alone.
   lastSynced: number
-  scanBoundary?: number
+  // Sparse set of block ranges already known to be fully scanned. Replaces
+  // the old single scanBoundary scalar, which could only represent one
+  // contiguous region growing from the tip — an atBlock-anchored forward
+  // scan can create a second, disjoint region before it merges with the
+  // tip-tailed one. See utils/spans.ts.
+  scannedSpans: Span[]
   blockCreatedAt?: number
   chainId: number
   boardId: number
@@ -44,8 +53,10 @@ export interface Board {
 
 export interface Thread {
   id?: number
+  // See Board.lastSynced — same derived-compat-field treatment.
   lastSynced: number
-  scanBoundary?: number
+  // See Board.scannedSpans.
+  scannedSpans: Span[]
   blockCreatedAt?: number
   bookmarked: number
   boardId: number
@@ -164,6 +175,25 @@ export const IDBProvider = ({
         delete s.blockRangeLimit
       })
     })
+    // v9: replace the scanBoundary scalar with scannedSpans (see
+    // utils/spans.ts) on both boards and threads, without resetting anyone's
+    // existing scan progress — a row that had already synced up to
+    // lastSynced keeps that as one span, floored at whatever scanBoundary
+    // (or failing that blockCreatedAt) it had reached backward.
+    db.version(9).stores(STORES).upgrade((tx) => Promise.all([
+      tx.table('boards').toCollection().modify((b) => {
+        b.scannedSpans = b.lastSynced
+          ? [{ fromBlock: b.scanBoundary ?? b.blockCreatedAt ?? b.lastSynced, toBlock: b.lastSynced }]
+          : []
+        delete b.scanBoundary
+      }),
+      tx.table('threads').toCollection().modify((t) => {
+        t.scannedSpans = t.lastSynced
+          ? [{ fromBlock: t.scanBoundary ?? t.blockCreatedAt ?? t.lastSynced, toBlock: t.lastSynced }]
+          : []
+        delete t.scanBoundary
+      }),
+    ]))
 
     ;(async () => {
       const settings = await db.settings.toArray()

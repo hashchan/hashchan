@@ -108,7 +108,7 @@ const EmptyState = () => {
   return (
     <>
       <p>This board is on the {chainIdToName(Number(chainId))}</p>
-      <p>Current chain is {chain.name}</p>
+      <p>Current chain is {chain ? chain.name : 'not a supported chain'}</p>
       <p>Nothing here yet, be the first to post</p>
       <p>Feel like you should see something? try flushing the cache and refetching</p>
       <CacheFlusher 

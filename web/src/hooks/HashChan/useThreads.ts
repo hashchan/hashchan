@@ -1,7 +1,10 @@
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { useThreads as useThreadsBase } from '@hashchan/hooks'
+import { parseBlockParam } from '@/utils/atBlock'
 
 export const useThreads = () => {
   const { boardId, chainId } = useParams()
-  return useThreadsBase(Number(boardId), Number(chainId))
+  const [searchParams] = useSearchParams()
+  const atBlock = parseBlockParam(searchParams.get('atBlock'))
+  return useThreadsBase(Number(boardId), Number(chainId), atBlock)
 }

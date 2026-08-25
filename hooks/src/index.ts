@@ -26,5 +26,7 @@ export { useJoinModerationService } from './hooks/useJoinModerationService'
 export type { ModerationServiceData, JanitorData } from './types/moderation'
 
 export { chunkedFetchLogs, fetchAllLogs, clampFromBlock, chainIdToName } from './utils/blockchain'
+export { mergeSpan, liveSpan, earliestSpan, spanNear, cellStates } from './utils/spans'
+export type { Span, Cell } from './utils/spans'
 export { computeImageCID } from './utils/cids'
 export { parseContent, supportedExtensions } from './utils/content'

@@ -8,6 +8,8 @@ import { ReducedModeWarning } from '@/components/ReducedModeWarning'
 import { ChainSwitchNotification } from '@/components/ChainSwitchNotification'
 import { ThreadsList } from '@/components/HashChan/ThreadsList'
 import { ReverseChunkedCursor } from '@/components/ReverseChunkedCursor'
+import { ForwardChunkedCursor } from '@/components/ForwardChunkedCursor'
+import { ScanMap } from '@/components/HashChan/ScanMap'
 
 export const Catalogue = () => {
 	const { address } = useAccount()
@@ -26,6 +28,8 @@ export const Catalogue = () => {
 			</div>
 
 			{cursor.isActive && <ReverseChunkedCursor {...cursor} />}
+			{cursor.isForwardActive && <ForwardChunkedCursor {...cursor} />}
+			{cursor.isActive && <ScanMap {...cursor} />}
 			<ThreadsList
 				threads={threads}
 				isLoading={isLoading}

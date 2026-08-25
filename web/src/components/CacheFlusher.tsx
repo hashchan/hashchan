@@ -39,7 +39,7 @@ export const CacheFlusher = ({ query, handler }: { query: QueryParams, handler: 
 
   const handleCacheFlush = async () => {
     try {
-      const res = await db[query.table].where(query.where).equals(query.equals).modify({lastSynced: 0})
+      const res = await db[query.table].where(query.where).equals(query.equals).modify({lastSynced: 0, scannedSpans: []})
       console.log('updated', res)
       setResponse(null)
       setLastSynced(0)

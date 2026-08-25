@@ -1,14 +1,18 @@
 import { useContext } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { useThread as useThreadBase } from '@hashchan/hooks'
 import { ModerationServicesContext } from '@/provider/ModerationServicesProvider'
+import { parseBlockParam } from '@/utils/atBlock'
 
 export const useThread = () => {
   const { boardId, chainId, threadId } = useParams()
+  const [searchParams] = useSearchParams()
+  const atBlock = parseBlockParam(searchParams.get('atBlock'))
+  const toBlock = parseBlockParam(searchParams.get('toBlock'))
   const { moderationServices, queryModerationRecords } = useContext(ModerationServicesContext)
 
-  const base = useThreadBase(Number(boardId), Number(chainId), threadId ?? '')
+  const base = useThreadBase(Number(boardId), Number(chainId), threadId ?? '', atBlock, toBlock)
 
   const msMsAddresses = Object.keys(moderationServices ?? {}).sort().join(',')
   const { data: janitoredMap = {} } = useQuery({
