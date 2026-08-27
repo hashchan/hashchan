@@ -2,18 +2,11 @@ import { useState, useCallback } from 'react'
 import { usePublicClient, useBlockNumber } from 'wagmi'
 import { useContracts } from './useContracts'
 import { useHookSettings } from './useHookSettings'
-import { detectRpcCapabilities, type RpcDoctorResults } from '../utils/rpcDoctor'
+import { detectRpcCapabilities, IDLE_RESULTS, type RpcDoctorResults } from '../utils/rpcDoctor'
 
 // Local constant — the hooks package doesn't rely on a global Math.PHI (that's
 // a UI-layer convention set up by the web/extension apps, not guaranteed here).
 const PHI = (1 + Math.sqrt(5)) / 2
-
-const IDLE_RESULTS: RpcDoctorResults = {
-  ethGetLogs: 'idle',
-  ethFilterLogs: 'idle',
-  maxBlockRange: null,
-  logErrors: [],
-}
 
 export const useRpcDoctor = () => {
   const publicClient = usePublicClient()
@@ -29,15 +22,20 @@ export const useRpcDoctor = () => {
     setRunning(true)
     setResults(IDLE_RESULTS)
 
-    const found = await detectRpcCapabilities(publicClient, hashchan, blockNumber)
-    setResults(found)
+    // detectRpcCapabilities calls this after every individual test (and every
+    // range step-down attempt) resolves, so the modal fills in pass/fail and
+    // each range's error live instead of going blank until the whole,
+    // potentially many-call, step-down finishes.
+    const found = await detectRpcCapabilities(publicClient, hashchan, blockNumber, setResults)
     setRunning(false)
 
     // Auto-apply the detected safe range instead of requiring a separate
     // manual "apply" step — the whole point of running the doctor is to keep
     // chunkedFetchLogs calls sized within what this RPC actually handles.
     if (found.maxBlockRange != null) {
-      const safe = Math.floor(found.maxBlockRange * (1 / PHI + 1 / PHI ** 3))
+      // Floor of 1 — an RPC that only tolerates 1-block ranges still needs a
+      // usable (if slow) blockRangeLimit, not a 0 that stalls chunked scans.
+      const safe = Math.max(1, Math.floor(found.maxBlockRange * (1 / PHI + 1 / PHI ** 3)))
       await updateHookSettings({
         blockRangeLimit: safe,
         maxBlockRangeDetected: found.maxBlockRange,

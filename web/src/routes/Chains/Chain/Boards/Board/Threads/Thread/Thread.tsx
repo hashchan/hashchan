@@ -90,9 +90,13 @@ export const Thread = () => {
           </button>
         )}
       </h3>
-      {cursor.isActive && <ReverseChunkedCursor {...cursor} />}
+      {cursor.isActive && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: `${1/Math.PHI**2}rem` }}>
+          <ScanMap {...cursor} />
+          <ReverseChunkedCursor {...cursor} />
+        </div>
+      )}
       {cursor.isForwardActive && <ForwardChunkedCursor {...cursor} />}
-      {cursor.isActive && <ScanMap {...cursor} />}
       {posts && posts.map((post, i) => {
         return (
           <Post

@@ -7,43 +7,59 @@ export interface RpcDoctorResults {
   logErrors: string[]
 }
 
-const RANGE_CANDIDATES = [2_000_000, 500_000, 100_000, 50_000, 10_000, 5_000, 1_000, 100]
+export const IDLE_RESULTS: RpcDoctorResults = {
+  ethGetLogs: 'idle',
+  ethFilterLogs: 'idle',
+  maxBlockRange: null,
+  logErrors: [],
+}
+
+// Many public RPCs cap eth_getLogs/getFilterLogs way below the old floor of
+// 100 blocks — some as low as 5-10 — so the step-down has to actually probe
+// that far or affected users silently land on a range their RPC still rejects.
+const RANGE_CANDIDATES = [2_000_000, 500_000, 100_000, 50_000, 10_000, 5_000, 1_000, 500, 100, 10, 5, 1]
 
 // Step-downs through RANGE_CANDIDATES calling createContractEventFilter +
 // getFilterLogs until one succeeds, to find the largest block range this RPC
 // reliably handles per call. Ported from web/src/hooks/useRpcDoctor.ts so it's
 // shared (and testable against the real local anvil/geth node) rather than
 // living only in the web app.
+//
+// Reports each test's outcome via onUpdate as soon as it's known, rather than
+// only returning once the whole (potentially 12-call) step-down finishes —
+// against a slow/rate-limited public RPC that step-down alone can take many
+// seconds, and a UI that goes silent for that whole span reads as hung.
 export async function detectRpcCapabilities(
   publicClient: any,
   contract: { address: `0x${string}`; abi: any },
   toBlock: bigint,
+  onUpdate?: (results: RpcDoctorResults) => void,
 ): Promise<RpcDoctorResults> {
-  const results: RpcDoctorResults = {
-    ethGetLogs: 'idle',
-    ethFilterLogs: 'idle',
-    maxBlockRange: null,
-    logErrors: [],
+  let results: RpcDoctorResults = { ...IDLE_RESULTS, logErrors: [] }
+  const emit = (patch: Partial<RpcDoctorResults>) => {
+    results = { ...results, ...patch }
+    onUpdate?.(results)
   }
+  const pushError = (message: string) => emit({ logErrors: [...results.logErrors, message] })
 
   const smallFrom = toBlock > 10n ? toBlock - 10n : 0n
 
   // Test 1: eth_getLogs
-  results.ethGetLogs = 'running'
+  emit({ ethGetLogs: 'running' })
   try {
     await publicClient.getLogs({
       address: contract.address,
       fromBlock: smallFrom,
       toBlock,
     })
-    results.ethGetLogs = 'pass'
+    emit({ ethGetLogs: 'pass' })
   } catch (e: any) {
-    results.ethGetLogs = 'fail'
-    results.logErrors.push(`eth_getLogs: ${e?.message ?? e}`)
+    emit({ ethGetLogs: 'fail' })
+    pushError(`eth_getLogs: ${e?.message ?? e}`)
   }
 
   // Test 2: eth_newFilter + eth_getFilterLogs
-  results.ethFilterLogs = 'running'
+  emit({ ethFilterLogs: 'running' })
   try {
     const filter = await publicClient.createContractEventFilter({
       address: contract.address,
@@ -52,10 +68,10 @@ export async function detectRpcCapabilities(
       toBlock,
     })
     await publicClient.getFilterLogs({ filter })
-    results.ethFilterLogs = 'pass'
+    emit({ ethFilterLogs: 'pass' })
   } catch (e: any) {
-    results.ethFilterLogs = 'fail'
-    results.logErrors.push(`eth_newFilter/eth_getFilterLogs: ${e?.message ?? e}`)
+    emit({ ethFilterLogs: 'fail' })
+    pushError(`eth_newFilter/eth_getFilterLogs: ${e?.message ?? e}`)
   }
 
   // Test 3: max block range (step-down)
@@ -69,10 +85,10 @@ export async function detectRpcCapabilities(
         toBlock,
       })
       await publicClient.getFilterLogs({ filter })
-      results.maxBlockRange = range
+      emit({ maxBlockRange: range })
       break
     } catch (e: any) {
-      results.logErrors.push(`range ${range.toLocaleString()}: ${e?.message ?? e}`)
+      pushError(`range ${range.toLocaleString()}: ${e?.message ?? e}`)
     }
   }
 

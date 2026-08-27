@@ -208,7 +208,10 @@ export const IDBProvider = ({
       const hookSettings = await db.hookSettings.toArray()
       if (hookSettings.length === 0) {
         await db.hookSettings.add({
-          indexingStrategy: 'fullNode',
+          // reverseChunked is the sensible default now that the span model,
+          // atBlock/toBlock sharing, and RPC Doctor step-down make it robust
+          // for a fresh install with no idea what its RPC can handle.
+          indexingStrategy: 'reverseChunked',
           blockRangeLimit: 10000,
           maxBlockRangeDetected: null,
           lastDoctorRunAt: null,

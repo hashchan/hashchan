@@ -27,9 +27,13 @@ export const Catalogue = () => {
 				{isReducedMode && <ReducedModeWarning />}
 			</div>
 
-			{cursor.isActive && <ReverseChunkedCursor {...cursor} />}
+			{cursor.isActive && (
+				<div style={{ display: 'flex', alignItems: 'center', gap: `${1/Math.PHI**2}rem` }}>
+					<ScanMap {...cursor} />
+					<ReverseChunkedCursor {...cursor} />
+				</div>
+			)}
 			{cursor.isForwardActive && <ForwardChunkedCursor {...cursor} />}
-			{cursor.isActive && <ScanMap {...cursor} />}
 			<ThreadsList
 				threads={threads}
 				isLoading={isLoading}

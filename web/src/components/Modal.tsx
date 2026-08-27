@@ -82,11 +82,15 @@ export const Modal = ({
 
   const mobileRef= useRef<HTMLDivElement>(null);
 
+  // BrowserView and MobileView are mutually exclusive (react-device-detect
+  // only mounts one), so exactly one of these refs is ever attached — check
+  // whichever one is. Previously this only checked mobileRef, so clicking
+  // outside the modal silently did nothing on desktop (only the × button
+  // closed it), leaving an accidentally-opened modal stuck on top of
+  // whatever's beneath it.
   const handleClickOutside = useCallback((event: MouseEvent) => {
-    if (
-      mobileRef.current &&
-      !mobileRef.current.contains(event.target as Node)
-    ) {
+    const container = modalRef.current ?? mobileRef.current;
+    if (container && !container.contains(event.target as Node)) {
       handleClose();
     }
   }, []);

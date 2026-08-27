@@ -10,7 +10,7 @@ describe('useHookSettings', () => {
 
     await vi.waitUntil(() => result.current.hookSettings !== null, { timeout: 10_000 })
 
-    expect(result.current.hookSettings?.indexingStrategy).toBe('fullNode')
+    expect(result.current.hookSettings?.indexingStrategy).toBe('reverseChunked')
     expect(result.current.hookSettings?.blockRangeLimit).toBeGreaterThan(0)
     expect(result.current.hookSettings?.maxBlockRangeDetected).toBeNull()
     expect(result.current.hookSettings?.lastDoctorRunAt).toBeNull()
@@ -22,13 +22,17 @@ describe('useHookSettings', () => {
 
     await vi.waitUntil(() => result.current.hookSettings !== null, { timeout: 10_000 })
 
+    // reverseChunked is now the ambient default (see IDBProvider's fresh-seed
+    // value), so switching to it is not itself a state transition the row
+    // hasn't already made — wait on blockRangeLimit instead, which genuinely
+    // does change, or this resolves on the stale pre-update snapshot.
     await result.current.updateHookSettings({ indexingStrategy: 'reverseChunked', blockRangeLimit: 42 })
 
     await vi.waitUntil(
-      () => result.current.hookSettings?.indexingStrategy === 'reverseChunked',
+      () => result.current.hookSettings?.blockRangeLimit === 42,
       { timeout: 10_000 }
     )
-    expect(result.current.hookSettings?.blockRangeLimit).toBe(42)
+    expect(result.current.hookSettings?.indexingStrategy).toBe('reverseChunked')
 
     // restore defaults — hookSettings is shared IndexedDB state across every
     // test file in this single-forked suite
