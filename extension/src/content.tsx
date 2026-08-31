@@ -8,9 +8,24 @@ declare global {
   interface Math {
     PHI: number
   }
+  interface Window {
+    __hashchanToggle?: () => void
+    __hashchanPendingOpen?: boolean
+  }
 }
 
 Math.PHI = (1 + Math.sqrt(5)) / 2
+
+// Set once, before mount - Sidebar.tsx listens for the event to toggle open
+// state on a click after it's already mounted, and reads the pending flag to
+// catch a click that arrives before mount() has run (mount is deferred up to
+// 1s waiting on window.ethereum, so the very first click's event would
+// otherwise dispatch to no listener and be lost - that first click always
+// means "open", since there's no existing panel state yet to toggle).
+window.__hashchanToggle = () => {
+  window.__hashchanPendingOpen = true
+  window.dispatchEvent(new CustomEvent('hashchan:toggle'))
+}
 
 function mount() {
   if (document.getElementById('hashchan-host')) return

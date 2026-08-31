@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { createRef, useRef, useEffect, useContext, useState, useCallback, type RefObject } from 'react'
+import { createRef, useRef, useEffect, useContext, useCallback, type RefObject } from 'react'
 import { useConnection, usePublicClient, useBlockNumber } from 'wagmi'
 
 import { IDBContext } from '../provider/IDBProvider'
@@ -42,7 +42,7 @@ export const useThread = (boardId: number, chainId: number, threadId: string, at
   const enabled = useEnabled({ publicClient, address, hashchan, threadId, chainId: chain?.id, db, hookSettings, hashchanDeployedAtBlock })
 
   const {
-    data: { posts = [], isReducedMode = false } = {},
+    data: { posts = [], isReducedMode = false, scannedSpans = [], blockCreatedAt: queriedBlockCreatedAt } = {},
     error,
     isLoading,
   } = useQuery({
@@ -272,7 +272,6 @@ export const useThread = (boardId: number, chainId: number, threadId: string, at
             scannedSpans: threadSpans,
             lastSynced: liveSpan(threadSpans)?.toBlock ?? 0,
           })
-          setScannedSpans(threadSpans)
           if (newPostCount > 0) updateMetadata({ postCount: newPostCount })
         }
       } catch (e) {
@@ -283,6 +282,8 @@ export const useThread = (boardId: number, chainId: number, threadId: string, at
       return {
         posts: Object.values(logsObj).map(p => ({ ...p, content: sanitize(p.content) })),
         isReducedMode: isReduced,
+        scannedSpans: threadSpans,
+        blockCreatedAt: thread!.blockCreatedAt,
       }
     },
   })
@@ -365,16 +366,14 @@ export const useThread = (boardId: number, chainId: number, threadId: string, at
     }
   }, [hashchan, threadId, db, publicClient])
 
-  const [scannedSpans, setScannedSpans] = useState<Span[]>([])
-  const [cachedThreadFloor, setCachedThreadFloor] = useState<bigint | null>(null)
-
-  useEffect(() => {
-    if (!db || !threadId) return
-    db.threads.where('threadId').equals(threadId).first().then((t) => {
-      setScannedSpans(t?.scannedSpans ?? [])
-      setCachedThreadFloor(t?.blockCreatedAt != null ? BigInt(t.blockCreatedAt) : null)
-    })
-  }, [threadId, chainId, db, atBlock])
+  // scannedSpans/blockCreatedAt come straight from the query's own data
+  // (queriedBlockCreatedAt above) rather than a separate useState hydrated by
+  // its own effect — that used to be two independently-timed sources of
+  // truth for the same thing, which raced (and could show a blank/stale
+  // scan-map right after a reload while the bootstrap effect was still
+  // pending). scanRange patches this same query's cache directly (see
+  // below), so there's exactly one place this data lives.
+  const cachedThreadFloor = queriedBlockCreatedAt != null ? BigInt(queriedBlockCreatedAt) : null
 
   // The one place raw logs get fetched and turned into persisted posts plus
   // an updated span, for any caller (fetchHistory, fetchForward, or a
@@ -425,7 +424,15 @@ export const useThread = (boardId: number, chainId: number, threadId: string, at
         scannedSpans: newSpans,
         lastSynced: liveSpan(newSpans)?.toBlock ?? 0,
       })
-      setScannedSpans(newSpans)
+      // Patch this query's cache directly for an instant scan-map/cursor
+      // update - invalidateQueries below still triggers the real refetch
+      // (to pick up any newly-fetched posts), but that's a network round
+      // trip; this makes the span change visible immediately rather than
+      // leaving the UI showing pre-scanRange spans until it resolves.
+      queryClient.setQueryData(
+        threadKey({ chainId, boardId, threadId }),
+        (old: { scannedSpans: Span[] } | undefined) => old ? { ...old, scannedSpans: newSpans } : old
+      )
       queryClient.invalidateQueries({ queryKey: threadKey({ chainId, boardId, threadId }) })
     } catch (e) {
       console.log('[useThread] scanRange error:', e)
@@ -488,6 +495,14 @@ export const useThread = (boardId: number, chainId: number, threadId: string, at
     && (earliest === undefined || (historyFloor != null && BigInt(earliest.fromBlock) > historyFloor))
 
   const live = liveSpan(scannedSpans)
+  // Not just "the earliest span reaches the floor" - earliest is whichever
+  // span has the lowest fromBlock, even if it's an island that hasn't merged
+  // with the tip-tailing live span yet (e.g. from clicking the floor-most
+  // scan-map cell directly). Only report done once there's exactly one span
+  // (earliest === live, by reference - see spans.ts) spanning floor to tip.
+  const isFullyScanned = strategy === 'reverseChunked'
+    && earliest != null && earliest === live
+    && historyFloor != null && BigInt(earliest.fromBlock) <= historyFloor
   const nearAnchor = atBlock != null ? spanNear(scannedSpans, Number(atBlock)) : undefined
   const forwardBoundary = nearAnchor ? BigInt(nearAnchor.toBlock) : null
   const reachedToBlockHint = toBlockHint != null && nearAnchor != null && BigInt(nearAnchor.toBlock) >= toBlockHint
@@ -536,6 +551,7 @@ export const useThread = (boardId: number, chainId: number, threadId: string, at
     fetchHistory,
     canFetchHistory,
     historyBoundary,
+    isFullyScanned,
     fetchForward,
     canFetchForward,
     forwardBoundary,

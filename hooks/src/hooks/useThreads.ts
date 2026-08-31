@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useContext, useEffect, useRef, useState, useCallback } from 'react'
+import { useContext, useEffect, useRef, useCallback } from 'react'
 import { useConnection, usePublicClient, useBlockNumber } from 'wagmi'
 
 import { IDBContext } from '../provider/IDBProvider'
@@ -29,18 +29,15 @@ export const useThreads = (boardId: number, chainId: number, atBlock?: bigint) =
   const enabled = useEnabled({ publicClient, address, db, hashchan, board, chainId: chain?.id, hookSettings, hashchanDeployedAtBlock })
 
   // Sparse set of block ranges already known to be fully scanned for this
-  // board's NewThread events — see utils/spans.ts. Loaded from Dexie on
-  // mount, and kept in sync (not authoritative — see scanRange/fetchHistory/
-  // fetchForwardHistory, which always re-read fresh from Dexie) after any
-  // action that persists a new one.
-  const [scannedSpans, setScannedSpans] = useState<Span[]>([])
-
-  useEffect(() => {
-    if (!db) return
-    db.boards.where('[boardId+chainId]').equals([boardId, chainId]).first().then((b) => {
-      setScannedSpans(b?.scannedSpans ?? [])
-    })
-  }, [boardId, chainId, db, atBlock])
+  // board's NewThread events — see utils/spans.ts. Read straight off
+  // useBoard()'s own (already reactive, query-cache-backed) board object
+  // rather than a separate useState hydrated by its own effect — that used
+  // to be two independently-timed sources of truth for the same thing,
+  // which raced (and could show a blank/stale scan-map right after a
+  // reload while the bootstrap effect was still pending). scanRange patches
+  // useBoard()'s cache directly (see below), so there's exactly one place
+  // this data lives.
+  const scannedSpans: Span[] = board?.scannedSpans ?? []
 
   const { data: threads = [], error, isLoading } = useQuery({
     queryKey: threadsKey({ chainId, boardId }),
@@ -132,7 +129,6 @@ export const useThreads = (boardId: number, chainId: number, atBlock?: bigint) =
           .where('[boardId+chainId]')
           .equals([boardId, chainId])
           .modify(boardUpdate)
-        setScannedSpans(boardSpans)
 
         // useBoard()'s cached board object won't see the write above on its
         // own — without this, the liveSpan read above keeps seeing a stale
@@ -199,11 +195,17 @@ export const useThreads = (boardId: number, chainId: number, atBlock?: bigint) =
 
       if (newThreadCount > 0) updateMetadata({ threadCount: newThreadCount })
       const newSpans = mergeSpan(spans, { fromBlock: Number(fromBlock), toBlock: Number(toBlock) })
-      await db.boards.where('[boardId+chainId]').equals([boardId, chainId]).modify({
-        scannedSpans: newSpans,
-        lastSynced: liveSpan(newSpans)?.toBlock ?? 0,
-      })
-      setScannedSpans(newSpans)
+      const boardUpdate = { scannedSpans: newSpans, lastSynced: liveSpan(newSpans)?.toBlock ?? 0 }
+      await db.boards.where('[boardId+chainId]').equals([boardId, chainId]).modify(boardUpdate)
+      // Patch useBoard()'s cache directly (mirrors the main queryFn above) -
+      // scannedSpans is now read straight off that cached board object, with
+      // no separate local state, so without this patch the db write above
+      // would be invisible to the UI until something else happens to
+      // refetch the board.
+      queryClient.setQueryData(
+        boardKey({ chainId, boardId }),
+        (old: typeof board) => old ? { ...old, ...boardUpdate } : old
+      )
       queryClient.invalidateQueries({ queryKey: threadsKey({ chainId, boardId }) })
     } catch (e) {
       console.log('[useThreads] scanRange error:', e)
@@ -260,6 +262,14 @@ export const useThreads = (boardId: number, chainId: number, atBlock?: bigint) =
     && (earliest === undefined || (historyFloor != null && BigInt(earliest.fromBlock) > historyFloor))
 
   const live = liveSpan(scannedSpans)
+  // Not just "the earliest span reaches the floor" - earliest is whichever
+  // span has the lowest fromBlock, even if it's an island that hasn't merged
+  // with the tip-tailing live span yet (e.g. from clicking the floor-most
+  // scan-map cell directly). Only report done once there's exactly one span
+  // (earliest === live, by reference - see spans.ts) spanning floor to tip.
+  const isFullyScanned = strategy === 'reverseChunked'
+    && earliest != null && earliest === live
+    && historyFloor != null && BigInt(earliest.fromBlock) <= historyFloor
   const nearAnchor = atBlock != null ? spanNear(scannedSpans, Number(atBlock)) : undefined
   const forwardBoundary = nearAnchor ? BigInt(nearAnchor.toBlock) : null
   const canFetchForwardHistory = strategy === 'reverseChunked' && atBlock != null
@@ -334,6 +344,7 @@ export const useThreads = (boardId: number, chainId: number, atBlock?: bigint) =
     fetchHistory,
     canFetchHistory,
     historyBoundary,
+    isFullyScanned,
     fetchForwardHistory,
     canFetchForwardHistory,
     forwardBoundary,

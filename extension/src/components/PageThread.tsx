@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useThreads, useThread, useCreateThread, useBoards, computeImageCID } from '@hashchan/hooks'
 import { getSiteSettings, saveSiteSettings } from '../hooks/useSiteSettings'
 import { ReverseChunkedCursor } from './ReverseChunkedCursor'
+import { ScanMap } from './ScanMap'
 import { RpcHint } from './RpcHint'
 import { Post } from './Post'
 import { PostForm } from './PostForm'
@@ -79,7 +80,7 @@ const BoardView = ({
     queryClient.invalidateQueries({ queryKey: ['board', chainId, boardId] })
   }, [walletChainId])
 
-  const { threads, isLoading: threadsLoading, error: threadsError, fetchHistory, canFetchHistory, strategy, historyBoundary } = useThreads(boardId, chainId)
+  const { threads, isLoading: threadsLoading, error: threadsError, fetchHistory, canFetchHistory, strategy, historyBoundary, isFullyScanned, scanFloor, scanRange, scannedSpans, blockRangeLimit } = useThreads(boardId, chainId)
   const { data: blockNumber } = useBlockNumber({ watch: true })
   const [tookTooLong, setTookTooLong] = useState(false)
 
@@ -163,12 +164,22 @@ const BoardView = ({
       )}
 
       {isConnected && strategy === 'reverseChunked' && (
-        <ReverseChunkedCursor
-          blockNumber={blockNumber}
-          historyBoundary={historyBoundary}
-          fetchHistory={fetchHistory}
-          canFetchHistory={canFetchHistory}
-        />
+        <>
+          <ReverseChunkedCursor
+            blockNumber={blockNumber}
+            historyBoundary={historyBoundary}
+            isFullyScanned={isFullyScanned}
+            fetchHistory={fetchHistory}
+            canFetchHistory={canFetchHistory}
+          />
+          <ScanMap
+            scanFloor={scanFloor}
+            blockNumber={blockNumber}
+            blockRangeLimit={blockRangeLimit}
+            scannedSpans={scannedSpans}
+            scanRange={scanRange}
+          />
+        </>
       )}
 
       {!isConnected ? (

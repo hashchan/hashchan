@@ -5,6 +5,7 @@ import { useBoards, useHookSettings, useRpcDoctor } from '@hashchan/hooks'
 import type { RpcDoctorTestStatus as TestStatus } from '@hashchan/hooks'
 import { saveSiteSettings } from '../hooks/useSiteSettings'
 import type { Board } from '@hashchan/hooks'
+import type { SiteContext } from '../hooks/useSiteContext'
 
 const φ = Math.PHI
 
@@ -79,7 +80,7 @@ const SITE_BOARDS = [
   { siteId: 'x'             as const, symbol: 'x',      label: '/x/ — X' },
 ]
 
-export const Settings = () => {
+export const Settings = ({ ctx }: { ctx: SiteContext | null }) => {
   const { address, chainId } = useConnection()
   const { boards, isLoading: boardsLoading, error: boardsError } = useBoards()
   const { hookSettings, updateHookSettings } = useHookSettings()
@@ -139,6 +140,18 @@ export const Settings = () => {
       onSubmit={handleSubmit(onSubmit)}
       style={{ display: 'flex', flexDirection: 'column', gap: `${1 / φ}em` }}
     >
+      {!ctx && (
+        <p style={{
+          margin: 0,
+          padding: `${1 / φ ** 2}em`,
+          border: '1px solid #55555550',
+          color: '#aaa',
+          fontSize: `${1 / φ}em`,
+        }}>
+          Navigate to a supported site — YouTube, Wikipedia, Rotten Tomatoes, Reddit, X, or GitHub — to link the current page to a board. The settings below still apply globally.
+        </p>
+      )}
+
       {/* per-site board status */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: `${1 / φ ** 2}em` }}>
         <label style={{ display: 'block' }}>Boards on this chain</label>

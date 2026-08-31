@@ -2,9 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import { FaHouse, FaMessage, FaGear } from 'react-icons/fa6'
 import { PageThread } from './PageThread'
 import { Catalogue } from './Catalogue'
+import { LookedUpThread } from './LookedUpThread'
 import { Settings } from './Settings'
 import { ConnectButton } from './ConnectButton'
 import { useSiteContext } from '../hooks/useSiteContext'
+import type { HashchanThreadTarget } from '../utils/hashchanUrl'
 import logoLoop from '../assets/logo-gaussian-blur.gif'
 import logoOnce from '../assets/logo-gaussian-blur-no-repeat.gif'
 
@@ -40,35 +42,49 @@ const NAV_TABS: { id: Tab; icon: React.ReactNode; label: string }[] = [
 ]
 
 export const Sidebar = () => {
-  // ctx is computed synchronously (each site hook reads the current URL/DOM
-  // via a lazy useState initializer), so it's already correct on this very
-  // first render. Reading it before initializing `open` lets an unsupported
-  // page start closed immediately, instead of one paint of "open" (restored
-  // from a previous supported page) followed by the effect below closing it
-  // a moment later — that one extra paint was the visible open-then-close flash.
+  // ctx is null on pages we don't recognize (anything reached via the
+  // toolbar icon rather than the 6 auto-injected sites) - the panel still
+  // renders there, just in a page-agnostic mode (see Catalogue/Settings).
   const ctx = useSiteContext()
-  const [open, setOpen] = useState(() => !!ctx && localStorage.getItem('hashchan-open') === 'true')
+  // A pending open can arrive from the toolbar-icon click (background.js)
+  // before this component ever mounts - see content.tsx. Consuming it here
+  // (rather than only via the 'hashchan:open' event below) catches that race.
+  const [open, setOpen] = useState(() => {
+    if (window.__hashchanPendingOpen) return true
+    return !!ctx && localStorage.getItem('hashchan-open') === 'true'
+  })
   const [width, setWidth] = useState(sidebarWidth)
   const [isDragging, setIsDragging] = useState(false)
-  const [activeTab, setActiveTab] = useState<Tab>('thread')
+  const [activeTab, setActiveTab] = useState<Tab>(() => (ctx ? 'thread' : 'home'))
+  const [lookupTarget, setLookupTarget] = useState<HashchanThreadTarget | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const tabRef = useRef<HTMLDivElement>(null)
   const dragStartRef = useRef({ x: 0, width: 0 })
   const φ = Math.PHI
 
-  // Close sidebar and suppress toggle tab when navigating away from a supported page
   useEffect(() => {
-    if (!ctx) setOpen(false)
+    window.__hashchanPendingOpen = false
+    const handler = () => {
+      setOpen(v => {
+        const next = !v
+        localStorage.setItem('hashchan-open', String(next))
+        // An invalid-page open should land on the URL lookup tool, not a
+        // stale "thread" tab left over from a previous supported-page session.
+        if (next && !ctx) setActiveTab('home')
+        return next
+      })
+    }
+    window.addEventListener('hashchan:toggle', handler)
+    return () => window.removeEventListener('hashchan:toggle', handler)
   }, [ctx])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (!ctx) return
       if (e.altKey && e.key === 'h') setOpen(v => { localStorage.setItem('hashchan-open', String(!v)); return !v })
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [ctx])
+  }, [])
 
   useEffect(() => {
     // Re-clamp (don't reset) on viewport resize, so a smaller window doesn't
@@ -117,34 +133,32 @@ export const Sidebar = () => {
 
   return (
     <>
-      {ctx && (
-        <div
-          ref={tabRef}
-          onClick={toggle}
-          style={{
-            pointerEvents: 'all',
-            position: 'fixed',
-            right: open ? `${width}px` : '0',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            zIndex: 2147483647,
-            writingMode: 'vertical-rl',
-            background: '#090909',
-            border: '1px solid #20C20E',
-            borderRight: open ? 'none' : '1px solid #20C20E',
-            color: '#20C20E',
-            padding: '13px 8px',
-            cursor: 'pointer',
-            fontSize: '13px',
-            letterSpacing: '2px',
-            transition: isDragging ? 'none' : 'right 0.2618s ease',
-            userSelect: 'none',
-            fontFamily: 'Monospace, monospace',
-          }}
-        >
-          {open ? 'CLOSE ◀' : 'HASHCHAN ▶'}
-        </div>
-      )}
+      <div
+        ref={tabRef}
+        onClick={toggle}
+        style={{
+          pointerEvents: 'all',
+          position: 'fixed',
+          right: open ? `${width}px` : '0',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 2147483647,
+          writingMode: 'vertical-rl',
+          background: '#090909',
+          border: '1px solid #20C20E',
+          borderRight: open ? 'none' : '1px solid #20C20E',
+          color: '#20C20E',
+          padding: '13px 8px',
+          cursor: 'pointer',
+          fontSize: '13px',
+          letterSpacing: '2px',
+          transition: isDragging ? 'none' : 'right 0.2618s ease',
+          userSelect: 'none',
+          fontFamily: 'Monospace, monospace',
+        }}
+      >
+        {open ? 'CLOSE ◀' : 'HASHCHAN ▶'}
+      </div>
 
       <div
         ref={containerRef}
@@ -193,15 +207,20 @@ export const Sidebar = () => {
         {/* content area */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '13px' }}>
           {activeTab === 'home' && (
-            <Catalogue ctx={ctx} />
+            <Catalogue
+              ctx={ctx}
+              onLookup={(target) => { setLookupTarget(target); setActiveTab('thread') }}
+            />
           )}
           {activeTab === 'thread' && (
-            ctx
-              ? <PageThread ctx={ctx} />
-              : <p style={{ color: '#fff', fontSize: '0.854em' }}>Navigate to a supported page to see its thread.</p>
+            lookupTarget
+              ? <LookedUpThread target={lookupTarget} onClose={() => setLookupTarget(null)} />
+              : ctx
+                ? <PageThread ctx={ctx} />
+                : <p style={{ color: '#fff', fontSize: '0.854em' }}>Navigate to a supported page to see its thread.</p>
           )}
           {activeTab === 'settings' && (
-            <Settings />
+            <Settings ctx={ctx} />
           )}
         </div>
 

@@ -1,33 +1,28 @@
-// Manual activation: clicking the toolbar icon force-injects content.js into
-// the active tab. This covers the case where a supported page (reddit/x/github/
-// etc, all SPAs) was reached via client-side navigation rather than a full page
-// load, so the declarative content_scripts match in manifest.json never fired.
-// content.tsx's mount() is idempotent (no-ops if #hashchan-host already exists),
-// so re-running it on an already-active tab is harmless.
+// Clicking the toolbar icon slides the HashChan panel out on ANY page, not
+// just the sites we auto-recognize (youtube/wiki/rt/reddit/x/github). On a
+// recognized site the panel already knows the page's board/thread (a "valid"
+// page); anywhere else it opens in a page-agnostic mode where the URL lookup
+// tool is still fully usable (see Sidebar.tsx / Catalogue.tsx / Settings.tsx).
 //
-// The click is scoped to exactly the pages manifest.json already declares
-// support for - matches() below is checked against content_scripts[].matches
-// itself (not a hand-copied list), so clicking on an unsupported site is a
-// deliberate no-op rather than injecting into arbitrary pages.
-function matchPatternToRegExp(pattern) {
-  const escaped = pattern
-    .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-    .replace(/\*/g, '.*')
-  return new RegExp('^' + escaped + '$')
-}
+// activeTab grants temporary host access to whatever tab the icon was
+// clicked on, so this works without listing every possible site in
+// host_permissions. content.tsx's mount() is idempotent (no-ops if
+// #hashchan-host already exists), so re-injecting content.js on a tab that
+// already has it (e.g. one of the 6 sites, auto-injected via manifest
+// content_scripts) is harmless - it's just how we reach an already-mounted
+// page to tell it to open.
+chrome.action.onClicked.addListener(async (tab) => {
+  if (!tab.id || !tab.url || !/^https?:\/\//.test(tab.url)) return
 
-function isSupportedUrl(url) {
-  const { content_scripts = [] } = chrome.runtime.getManifest()
-  return content_scripts.some(({ matches }) =>
-    matches.some((pattern) => matchPatternToRegExp(pattern).test(url))
-  )
-}
-
-chrome.action.onClicked.addListener((tab) => {
-  if (!tab.id || !tab.url || !isSupportedUrl(tab.url)) return
-  chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    files: ['content.js'],
-    world: 'MAIN',
-  })
+  const target = { tabId: tab.id }
+  try {
+    await chrome.scripting.executeScript({ target, files: ['content.js'], world: 'MAIN' })
+    await chrome.scripting.executeScript({
+      target,
+      world: 'MAIN',
+      func: () => { window.__hashchanToggle?.() },
+    })
+  } catch {
+    // Restricted page (chrome web store, another extension's page, etc) - no-op.
+  }
 })

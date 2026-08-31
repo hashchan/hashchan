@@ -13,6 +13,7 @@ export const useReverseChunkedPostCursor = () => {
     canFetchHistory,
     strategy,
     historyBoundary,
+    isFullyScanned,
     fetchForward,
     canFetchForward,
     forwardBoundary,
@@ -26,6 +27,7 @@ export const useReverseChunkedPostCursor = () => {
   return {
     blockNumber,
     historyBoundary,
+    isFullyScanned,
     fetchHistory,
     canFetchHistory,
     isActive: strategy === 'reverseChunked',

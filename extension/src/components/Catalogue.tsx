@@ -4,8 +4,11 @@ import { useBlockNumber } from 'wagmi'
 import { getSiteSettings } from '../hooks/useSiteSettings'
 import { getPageUrl } from '../hooks/useSiteContext'
 import { ReverseChunkedCursor } from './ReverseChunkedCursor'
+import { ScanMap } from './ScanMap'
 import { RpcHint } from './RpcHint'
+import { ThreadLookup } from './ThreadLookup'
 import type { SiteContext } from '../hooks/useSiteContext'
+import type { HashchanThreadTarget } from '../utils/hashchanUrl'
 
 const φ = Math.PHI
 const SLOW_LOADING_MS = 8000
@@ -63,25 +66,45 @@ const ThreadCard = ({
   )
 }
 
-export const Catalogue = ({ ctx }: { ctx: SiteContext | null }) => {
-  const siteId = ctx?.siteId ?? 'youtube'
-  const settings = getSiteSettings(siteId)
+const InvalidPageNotice = () => (
+  <div style={{
+    padding: `${1 / φ}em`,
+    border: '1px dashed #55555550',
+    color: '#666',
+    fontSize: `${1 / φ}em`,
+    textAlign: 'center',
+  }}>
+    Navigate to a supported page — YouTube, Wikipedia, Rotten Tomatoes, Reddit, X, or GitHub — to see its thread list.
+  </div>
+)
 
-  if (!settings) {
-    return (
-      <p style={{ color: '#fff', padding: '8px' }}>
-        Configure a board for this site in Settings first.
-      </p>
-    )
-  }
+export const Catalogue = ({
+  ctx,
+  onLookup,
+}: {
+  ctx: SiteContext | null
+  onLookup: (target: HashchanThreadTarget) => void
+}) => {
+  const settings = ctx ? getSiteSettings(ctx.siteId) : null
 
   return (
-    <CatalogueList
-      boardId={settings.boardId}
-      chainId={settings.chainId}
-      currentPageId={ctx?.pageId ?? ''}
-      siteId={siteId}
-    />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: `${1 / φ ** 2}em` }}>
+      <ThreadLookup onLookup={onLookup} />
+      {!ctx ? (
+        <InvalidPageNotice />
+      ) : !settings ? (
+        <p style={{ color: '#fff', padding: '8px' }}>
+          Configure a board for this site in Settings first.
+        </p>
+      ) : (
+        <CatalogueList
+          boardId={settings.boardId}
+          chainId={settings.chainId}
+          currentPageId={ctx.pageId}
+          siteId={ctx.siteId}
+        />
+      )}
+    </div>
   )
 }
 
@@ -94,9 +117,9 @@ const CatalogueList = ({
   boardId: number
   chainId: number
   currentPageId: string
-  siteId: ReturnType<typeof getSiteSettings> extends null ? never : any
+  siteId: SiteContext['siteId']
 }) => {
-  const { threads, isLoading, error, fetchHistory, canFetchHistory, strategy, historyBoundary } = useThreads(boardId, chainId)
+  const { threads, isLoading, error, fetchHistory, canFetchHistory, strategy, historyBoundary, isFullyScanned, scanFloor, scanRange, scannedSpans, blockRangeLimit } = useThreads(boardId, chainId)
   const { data: blockNumber } = useBlockNumber({ watch: true })
   const [tookTooLong, setTookTooLong] = useState(false)
 
@@ -128,12 +151,22 @@ const CatalogueList = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: `${1 / φ ** 2}em` }}>
       {strategy === 'reverseChunked' && (
-        <ReverseChunkedCursor
-          blockNumber={blockNumber}
-          historyBoundary={historyBoundary}
-          fetchHistory={fetchHistory}
-          canFetchHistory={canFetchHistory}
-        />
+        <>
+          <ReverseChunkedCursor
+            blockNumber={blockNumber}
+            historyBoundary={historyBoundary}
+            isFullyScanned={isFullyScanned}
+            fetchHistory={fetchHistory}
+            canFetchHistory={canFetchHistory}
+          />
+          <ScanMap
+            scanFloor={scanFloor}
+            blockNumber={blockNumber}
+            blockRangeLimit={blockRangeLimit}
+            scannedSpans={scannedSpans}
+            scanRange={scanRange}
+          />
+        </>
       )}
       {!threads.length ? (
         <p style={{ color: '#fff', padding: '8px' }}>No threads yet.</p>

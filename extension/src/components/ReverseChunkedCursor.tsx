@@ -1,14 +1,16 @@
 const φ = Math.PHI
 const VALUE_COLOR = '#DF3DF1' // complement of #20C20E
+const DONE_COLOR = '#20C20E'
 
 interface CursorProps {
   blockNumber: bigint | undefined
   historyBoundary: bigint | null
+  isFullyScanned: boolean
   fetchHistory: () => void
   canFetchHistory: boolean
 }
 
-export const ReverseChunkedCursor = ({ blockNumber, historyBoundary, fetchHistory, canFetchHistory }: CursorProps) => {
+export const ReverseChunkedCursor = ({ blockNumber, historyBoundary, isFullyScanned, fetchHistory, canFetchHistory }: CursorProps) => {
   const fromBlock = historyBoundary ?? blockNumber
 
   return (
@@ -27,13 +29,17 @@ export const ReverseChunkedCursor = ({ blockNumber, historyBoundary, fetchHistor
           {fromBlock?.toString() ?? '…'} to {blockNumber?.toString() ?? '…'}
         </strong>
       </span>
-      <button
-        disabled={!canFetchHistory}
-        onClick={fetchHistory}
-        style={{ margin: 0, opacity: canFetchHistory ? 1 : 0.382 }}
-      >
-        scan backwards
-      </button>
+      {isFullyScanned ? (
+        <span style={{ color: DONE_COLOR }}>fully scanned — listening for new posts</span>
+      ) : (
+        <button
+          disabled={!canFetchHistory}
+          onClick={fetchHistory}
+          style={{ margin: 0, opacity: canFetchHistory ? 1 : 0.382 }}
+        >
+          scan backwards
+        </button>
+      )}
     </div>
   )
 }
